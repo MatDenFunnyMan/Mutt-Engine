@@ -11,7 +11,6 @@ import funkin.ui.states.MainMenuState;
 import funkin.editors.ChartingState;
 import funkin.backend.StateManager;
 import flixel.graphics.frames.FlxFrame;
-import funkin.ui.states.StickerSubState;
 
 class TitleState extends MusicBeatState
 {
@@ -45,11 +44,9 @@ class TitleState extends MusicBeatState
 
 	override public function create():Void
 	{
-		if(StickerSubState.pendingStickers == null)
-			Paths.clearStoredMemory();
+		Paths.clearStoredMemory();
 		super.create();
-		if(StickerSubState.pendingStickers == null)
-			Paths.clearUnusedMemory();
+		Paths.clearUnusedMemory();
 
 		if(!initialized)
 		{

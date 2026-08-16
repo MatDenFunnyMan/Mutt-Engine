@@ -17,7 +17,7 @@ enum MainMenuColumn {
 class MainMenuState extends MusicBeatState
 {
 	public static var psychEngineVersion:String = '1.0.4'; // This is also used for Discord RPC
-	public static var cheeseEngineVersion:String = '1.61';
+	public static var muttEngineVersion:String = '0.1 (PROTOTYPE DEV BUILD)';
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
 	var allowMouse:Bool = true; //Turn this off to block mouse movement in menus
@@ -30,7 +30,7 @@ class MainMenuState extends MusicBeatState
 	var optionShit:Array<String> = [
 		'story_mode',
 		'freeplay',
-		// #if MODS_ALLOWED 'mods', #end
+		#if MODS_ALLOWED 'mods', #end
 		'credits'
 	];
 
@@ -110,11 +110,11 @@ class MainMenuState extends MusicBeatState
 			rightItem.x -= rightItem.width;
 		}
 
-		/*var tabText:FlxText = new FlxText(12, FlxG.height - 84, 0, "Press TAB to open the MODS selector.", 12);
+		var tabText:FlxText = new FlxText(12, FlxG.height - 84, 0, "Press TAB to open the MODS selector.", 12);
 		tabText.scrollFactor.set();
 		tabText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(tabText);
-		var cheeseVer:FlxText = new FlxText(12, FlxG.height - 64, 0, "Cheese Engine v" + cheeseEngineVersion, 12);
+		var cheeseVer:FlxText = new FlxText(12, FlxG.height - 64, 0, "Mutt Engine v" + muttEngineVersion, 12);
 		cheeseVer.scrollFactor.set();
 		cheeseVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(cheeseVer);
@@ -141,7 +141,7 @@ class MainMenuState extends MusicBeatState
 		#end
 
 		#if CHECK_FOR_UPDATES
-		if (showOutdatedWarning && ClientPrefs.data.checkForUpdates && Std.parseFloat(funkin.ui.states.OutdatedSubState.updateVersion) > Std.parseFloat(cheeseEngineVersion)) {
+		if (showOutdatedWarning && ClientPrefs.data.checkForUpdates && Std.parseFloat(funkin.ui.states.OutdatedSubState.updateVersion) > Std.parseFloat(muttEngineVersion)) {
 			persistentUpdate = false;
 			showOutdatedWarning = false;
 			openSubState(new funkin.ui.states.OutdatedSubState());

@@ -114,7 +114,7 @@ class InitialState extends MusicBeatState
 									if(sys.FileSystem.exists(fullPath))
 									{
 										try {
-											var luaState = new funkin.scripting.LuaStateLoader.LuaState(fullPath, stateName, modDir, null);
+											var luaState = new funkin.scripting.LuaStateLoader.LuaState(fullPath, stateName, modDir);
 											if(luaState.isInitialState)
 											{
 												trace('InitialState: Found Lua initial state: $stateName');

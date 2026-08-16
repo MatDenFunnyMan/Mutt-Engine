@@ -48,7 +48,6 @@ class LuaState extends MusicBeatState
 	public var lua:State = null;
 	public var stateName:String;
 	public var modDirectory:String;
-	public var oldStickers:Array<funkin.ui.states.StickerSubState.StickerSprite>;
 	public var isInitialState:Bool = false;
 	public var closed:Bool = false;
 	public var lastCalledFunction:String = '';
@@ -61,12 +60,11 @@ class LuaState extends MusicBeatState
 	public var hscript:HScript = null;
 	#end
 
-	public function new(scriptPath:String, name:String, ?modDir:String, ?stickers:Array<funkin.ui.states.StickerSubState.StickerSprite>)
+	public function new(scriptPath:String, name:String, ?modDir:String)
 	{
 		super();
 		this.stateName = name;
 		this.modDirectory = modDir;
-		this.oldStickers = stickers;
 
 		if(modDirectory != null && modDirectory != '')
 			Mods.currentModDirectory = modDirectory;
@@ -1800,11 +1798,6 @@ class LuaState extends MusicBeatState
 		}
 		#end
 
-		if(oldStickers != null && oldStickers.length > 0) {
-			this.persistentUpdate = false;
-			this.persistentDraw = true;
-			openSubState(new funkin.ui.states.StickerSubState(oldStickers, null));
-		}
 	}
 
 	override function closeSubState()
@@ -1823,7 +1816,6 @@ class LuaState extends MusicBeatState
 
 		var _hasBlockingSubState:Bool = subState != null
 			&& !Std.isOfType(subState, CustomFadeTransition)
-			&& !Std.isOfType(subState, funkin.ui.states.StickerSubState)
 			&& !Std.isOfType(subState, funkin.ui.states.ResetScoreSubState);
 
 		if(!_hasBlockingSubState)
@@ -2119,7 +2111,7 @@ class LuaStateScript
 
 class LuaStateLoader
 {
-	public static function loadStateScript(stateName:String, ?stickers:Array<funkin.ui.states.StickerSubState.StickerSprite>):FlxState
+	public static function loadStateScript(stateName:String):FlxState
 	{
 		#if MODS_ALLOWED
 		var save = FlxG.save;
@@ -2149,7 +2141,7 @@ class LuaStateLoader
 				Mods.loadTopMod();
 
 				try {
-					var stateInstance = new LuaState(scriptPath, stateName, savedModDirectory, stickers);
+					var stateInstance = new LuaState(scriptPath, stateName, savedModDirectory);
 					return stateInstance;
 				} catch(e:Dynamic) {
 					trace('LuaStateLoader: Error creating state $stateName: $e');

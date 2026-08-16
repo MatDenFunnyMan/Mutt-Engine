@@ -41,20 +41,12 @@ class MusicBeatState extends FlxState
 
 		super.create();
 
-		var pending = funkin.ui.states.StickerSubState.pendingStickers;
-
-		if(!skip && pending == null) {
+		if(!skip) {
 			openSubState(new CustomFadeTransition(0.5, true));
 		}
 		FlxTransitionableState.skipNextTransOut = false;
 		FlxTransitionableState.skipNextTransIn = false;
 		timePassedOnState = 0;
-
-		if(pending != null)
-		{
-			funkin.ui.states.StickerSubState.pendingStickers = null;
-			openSubState(new funkin.ui.states.StickerSubState(pending));
-		}
 	}
 
 	public function initPsychCamera():PsychCamera
@@ -192,31 +184,14 @@ class MusicBeatState extends FlxState
 		curStep = lastChange.stepTime + Math.floor(shit);
 	}
 
+	// not using stickers in my mods or builds, so im force disabling them and removing the mod integration for them :)
 	public static function switchStateWithStickers(nextState:FlxState, ?mode:String) {
 		if (nextState == null) return;
-		if (mode != null) funkin.ui.states.StickerSubState.stickerMode = mode;
-		FlxTransitionableState.skipNextTransIn = true;
-		FlxTransitionableState.skipNextTransOut = true;
-		FlxG.state.openSubState(new funkin.ui.states.StickerSubState(null, function(_) return nextState));
+		switchState(nextState);
 	}
 
 	public static function switchStateWithStickersByName(stateName:String, ?mode:String) {
-		if (mode != null) funkin.ui.states.StickerSubState.stickerMode = mode;
-		FlxTransitionableState.skipNextTransIn = true;
-		FlxTransitionableState.skipNextTransOut = true;
-		FlxG.state.openSubState(new funkin.ui.states.StickerSubState(null, function(_) {
-			#if HSCRIPT_ALLOWED
-			var hscriptState = HScriptStateLoader.loadStateScript(stateName);
-			if (hscriptState != null) return hscriptState;
-			#end
-			#if LUA_ALLOWED
-			var luaState = funkin.scripting.LuaStateLoader.loadStateScript(stateName);
-			if (luaState != null) return luaState;
-			#end
-			var stateClass = funkin.backend.StateManager.getStateClass(stateName);
-			if (stateClass != null) return Type.createInstance(stateClass, []);
-			return new funkin.ui.states.MainMenuState();
-		}));
+		switchStateByName(stateName);
 	}
 
 	public static function switchStateDirect(nextState:FlxState = null) {

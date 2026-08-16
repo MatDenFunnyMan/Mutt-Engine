@@ -19,8 +19,6 @@ import openfl.utils.Assets;
 import openfl.media.Sound;
 
 import haxe.Json;
-import funkin.ui.states.StickerSubState;
-import funkin.ui.states.StickerSubState.StickerSprite;
 
 class FreeplayState extends MusicBeatState
 {
@@ -63,20 +61,11 @@ class FreeplayState extends MusicBeatState
 
 	var player:MusicPlayer;
 
-	var stickerSubState:StickerSubState;
-	var oldStickers:Array<StickerSprite>;
-
 	var previewSound:FlxSound;
 	var previewTimer:FlxTimer;
 	var currentPreviewSong:Int = -1;
 	static final PREVIEW_VOLUME:Float = 0.8;
 	static final PREVIEW_DELAY:Float = 1.0;
-
-	public function new(?stickers:Array<StickerSprite>)
-	{
-		super();
-		oldStickers = stickers;
-	}
 
 	function getCurrentModMode():String
 	{
@@ -354,17 +343,7 @@ class FreeplayState extends MusicBeatState
 		super.create();
 		Paths.clearUnusedMemory();
 
-		if(oldStickers != null && oldStickers.length > 0)
-		{
-			this.persistentUpdate = false;
-			this.persistentDraw = true;
-			stickerSubState = new StickerSubState(oldStickers, null);
-			openSubState(stickerSubState);
-		}
-		else
-		{
-			this.persistentUpdate = true;
-		}
+		this.persistentUpdate = true;
 	}	
 
 	override function closeSubState()

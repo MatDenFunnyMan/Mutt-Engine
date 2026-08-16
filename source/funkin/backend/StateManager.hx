@@ -98,10 +98,10 @@ class StateManager
 		}
 	}
 
-	public static function loadLuaState(stateName:String, ?stickers:Array<funkin.ui.states.StickerSubState.StickerSprite>):FlxState
+	public static function loadLuaState(stateName:String):FlxState
 	{
 		#if LUA_ALLOWED
-		var luaState = funkin.scripting.LuaStateLoader.loadStateScript(stateName, stickers);
+		var luaState = funkin.scripting.LuaStateLoader.loadStateScript(stateName);
 		if(luaState != null) return luaState;
 		#end
 		return null;

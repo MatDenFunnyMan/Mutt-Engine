@@ -9,7 +9,6 @@ import flixel.util.FlxStringUtil;
 import funkin.ui.states.StoryMenuState;
 import funkin.ui.states.FreeplayState;
 import funkin.ui.options.OptionsState;
-import funkin.ui.states.StickerSubState;
 
 #if HSCRIPT_ALLOWED
 import funkin.backend.HScriptStateLoader.HScriptState;
@@ -465,116 +464,43 @@ class PauseSubState extends MusicBeatSubstate
 					
 					close();
 					
-					var checkNoStickers:Bool = false;
-					#if MODS_ALLOWED
-					if(Mods.currentModDirectory != null && Mods.currentModDirectory != '')
+					if(PlayState.isStoryMode)
 					{
-						var modStickersBasePath:String = Paths.mods(Mods.currentModDirectory + '/stickers/');
-						var mainConfigPath:String = modStickersBasePath + 'infoStickers.json';
-						
-						if(sys.FileSystem.exists(mainConfigPath))
-						{
-							try {
-								var configContent:String = sys.io.File.getContent(mainConfigPath);
-								var config:Dynamic = haxe.Json.parse(configContent);
-								if(config.no_stickers != null && config.no_stickers == true)
-									checkNoStickers = true;
-							} catch(e:Dynamic) {}
-						}
-					}
-					#end
-					
-					if(checkNoStickers)
-					{
-						if(PlayState.isStoryMode)
-						{
-							MusicBeatState.switchState(new StoryMenuState());
-						}
-						else
-						{
-							var stateToReturn:String = PlayState.returnAfterSongState != null ? PlayState.returnAfterSongState : 'FreeplayState';
-							PlayState.returnAfterSongState = null;
-							
-							#if HSCRIPT_ALLOWED
-							var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
-							if(hscriptState != null)
-							{
-								MusicBeatState.switchState(hscriptState);
-							}
-							else
-							#end
-							{
-								var luaState = funkin.backend.StateManager.loadLuaState(stateToReturn);
-								if(luaState != null)
-								{
-									MusicBeatState.switchState(luaState);
-								}
-								else
-								{
-									var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
-									if(stateClass != null)
-									{
-										var stateInstance = Type.createInstance(stateClass, []);
-										MusicBeatState.switchState(stateInstance);
-									}
-									else
-										MusicBeatState.switchState(new FreeplayState());
-								}
-							}
-						}
-						FlxG.sound.playMusic(Paths.music('freakyMenu'));
+						MusicBeatState.switchState(new StoryMenuState());
 					}
 					else
 					{
-						FlxTransitionableState.skipNextTransIn = true;
-						FlxTransitionableState.skipNextTransOut = true;
+						var stateToReturn:String = PlayState.returnAfterSongState != null ? PlayState.returnAfterSongState : 'FreeplayState';
+						PlayState.returnAfterSongState = null;
 						
-						if(PlayState.isStoryMode)
+						#if HSCRIPT_ALLOWED
+						var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
+						if(hscriptState != null)
 						{
-							var stickerSubState:StickerSubState = new StickerSubState(null, function(sticker) return new StoryMenuState());
-							PlayState.instance.openSubState(stickerSubState);
+							MusicBeatState.switchState(hscriptState);
 						}
-						else 
+						else
+						#end
 						{
-							var stateToReturn:String = PlayState.returnAfterSongState != null ? PlayState.returnAfterSongState : 'FreeplayState';
-							PlayState.returnAfterSongState = null;
-							
-							var stickerSubState:StickerSubState = new StickerSubState(null, function(sticker) {
-								var oldStickers = sticker.grpStickers != null ? sticker.grpStickers.members.copy() : null;
-								
-								#if HSCRIPT_ALLOWED
-								var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
-								if(hscriptState != null)
+							var luaState = funkin.backend.StateManager.loadLuaState(stateToReturn);
+							if(luaState != null)
+							{
+								MusicBeatState.switchState(luaState);
+							}
+							else
+							{
+								var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
+								if(stateClass != null)
 								{
-									if(Std.isOfType(hscriptState, funkin.backend.HScriptStateLoader.HScriptState))
-									{
-										var hstate = cast(hscriptState, funkin.backend.HScriptStateLoader.HScriptState);
-										hstate.oldStickers = oldStickers;
-									}
-									return hscriptState;
+									var stateInstance = Type.createInstance(stateClass, []);
+									MusicBeatState.switchState(stateInstance);
 								}
 								else
-								#end
-								{
-									var luaState = funkin.backend.StateManager.loadLuaState(stateToReturn, oldStickers);
-									if(luaState != null)
-										return luaState;
-									var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
-									if(stateClass != null)
-									{
-										var stateInstance = Type.createInstance(stateClass, []);
-										if(Std.isOfType(stateInstance, FreeplayState))
-										{
-											return new FreeplayState(oldStickers);
-										}
-										return stateInstance;
-									}
-									return new FreeplayState(oldStickers);
-								}
-							});
-							PlayState.instance.openSubState(stickerSubState);
+									MusicBeatState.switchState(new FreeplayState());
+							}
 						}
 					}
+					FlxG.sound.playMusic(Paths.music('freakyMenu'));
 				}
 		}
 	}

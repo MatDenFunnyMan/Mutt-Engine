@@ -30,8 +30,6 @@ import funkin.editors.EditorHelper;
 import funkin.game.states.PauseSubState;
 import funkin.game.states.GameOverSubstate;
 
-import funkin.ui.states.StickerSubState;
-
 #if HSCRIPT_ALLOWED
 import funkin.backend.HScriptStateLoader.HScriptState;
 #end
@@ -2161,10 +2159,6 @@ class PlayState extends MusicBeatState
 	public var canResync:Bool = true;
 	override function closeSubState()
 	{
-		if (stickerSubState != null && subState == stickerSubState)
-		{
-			stickerSubState = null;
-		}
 		super.closeSubState();
 		
 		stagesFunc(function(stage:BaseStage) stage.closeSubState());
@@ -4706,7 +4700,6 @@ class PlayState extends MusicBeatState
 
 
 	public var transitioning = false;
-	public var stickerSubState:StickerSubState;
 	public function endSong()
 	{
 		//Should kill you if you tried to cheat
@@ -4835,80 +4828,34 @@ class PlayState extends MusicBeatState
 					var stateToReturn:String = returnAfterSongState != null ? returnAfterSongState : 'FreeplayState';
 					returnAfterSongState = null;
 					
-					var checkNoStickers:Bool = false;
-					#if MODS_ALLOWED
-					if(Mods.currentModDirectory != null && Mods.currentModDirectory != '')
+					#if HSCRIPT_ALLOWED
+					var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
+					if(hscriptState != null)
 					{
-						var modStickersBasePath:String = Paths.mods(Mods.currentModDirectory + '/stickers/');
-						var mainConfigPath:String = modStickersBasePath + 'infoStickers.json';
-						
-						if(sys.FileSystem.exists(mainConfigPath))
-						{
-							try {
-								var configContent:String = sys.io.File.getContent(mainConfigPath);
-								var config:Dynamic = haxe.Json.parse(configContent);
-								if(config.no_stickers != null && config.no_stickers == true)
-									checkNoStickers = true;
-							} catch(e:Dynamic) {}
-						}
-					}
-					#end
-					
-					if(checkNoStickers)
-					{
-						#if HSCRIPT_ALLOWED
-						var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
-						if(hscriptState != null)
-						{
-							MusicBeatState.switchState(hscriptState);
-						}
-						else
-						#end
-						{
-							var luaState = funkin.backend.StateManager.loadLuaState(stateToReturn);
-							if(luaState != null)
-							{
-								MusicBeatState.switchState(luaState);
-							}
-							else
-							{
-								var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
-								if(stateClass != null)
-								{
-									var stateInstance = Type.createInstance(stateClass, []);
-									MusicBeatState.switchState(stateInstance);
-								}
-								else
-									MusicBeatState.switchState(new FreeplayState());
-							}
-						}
-						FlxG.sound.playMusic(Paths.music('freakyMenu'));
-						changedDifficulty = false;
+						MusicBeatState.switchState(hscriptState);
 					}
 					else
+					#end
 					{
-						FlxG.sound.playMusic(Paths.music('freakyMenu'));
-
-						FlxTransitionableState.skipNextTransIn = true;
-						FlxTransitionableState.skipNextTransOut = true;
-
-						stickerSubState = new StickerSubState(null, function(sticker) {
-						#if HSCRIPT_ALLOWED
-						var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
-						if(hscriptState != null)
-							return hscriptState;
-						#end
 						var luaState = funkin.backend.StateManager.loadLuaState(stateToReturn);
 						if(luaState != null)
-							return luaState;
-						var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
-						if(stateClass != null)
-							return Type.createInstance(stateClass, []);
-						return new FreeplayState();
-					});
-				openSubState(stickerSubState);
-				changedDifficulty = false;
-			}
+						{
+							MusicBeatState.switchState(luaState);
+						}
+						else
+						{
+							var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
+							if(stateClass != null)
+							{
+								var stateInstance = Type.createInstance(stateClass, []);
+								MusicBeatState.switchState(stateInstance);
+							}
+							else
+								MusicBeatState.switchState(new FreeplayState());
+						}
+					}
+					FlxG.sound.playMusic(Paths.music('freakyMenu'));
+					changedDifficulty = false;
 			}
 			transitioning = true;
 		}

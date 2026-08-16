@@ -51,18 +51,8 @@ class StoryMenuState extends MusicBeatState
 		savedModDirectory = Mods.currentModDirectory;
 		trace('DEBUG StoryMenu: Saved mod directory = $savedModDirectory');
 
-		var hasPendingStickers:Bool = funkin.ui.states.StickerSubState.pendingStickers != null;
-		trace('StoryMenu create - hasPendingStickers: $hasPendingStickers');
-
-		if(!hasPendingStickers)
-		{
-			trace('StoryMenu - clearing memory');
-			Paths.clearStoredMemory();
-			trace('StoryMenu - clearStoredMemory done');
-			Paths.clearUnusedMemory();
-			trace('StoryMenu - clearUnusedMemory done');
-		}
-		trace('StoryMenu - starting UI build');
+		Paths.clearStoredMemory();
+		Paths.clearUnusedMemory();
 
 		persistentUpdate = persistentDraw = true;
 		PlayState.isStoryMode = true;

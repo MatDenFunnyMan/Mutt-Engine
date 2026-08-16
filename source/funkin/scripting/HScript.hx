@@ -218,7 +218,6 @@ class HScript extends Iris
 			XY: flixel.util.FlxAxes.XY
 		});
 		set('LoadingState', funkin.ui.states.LoadingState);
-		set('StickerSubState', funkin.ui.states.StickerSubState);
 		set('switchStateWithStickers', function(nextState:flixel.FlxState, ?mode:String) {
 			funkin.backend.MusicBeatState.switchStateWithStickers(nextState, mode);
 		});

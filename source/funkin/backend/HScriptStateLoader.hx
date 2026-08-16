@@ -8,17 +8,15 @@ class HScriptState extends MusicBeatState
 	public var hscript:HScript;
 	public var stateName:String;
 	public var modDirectory:String;
-	public var oldStickers:Array<funkin.ui.states.StickerSubState.StickerSprite>;
 	public var isInitialState:Bool = false;
-	
-	public function new(script:HScript, name:String, ?modDir:String, ?stickers:Array<funkin.ui.states.StickerSubState.StickerSprite>)
+
+	public function new(script:HScript, name:String, ?modDir:String)
 	{
 		super();
 		this.hscript = script;
 		this.stateName = name;
 		this.modDirectory = modDir;
-		this.oldStickers = stickers;
-		
+
 		if(modDirectory != null && modDirectory != '')
 		{
 			Mods.currentModDirectory = modDirectory;
@@ -69,12 +67,6 @@ class HScriptState extends MusicBeatState
 		}
 		#end
 
-		var pending = funkin.ui.states.StickerSubState.pendingStickers;
-		if(pending != null && pending.length > 0)
-		{
-			this.persistentUpdate = false;
-			this.persistentDraw = true;
-		}
 	}
 	
 	override function closeSubState()
@@ -96,8 +88,7 @@ class HScriptState extends MusicBeatState
 		super.update(elapsed);
 		
 		var _hasBlockingSubState:Bool = subState != null
-			&& !Std.isOfType(subState, CustomFadeTransition)
-			&& !Std.isOfType(subState, funkin.ui.states.StickerSubState);
+			&& !Std.isOfType(subState, CustomFadeTransition);
 
 		if(!_hasBlockingSubState)
 		{
@@ -199,7 +190,7 @@ class HScriptStateLoader
 					var hscript = new HScript(null, scriptPath, null, false);
 					hscript.set('state', null);
 					
-					var stateInstance = new HScriptState(hscript, stateName, savedModDirectory, null);
+					var stateInstance = new HScriptState(hscript, stateName, savedModDirectory);
 					hscript.set('state', stateInstance);
 					hscript.set('add', function(obj:Dynamic) { return stateInstance.add(obj); });
 					hscript.set('remove', function(obj:Dynamic, splice:Bool = false) { return stateInstance.remove(obj, splice); });
