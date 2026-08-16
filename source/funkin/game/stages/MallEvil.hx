@@ -1,6 +1,6 @@
 package funkin.game.stages;
 
-import states.stages.objects.*;
+import funkin.game.stages.objects.*;
 
 class MallEvil extends BaseStage
 {

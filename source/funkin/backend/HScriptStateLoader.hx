@@ -1,17 +1,17 @@
 package funkin.backend;
 
 import flixel.FlxState;
-import psychlua.HScript;
+import funkin.scripting.HScript;
 
 class HScriptState extends MusicBeatState
 {
 	public var hscript:HScript;
 	public var stateName:String;
 	public var modDirectory:String;
-	public var oldStickers:Array<substates.StickerSubState.StickerSprite>;
+	public var oldStickers:Array<funkin.ui.states.StickerSubState.StickerSprite>;
 	public var isInitialState:Bool = false;
 	
-	public function new(script:HScript, name:String, ?modDir:String, ?stickers:Array<substates.StickerSubState.StickerSprite>)
+	public function new(script:HScript, name:String, ?modDir:String, ?stickers:Array<funkin.ui.states.StickerSubState.StickerSprite>)
 	{
 		super();
 		this.hscript = script;
@@ -50,26 +50,26 @@ class HScriptState extends MusicBeatState
 		}
 
 		#if CHECK_FOR_UPDATES
-		if(stateName == 'MainMenuState' && substates.OutdatedSubState.updateVersion != null
+		if(stateName == 'MainMenuState' && funkin.ui.states.OutdatedSubState.updateVersion != null
 			&& ClientPrefs.data.checkForUpdates
-			&& Std.parseFloat(substates.OutdatedSubState.updateVersion) > Std.parseFloat(states.MainMenuState.cheeseEngineVersion))
+			&& Std.parseFloat(funkin.ui.states.OutdatedSubState.updateVersion) > Std.parseFloat(funkin.ui.states.MainMenuState.cheeseEngineVersion))
 		{
 			persistentUpdate = false;
-			openSubState(new substates.OutdatedSubState());
+			openSubState(new funkin.ui.states.OutdatedSubState());
 		}
 		#end
 
 		#if CHECK_FOR_UPDATES
 		if(stateName == 'MainMenuState' && ClientPrefs.data.checkForUpdates
-			&& substates.OutdatedSubState.updateVersion != null
-			&& Std.parseFloat(substates.OutdatedSubState.updateVersion) > Std.parseFloat(states.MainMenuState.cheeseEngineVersion))
+			&& funkin.ui.states.OutdatedSubState.updateVersion != null
+			&& Std.parseFloat(funkin.ui.states.OutdatedSubState.updateVersion) > Std.parseFloat(funkin.ui.states.MainMenuState.cheeseEngineVersion))
 		{
 			persistentUpdate = false;
-			openSubState(new substates.OutdatedSubState());
+			openSubState(new funkin.ui.states.OutdatedSubState());
 		}
 		#end
 
-		var pending = substates.StickerSubState.pendingStickers;
+		var pending = funkin.ui.states.StickerSubState.pendingStickers;
 		if(pending != null && pending.length > 0)
 		{
 			this.persistentUpdate = false;
@@ -97,13 +97,13 @@ class HScriptState extends MusicBeatState
 		
 		var _hasBlockingSubState:Bool = subState != null
 			&& !Std.isOfType(subState, CustomFadeTransition)
-			&& !Std.isOfType(subState, substates.StickerSubState);
+			&& !Std.isOfType(subState, funkin.ui.states.StickerSubState);
 
 		if(!_hasBlockingSubState)
 		{
 			if(stateName == 'MainMenuState' && FlxG.keys.justPressed.TAB)
 			{
-				var sub = new backend.ModSelectorSubstate();
+				var sub = new funkin.modding.ModSelectorSubstate();
 				sub._mouseWasVisible = FlxG.mouse.visible;
 				FlxG.mouse.visible = false;
 				openSubState(sub);
@@ -211,10 +211,10 @@ class HScriptStateLoader
 					hscript.set('sound', FlxG.sound);
 					hscript.set('openSubState', function(substate:Dynamic) { stateInstance.openSubState(substate); });
 					hscript.set('closeSubState', function() { stateInstance.closeSubState(); });
-					hscript.set('switchState', function(nextState:Dynamic) { backend.MusicBeatState.switchState(nextState); });
-					hscript.set('switchStateDirect', function(nextState:Dynamic) { backend.MusicBeatState.switchStateDirect(nextState); });
-					hscript.set('switchStateByName', function(name:String) { backend.MusicBeatState.switchStateByName(name); });
-					hscript.set('switchStateDirectByName', function(name:String) { backend.MusicBeatState.switchStateDirectByName(name); });
+					hscript.set('switchState', function(nextState:Dynamic) { funkin.backend.MusicBeatState.switchState(nextState); });
+					hscript.set('switchStateDirect', function(nextState:Dynamic) { funkin.backend.MusicBeatState.switchStateDirect(nextState); });
+					hscript.set('switchStateByName', function(name:String) { funkin.backend.MusicBeatState.switchStateByName(name); });
+					hscript.set('switchStateDirectByName', function(name:String) { funkin.backend.MusicBeatState.switchStateDirectByName(name); });
 					hscript.set('resetState', function() { FlxG.resetState(); });
 					hscript.set('persistentUpdate', stateInstance.persistentUpdate);
 					hscript.set('persistentDraw', stateInstance.persistentDraw);

@@ -1,7 +1,7 @@
 package funkin.editors;
 
-import objects.StrumNote;
-import objects.HoldCover;
+import funkin.game.notes.StrumNote;
+import funkin.game.notes.HoldCover;
 
 import openfl.net.FileFilter;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
@@ -10,8 +10,8 @@ import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.net.FileReference;
 import haxe.Json;
-import shaders.RGBPalette.RGBShaderReference;
-import objects.Note;
+import funkin.graphics.shaders.RGBPalette.RGBShaderReference;
+import funkin.game.notes.Note;
 
 typedef HoldCoverAnimData = {
     var prefix:String;
@@ -527,7 +527,7 @@ class HoldCoverEditorState extends MusicBeatState
                 updateCoverAnim();
 
             if (controls.BACK)
-                backend.EditorHelper.returnToPreviousState();
+                funkin.editors.EditorHelper.returnToPreviousState();
 
             if (FlxG.mouse.overlaps(strums))
             {

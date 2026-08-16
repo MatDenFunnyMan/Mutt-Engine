@@ -3,8 +3,8 @@ package funkin.ui.states;
 import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase;
 
-import states.MainMenuState;
-import states.TitleState;
+import funkin.ui.states.MainMenuState;
+import funkin.ui.states.TitleState;
 
 class OutdatedSubState extends MusicBeatSubstate
 {

@@ -2,8 +2,8 @@ package funkin.data;
 
 import openfl.utils.Assets;
 import haxe.Json;
-import backend.Song;
-import psychlua.ModchartSprite;
+import funkin.data.Song;
+import funkin.scripting.ModchartSprite;
 
 typedef StageFile = {
 	var directory:String;
@@ -162,7 +162,7 @@ class StageData {
 						
 						if(data.type == 'animatedSprite' && data.animations != null)
 						{
-							var anims:Array<objects.Character.AnimArray> = cast data.animations;
+							var anims:Array<funkin.game.Character.AnimArray> = cast data.animations;
 							for (key => anim in anims)
 							{
 								if(anim.indices == null || anim.indices.length < 1)

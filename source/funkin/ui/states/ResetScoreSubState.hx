@@ -1,10 +1,10 @@
 package funkin.ui.states;
 
-import backend.WeekData;
-import backend.Highscore;
+import funkin.data.WeekData;
+import funkin.save.Highscore;
 
 import flixel.FlxSubState;
-import objects.HealthIcon;
+import funkin.ui.HealthIcon;
 
 class ResetScoreSubState extends MusicBeatSubstate
 {

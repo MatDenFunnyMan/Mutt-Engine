@@ -1,9 +1,9 @@
 package funkin.game.notes;
 
-import backend.animation.PsychAnimationController;
+import funkin.graphics.PsychAnimationController;
 
-import shaders.RGBPalette;
-import shaders.RGBPalette.RGBShaderReference;
+import funkin.graphics.shaders.RGBPalette;
+import funkin.graphics.shaders.RGBPalette.RGBShaderReference;
 
 class StrumNote extends FlxSprite
 {

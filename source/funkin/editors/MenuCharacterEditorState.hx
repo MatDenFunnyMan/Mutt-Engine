@@ -6,10 +6,11 @@ import openfl.events.IOErrorEvent;
 import flash.net.FileFilter;
 import haxe.Json;
 
-import objects.MenuCharacter;
+import funkin.game.Character;
+import funkin.ui.MenuCharacter;
 
-import states.editors.content.Prompt;
-import states.editors.content.PsychJsonPrinter;
+import funkin.editors.content.Prompt;
+import funkin.editors.content.PsychJsonPrinter;
 
 class MenuCharacterEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
@@ -220,7 +221,7 @@ class MenuCharacterEditorState extends MusicBeatState implements PsychUIEventHan
 				if(!unsavedProgress)
 				{
 					FlxG.sound.playMusic(Paths.music('freakyMenu'));
-					backend.EditorHelper.returnToPreviousState();
+					funkin.editors.EditorHelper.returnToPreviousState();
 				}
 				else openSubState(new ExitConfirmationPrompt());
 			}

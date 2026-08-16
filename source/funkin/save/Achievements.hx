@@ -1,12 +1,12 @@
 package funkin.save;
 
 #if ACHIEVEMENTS_ALLOWED
-import objects.AchievementPopup;
+import funkin.ui.AchievementPopup;
 import haxe.Exception;
 import haxe.Json;
 
 #if LUA_ALLOWED
-import psychlua.FunkinLua;
+import funkin.scripting.FunkinLua;
 #end
 
 typedef Achievement =
@@ -176,7 +176,7 @@ class Achievements {
 	inline public static function isUnlocked(name:String)
 		return achievementsUnlocked.contains(name);
 
-	@:allow(objects.AchievementPopup)
+	@:allow(funkin.ui.AchievementPopup)
 	private static var _popups:Array<AchievementPopup> = [];
 
 	public static var showingPopups(get, never):Bool;

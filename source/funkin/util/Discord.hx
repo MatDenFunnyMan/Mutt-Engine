@@ -167,7 +167,7 @@ class DiscordClient
 		presence.details = details;
 		presence.smallImageKey = (clientID == _defaultID) ? smallImageKey : null;
 		presence.largeImageKey = finalLargeImageKey;
-		presence.largeImageText = "Engine Version: " + states.MainMenuState.psychEngineVersion;
+		presence.largeImageText = "Engine Version: " + funkin.ui.states.MainMenuState.psychEngineVersion;
 		presence.startTimestamp = Std.int(startTimestamp / 1000);
 		presence.endTimestamp = Std.int(endTimestamp / 1000);
 		updatePresence();
@@ -255,7 +255,7 @@ class DiscordClient
 	#end
 }
 
-@:allow(backend.DiscordClient)
+@:allow(funkin.util.DiscordClient)
 private final class DiscordPresence
 {
 	public var state(get, set):String;

@@ -5,7 +5,7 @@ import flixel.FlxSprite;
 import flixel.util.FlxTimer;
 import flixel.util.FlxColor;
 import flixel.tweens.FlxTween;
-import psychlua.LuaUtils.LuaTweenOptions;
+import funkin.scripting.LuaUtils.LuaTweenOptions;
 import Type.ValueType;
 
 class LuaSharedFunctions
@@ -235,7 +235,7 @@ class LuaSharedFunctions
 	{
 		function tweenEngine(tag:String, vars:String, tweenValue:Any, duration:Float, ease:String, funcName:String):Dynamic
 		{
-			if(states.PlayState.instance != null && states.PlayState.instance.skipInstantTweens) duration = 0.001;
+			if(funkin.game.states.PlayState.instance != null && funkin.game.states.PlayState.instance.skipInstantTweens) duration = 0.001;
 			var target:Dynamic = LuaUtils.tweenPrepare(tag, vars);
 			var variables = MusicBeatState.getVariables();
 			if(target != null)
@@ -272,7 +272,7 @@ class LuaSharedFunctions
 			return tweenEngine(tag, vars, {alpha: value}, duration, ease, 'doTweenAlpha');
 		});
 		Lua_helper.add_callback(lua, "doTweenColor", function(tag:String, vars:String, targetColor:String, duration:Float, ?ease:String = 'linear') {
-			if(states.PlayState.instance != null && states.PlayState.instance.skipInstantTweens) duration = 0.001;
+			if(funkin.game.states.PlayState.instance != null && funkin.game.states.PlayState.instance.skipInstantTweens) duration = 0.001;
 			var target:Dynamic = LuaUtils.tweenPrepare(tag, vars);
 			if(target != null)
 			{
@@ -298,7 +298,7 @@ class LuaSharedFunctions
 			return null;
 		});
 		Lua_helper.add_callback(lua, "startTween", function(tag:String, vars:String, values:Any = null, duration:Float, ?options:Any = null) {
-			if(states.PlayState.instance != null && states.PlayState.instance.skipInstantTweens) duration = 0.001;
+			if(funkin.game.states.PlayState.instance != null && funkin.game.states.PlayState.instance.skipInstantTweens) duration = 0.001;
 			var target:Dynamic = LuaUtils.tweenPrepare(tag, vars);
 			if(target != null)
 			{

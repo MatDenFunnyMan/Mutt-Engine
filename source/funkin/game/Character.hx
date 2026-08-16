@@ -1,6 +1,6 @@
 package funkin.game;
 
-import backend.animation.PsychAnimationController;
+import funkin.graphics.PsychAnimationController;
 
 import flixel.util.FlxSort;
 import flixel.util.FlxDestroyUtil;
@@ -9,8 +9,8 @@ import openfl.utils.AssetType;
 import openfl.utils.Assets;
 import haxe.Json;
 
-import backend.Song;
-import states.stages.objects.TankmenBG;
+import funkin.data.Song;
+import funkin.game.stages.objects.TankmenBG;
 
 typedef CharacterFile = {
 	var animations:Array<AnimArray>;
@@ -110,7 +110,6 @@ class Character extends FlxSprite
 		var characterPath:String = 'characters/$character.json';
 
 		var path:String = Paths.getPath(characterPath, TEXT);
-		var isCodenameXML:Bool = false;
 
 		#if MODS_ALLOWED
 		if (!FileSystem.exists(path))
@@ -118,23 +117,10 @@ class Character extends FlxSprite
 		if (!Assets.exists(path))
 		#end
 		{
-			var xmlPath:String = Paths.getPath('characters/$character.xml', TEXT);
-			#if MODS_ALLOWED
-			if (FileSystem.exists(xmlPath))
-			#else
-			if (Assets.exists(xmlPath))
-			#end
-			{
-				path = xmlPath;
-				isCodenameXML = true;
-			}
-			else
-			{
-				path = Paths.getSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
-				missingCharacter = true;
-				missingText = new FlxText(0, 0, 300, 'ERROR:\n$character.json', 16);
-				missingText.alignment = CENTER;
-			}
+			path = Paths.getSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
+			missingCharacter = true;
+			missingText = new FlxText(0, 0, 300, 'ERROR:\n$character.json', 16);
+			missingText.alignment = CENTER;
 		}
 
 		try
@@ -145,7 +131,7 @@ class Character extends FlxSprite
 			var rawContent:String = Assets.getText(path);
 			#end
 
-			loadCharacterFile(isCodenameXML ? backend.CodenameCharacterCompat.convert(rawContent, character) : Json.parse(rawContent));
+			loadCharacterFile(Json.parse(rawContent));
 		}
 		catch(e:Dynamic)
 		{
@@ -493,7 +479,7 @@ class Character extends FlxSprite
 
 	// Atlas support
 	// special thanks ne_eo for the references, you're the goat!!
-	@:allow(states.editors.CharacterEditorState)
+	@:allow(funkin.editors.CharacterEditorState)
 	public var isAnimateAtlas(default, null):Bool = false;
 	#if flxanimate
 	public var atlas:FlxAnimate;

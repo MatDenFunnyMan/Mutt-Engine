@@ -1,23 +1,26 @@
 package funkin.editors.content;
 
-import backend.StageData;
-import backend.Song;
+import funkin.data.StageData;
+import funkin.data.Song;
 
-import objects.Character;
-import objects.Note.EventNote;
-import objects.*;
-import states.stages.*;
-import states.stages.objects.*;
+import funkin.game.Character;
+import funkin.game.notes.Note.EventNote;
+import funkin.game.notes.*;
+import funkin.ui.*;
+import funkin.graphics.*;
+import funkin.game.Character;
+import funkin.game.stages.*;
+import funkin.game.stages.objects.*;
 import flixel.FlxObject;
 
 #if LUA_ALLOWED
-import psychlua.*;
-import psychlua.LuaUtils;
-import psychlua.HScript;
+import funkin.scripting.*;
+import funkin.scripting.LuaUtils;
+import funkin.scripting.HScript;
 #end
 
 #if HSCRIPT_ALLOWED
-import psychlua.HScript.HScriptInfos;
+import funkin.scripting.HScript.HScriptInfos;
 import crowplexus.iris.Iris;
 #end
 
@@ -91,7 +94,7 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 	public var hscriptArray:Array<HScript> = [];
 	#end
 	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-	var luaDebugGroup:FlxTypedGroup<psychlua.DebugLuaText>;
+	var luaDebugGroup:FlxTypedGroup<funkin.scripting.DebugLuaText>;
 	#end
 
 	public var stages:Array<BaseStage> = [];
@@ -106,7 +109,7 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 	var _camScaleY:Float = 1;
 
 	// Previous PlayState.instance so we restore it on close
-	var _prevPlayStateInstance:states.PlayState;
+	var _prevPlayStateInstance:funkin.game.states.PlayState;
 
 	// BPM change tracking for Conductor sync
 	var lastBeatHit:Int  = -1;
@@ -120,8 +123,8 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 	override function create()
 	{
 		// Save and hijack PlayState.instance so BaseStage.get_game() works
-		_prevPlayStateInstance = states.PlayState.instance;
-		states.PlayState.instance = cast this;
+		_prevPlayStateInstance = funkin.game.states.PlayState.instance;
+		funkin.game.states.PlayState.instance = cast this;
 
 		// --- Cameras ---
 		// previewCam renders into a small viewport at bottom-left
@@ -154,7 +157,7 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 		camOther = previewCam;
 
 		// --- Load song/stage data ---
-		var song = states.PlayState.SONG;
+		var song = funkin.game.states.PlayState.SONG;
 		songName = Paths.formatToSongPath(song.song);
 
 		Conductor.mapBPMChanges(song);
@@ -203,7 +206,7 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 
 		// --- Lua/HScript debug group ---
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-		luaDebugGroup = new FlxTypedGroup<psychlua.DebugLuaText>();
+		luaDebugGroup = new FlxTypedGroup<funkin.scripting.DebugLuaText>();
 		luaDebugGroup.cameras = [previewCam];
 		add(luaDebugGroup);
 		#end
@@ -481,7 +484,7 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 		if (lastSectionHit >= curSection) return;
 		lastSectionHit = curSection;
 
-		var song = states.PlayState.SONG;
+		var song = funkin.game.states.PlayState.SONG;
 		if (song.notes[curSection] != null)
 		{
 			if (targetCameraEventInstant) targetCameraEventInstant = false;
@@ -509,7 +512,7 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 	override function destroy()
 	{
 		// Restore previous PlayState.instance
-		states.PlayState.instance = _prevPlayStateInstance;
+		funkin.game.states.PlayState.instance = _prevPlayStateInstance;
 
 		// Clean up scripts
 		#if LUA_ALLOWED
@@ -544,7 +547,7 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 		if (targetCameraEventTween != null) return;
 		if (targetCameraEventInstant)       return;
 
-		var song = states.PlayState.SONG;
+		var song = funkin.game.states.PlayState.SONG;
 		if (sec == null) sec = curSection;
 		if (sec < 0)     sec = 0;
 		if (song.notes[sec] == null) return;
@@ -633,7 +636,7 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 	function _collectEvents()
 	{
 		previewEventNotes = [];
-		var song = states.PlayState.SONG;
+		var song = funkin.game.states.PlayState.SONG;
 		if (song == null || song.notes == null) return;
 
 		for (section in song.notes)
@@ -821,7 +824,7 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 	{
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 		if (luaDebugGroup == null) return;
-		var item = luaDebugGroup.recycle(psychlua.DebugLuaText);
+		var item = luaDebugGroup.recycle(funkin.scripting.DebugLuaText);
 		item.text = text;
 		item.color = color;
 		luaDebugGroup.remove(item, true);

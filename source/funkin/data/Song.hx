@@ -3,7 +3,7 @@ package funkin.data;
 import haxe.Json;
 import lime.utils.Assets;
 
-import objects.Note;
+import funkin.game.notes.Note;
 
 typedef ExtraStrumlineData =
 {
@@ -416,7 +416,7 @@ class Song
 		}
 
 		songJson.notes = sections;
-		songJson.events = backend.CodenameEventCompat.convert(songJson.events);
+		songJson.events = funkin.modding.CodenameEventCompat.convert(songJson.events);
 
 		Reflect.setField(songJson, 'codenameChart', false);
 	}

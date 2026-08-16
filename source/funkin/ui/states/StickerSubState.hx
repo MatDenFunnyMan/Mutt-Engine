@@ -11,7 +11,7 @@ import flixel.math.FlxMath;
 import flixel.addons.transition.FlxTransitionableState;
 import openfl.display.BitmapData;
 
-import states.MainMenuState;
+import funkin.ui.states.MainMenuState;
 
 #if sys
 import sys.FileSystem;

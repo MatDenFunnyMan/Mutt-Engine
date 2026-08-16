@@ -1,4 +1,5 @@
 package funkin.editors.content;
+import funkin.editors.ChartingState;
 
 import flixel.addons.display.FlxGridOverlay;
 

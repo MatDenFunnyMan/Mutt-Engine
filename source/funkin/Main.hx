@@ -4,8 +4,8 @@ package funkin;
 import android.content.Context;
 #end
 
-import debug.FPSCounter;
-import debug.CMD;
+import funkin.debug.FPSCounter;
+import funkin.debug.CMD;
 
 import flixel.graphics.FlxGraphic;
 import flixel.FlxGame;
@@ -17,7 +17,7 @@ import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.display.StageScaleMode;
 import lime.app.Application;
-import states.InitialState;
+import funkin.ui.states.InitialState;
 import openfl.display.BitmapData;
 import openfl.utils.ByteArray;
 import openfl.display.PNGEncoderOptions;
@@ -28,7 +28,7 @@ import flixel.tweens.FlxTween;
 
 #if HSCRIPT_ALLOWED
 import crowplexus.iris.Iris;
-import psychlua.HScript.HScriptInfos;
+import funkin.scripting.HScript.HScriptInfos;
 #end
 
 #if (linux || mac)
@@ -36,7 +36,7 @@ import lime.graphics.Image;
 #end
 
 #if desktop
-import backend.ALSoftConfig;
+import funkin.audio.ALSoftConfig;
 #end
 
 #if CRASH_HANDLER
@@ -45,12 +45,12 @@ import haxe.CallStack;
 import haxe.io.Path;
 #end
 
-import backend.Highscore;
-import backend.ThreadedCache;
+import funkin.save.Highscore;
+import funkin.util.ThreadedCache;
 
 #if (cpp && windows)
 import hxwindowmode.WindowColorMode;
-import winapi.WindowsCPP;
+import funkin.external.winapi.WindowsCPP;
 #end
 
 #if (linux && !debug)
@@ -117,11 +117,11 @@ class Main extends Sprite
 		super();
 
 		#if (cpp && windows)
-		backend.Native.fixScaling();
+		funkin.util.Native.fixScaling();
 		#end
 
 		#if (cpp && windows)
-		backend.AudioSwitchFix.init();
+		funkin.audio.AudioSwitchFix.init();
 		#end
 
 		#if android
@@ -183,7 +183,7 @@ class Main extends Sprite
 		Highscore.load();
 
 		#if (MODS_ALLOWED && DISCORD_ALLOWED)
-		backend.DiscordClient.loadModRPC();
+		funkin.util.Discord.DiscordClient.loadModRPC();
 		#end
 
 		#if HSCRIPT_ALLOWED
@@ -243,13 +243,13 @@ class Main extends Sprite
 		}
 		#end
 
-		#if LUA_ALLOWED Lua.set_callbacks_function(cpp.Callable.fromStaticFunction(psychlua.CallbackHandler.call)); #end
+		#if LUA_ALLOWED Lua.set_callbacks_function(cpp.Callable.fromStaticFunction(funkin.scripting.CallbackHandler.call)); #end
 		Controls.instance = new Controls();
 		ClientPrefs.loadDefaultKeys();
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
 		var gameObject = new FlxGame(game.width, game.height, game.initialState, game.framerate, game.framerate, game.skipSplash, game.startFullscreen);
 		@:privateAccess
-		gameObject._customSoundTray = backend.FunkinSoundTray;
+		gameObject._customSoundTray = funkin.audio.FunkinSoundTray;
 		addChild(gameObject);
 
 		ClientPrefs.loadPrefs();

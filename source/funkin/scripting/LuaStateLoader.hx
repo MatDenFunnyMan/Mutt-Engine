@@ -14,33 +14,33 @@ import flixel.util.FlxColor;
 import flixel.util.FlxSave;
 import flixel.math.FlxMath;
 
-import psychlua.LuaUtils;
-import psychlua.LuaUtils.LuaTweenOptions;
-import psychlua.ModchartSprite;
-import psychlua.CustomSubstate;
-import psychlua.ShaderFunctions;
-import psychlua.ReflectionFunctions;
+import funkin.scripting.LuaUtils;
+import funkin.scripting.LuaUtils.LuaTweenOptions;
+import funkin.scripting.ModchartSprite;
+import funkin.scripting.CustomSubstate;
+import funkin.scripting.ShaderFunctions;
+import funkin.scripting.ReflectionFunctions;
 
 import flixel.input.gamepad.FlxGamepadInputID;
 
 import flixel.addons.display.FlxRuntimeShader;
 
 #if DISCORD_ALLOWED
-import backend.Discord.DiscordClient;
+import funkin.util.Discord.DiscordClient;
 #end
 #if ACHIEVEMENTS_ALLOWED
-import backend.Achievements;
+import funkin.save.Achievements;
 #end
 #if TRANSLATIONS_ALLOWED
-import backend.Language;
+import funkin.data.Language;
 #end
 
 #if HSCRIPT_ALLOWED
 import crowplexus.iris.Iris;
 import crowplexus.hscript.Expr.Error as IrisError;
 import crowplexus.hscript.Printer;
-import psychlua.HScript;
-import psychlua.HScript.HScriptInfos;
+import funkin.scripting.HScript;
+import funkin.scripting.HScript.HScriptInfos;
 #end
 
 class LuaState extends MusicBeatState
@@ -48,20 +48,20 @@ class LuaState extends MusicBeatState
 	public var lua:State = null;
 	public var stateName:String;
 	public var modDirectory:String;
-	public var oldStickers:Array<substates.StickerSubState.StickerSprite>;
+	public var oldStickers:Array<funkin.ui.states.StickerSubState.StickerSprite>;
 	public var isInitialState:Bool = false;
 	public var closed:Bool = false;
 	public var lastCalledFunction:String = '';
 	public var luaArray:Array<LuaStateScript> = [];
 	public static var instance:LuaState = null;
 	public var scriptName:String = '';
-	public var luaDebugGroup:FlxTypedGroup<psychlua.DebugLuaText>;
+	public var luaDebugGroup:FlxTypedGroup<funkin.scripting.DebugLuaText>;
 
 	#if HSCRIPT_ALLOWED
 	public var hscript:HScript = null;
 	#end
 
-	public function new(scriptPath:String, name:String, ?modDir:String, ?stickers:Array<substates.StickerSubState.StickerSprite>)
+	public function new(scriptPath:String, name:String, ?modDir:String, ?stickers:Array<funkin.ui.states.StickerSubState.StickerSprite>)
 	{
 		super();
 		this.stateName = name;
@@ -123,21 +123,21 @@ class LuaState extends MusicBeatState
 		LuaSharedFunctions.registerFileAndSaveFunctions(lua);
 
 		Lua_helper.add_callback(lua, "switchState", function(stateName:String) {
-			if(stateName == 'PlayState' && states.PlayState.SONG != null) {
+			if(stateName == 'PlayState' && funkin.game.states.PlayState.SONG != null) {
 				FlxG.state.persistentUpdate = false;
-				states.LoadingState.loadAndSwitchState(new states.PlayState());
+				funkin.ui.states.LoadingState.loadAndSwitchState(new funkin.game.states.PlayState());
 			} else {
-				backend.MusicBeatState.switchStateByName(stateName);
+				funkin.backend.MusicBeatState.switchStateByName(stateName);
 			}
 		});
 
 		Lua_helper.add_callback(lua, "switchStateDirect", function(stateName:String) {
-			if(stateName == 'PlayState' && states.PlayState.SONG != null) {
+			if(stateName == 'PlayState' && funkin.game.states.PlayState.SONG != null) {
 				FlxG.state.persistentUpdate = false;
 				FlxTransitionableState.skipNextTransIn = true;
-				states.LoadingState.loadAndSwitchState(new states.PlayState());
+				funkin.ui.states.LoadingState.loadAndSwitchState(new funkin.game.states.PlayState());
 			} else {
-				backend.MusicBeatState.switchStateDirectByName(stateName);
+				funkin.backend.MusicBeatState.switchStateDirectByName(stateName);
 			}
 		});
 
@@ -148,22 +148,22 @@ class LuaState extends MusicBeatState
 				{
 					var diff:String = (difficulty != null && difficulty != '') ? difficulty : 'normal';
 					var diffIdx:Int = 0;
-					for(i in 0...backend.Difficulty.list.length)
-						if(backend.Difficulty.list[i].toLowerCase() == diff.toLowerCase()) { diffIdx = i; break; }
+					for(i in 0...funkin.data.Difficulty.list.length)
+						if(funkin.data.Difficulty.list[i].toLowerCase() == diff.toLowerCase()) { diffIdx = i; break; }
 					var jsonName:String = Paths.formatToSongPath(songName) + '-' + Paths.formatToSongPath(diff);
 					var folder:String = Paths.formatToSongPath(songName);
-					if(backend.Song.getChart(jsonName, folder) == null)
+					if(funkin.data.Song.getChart(jsonName, folder) == null)
 						jsonName = Paths.formatToSongPath(songName);
-					backend.Song.loadFromJson(jsonName, folder);
-					states.PlayState.isStoryMode = false;
-					states.PlayState.storyDifficulty = diffIdx;
+					funkin.data.Song.loadFromJson(jsonName, folder);
+					funkin.game.states.PlayState.isStoryMode = false;
+					funkin.game.states.PlayState.storyDifficulty = diffIdx;
 				}
-				if(states.PlayState.SONG != null)
-					backend.MusicBeatState.switchStateWithStickers(new states.PlayState(), mode);
+				if(funkin.game.states.PlayState.SONG != null)
+					funkin.backend.MusicBeatState.switchStateWithStickers(new funkin.game.states.PlayState(), mode);
 			}
 			else
 			{
-				backend.MusicBeatState.switchStateWithStickersByName(stateName, mode);
+				funkin.backend.MusicBeatState.switchStateWithStickersByName(stateName, mode);
 			}
 			return true;
 		});
@@ -173,7 +173,7 @@ class LuaState extends MusicBeatState
 		});
 
 		Lua_helper.add_callback(lua, "getScore", function(songName:String, diffIndex:Int) {
-			return backend.Highscore.getScore(songName, diffIndex);
+			return funkin.save.Highscore.getScore(songName, diffIndex);
 		});
 
 		Lua_helper.add_callback(lua, "getSongsFromWeek", function(weekName:String) {
@@ -191,12 +191,12 @@ class LuaState extends MusicBeatState
 		});
 
 		Lua_helper.add_callback(lua, "getDifficulties", function() {
-			return backend.Difficulty.list;
+			return funkin.data.Difficulty.list;
 		});
 
 		Lua_helper.add_callback(lua, "getDifficultyName", function(index:Int) {
-			if(index < 0 || index >= backend.Difficulty.list.length) return 'normal';
-			return backend.Difficulty.list[index];
+			if(index < 0 || index >= funkin.data.Difficulty.list.length) return 'normal';
+			return funkin.data.Difficulty.list[index];
 		});
 
 		Lua_helper.add_callback(lua, "loadSong", function(songName:String, ?difficulty:Dynamic = 'normal', ?folder:String = null) {
@@ -204,32 +204,32 @@ class LuaState extends MusicBeatState
 			var resolvedDiff:String = 'normal';
 			if(Std.isOfType(difficulty, Int)) {
 				diffIdx = cast(difficulty, Int);
-				if(diffIdx < 0 || diffIdx >= backend.Difficulty.list.length) diffIdx = 0;
-				if(backend.Difficulty.list.length > 0)
-					resolvedDiff = backend.Difficulty.list[diffIdx];
+				if(diffIdx < 0 || diffIdx >= funkin.data.Difficulty.list.length) diffIdx = 0;
+				if(funkin.data.Difficulty.list.length > 0)
+					resolvedDiff = funkin.data.Difficulty.list[diffIdx];
 			} else if(Std.isOfType(difficulty, String)) {
 				resolvedDiff = cast(difficulty, String);
 				var diffLower:String = resolvedDiff.toLowerCase();
 				var idx:Int = -1;
-				for(i in 0...backend.Difficulty.list.length) {
-					if(backend.Difficulty.list[i].toLowerCase() == diffLower) { idx = i; break; }
+				for(i in 0...funkin.data.Difficulty.list.length) {
+					if(funkin.data.Difficulty.list[i].toLowerCase() == diffLower) { idx = i; break; }
 				}
 				if(idx >= 0) diffIdx = idx;
 			}
 			var songFolder:String = folder != null ? Paths.formatToSongPath(folder) : Paths.formatToSongPath(songName);
 			var jsonName:String = Paths.formatToSongPath(songName) + '-' + Paths.formatToSongPath(resolvedDiff);
-			var chartCheck = backend.Song.getChart(jsonName, songFolder);
+			var chartCheck = funkin.data.Song.getChart(jsonName, songFolder);
 			if(chartCheck == null)
 				jsonName = Paths.formatToSongPath(songName);
-			if(backend.Song.getChart(jsonName, songFolder) != null) {
-					backend.Song.loadFromJson(jsonName, songFolder);
-					states.PlayState.isStoryMode = false;
-					states.PlayState.storyDifficulty = diffIdx;
-					states.PlayState.previousState = stateName;
+			if(funkin.data.Song.getChart(jsonName, songFolder) != null) {
+					funkin.data.Song.loadFromJson(jsonName, songFolder);
+					funkin.game.states.PlayState.isStoryMode = false;
+					funkin.game.states.PlayState.storyDifficulty = diffIdx;
+					funkin.game.states.PlayState.previousState = stateName;
 					FlxG.state.persistentUpdate = false;
 					if(FlxG.sound.music == null)
 						FlxG.sound.playMusic(Paths.music('freakyMenu'), 0, true);
-					states.LoadingState.loadAndSwitchState(new states.PlayState());
+					funkin.ui.states.LoadingState.loadAndSwitchState(new funkin.game.states.PlayState());
 				}
 		});
 
@@ -239,15 +239,15 @@ class LuaState extends MusicBeatState
 				var resolvedDiff:String = 'normal';
 				if(Std.isOfType(difficulty, Int)) {
 					var idx:Int = cast(difficulty, Int);
-					if(idx >= 0 && idx < backend.Difficulty.list.length)
-						resolvedDiff = backend.Difficulty.list[idx].toLowerCase();
+					if(idx >= 0 && idx < funkin.data.Difficulty.list.length)
+						resolvedDiff = funkin.data.Difficulty.list[idx].toLowerCase();
 				} else if(Std.isOfType(difficulty, String)) {
 					resolvedDiff = cast(difficulty, String).toLowerCase();
 				}
 				var jsonName:String = Paths.formatToSongPath(songName) + '-' + resolvedDiff;
-				if(backend.Song.getChart(jsonName, songFolder) != null) return true;
+				if(funkin.data.Song.getChart(jsonName, songFolder) != null) return true;
 			}
-			return backend.Song.getChart(Paths.formatToSongPath(songName), songFolder) != null;
+			return funkin.data.Song.getChart(Paths.formatToSongPath(songName), songFolder) != null;
 		});
 
 		Lua_helper.add_callback(lua, "getSongDifficulties", function(songName:String, ?folder:String = null):Array<String> {
@@ -270,8 +270,8 @@ class LuaState extends MusicBeatState
 		});
 
 		Lua_helper.add_callback(lua, "getCurrentSong", function():String {
-			if(states.PlayState.SONG != null)
-				return states.PlayState.SONG.song;
+			if(funkin.game.states.PlayState.SONG != null)
+				return funkin.game.states.PlayState.SONG.song;
 			return null;
 		});
 
@@ -279,42 +279,42 @@ class LuaState extends MusicBeatState
 			var diffIdx:Int = 0;
 			if(Std.isOfType(difficulty, Int)) {
 				diffIdx = cast(difficulty, Int);
-				if(diffIdx < 0 || diffIdx >= backend.Difficulty.list.length) diffIdx = 0;
+				if(diffIdx < 0 || diffIdx >= funkin.data.Difficulty.list.length) diffIdx = 0;
 			} else if(Std.isOfType(difficulty, String)) {
 				var diffStr:String = cast(difficulty, String).toLowerCase();
-				for(i in 0...backend.Difficulty.list.length) {
-					if(backend.Difficulty.list[i].toLowerCase() == diffStr) { diffIdx = i; break; }
+				for(i in 0...funkin.data.Difficulty.list.length) {
+					if(funkin.data.Difficulty.list[i].toLowerCase() == diffStr) { diffIdx = i; break; }
 				}
 			}
-			return backend.Highscore.getScore(songName, diffIdx);
+			return funkin.save.Highscore.getScore(songName, diffIdx);
 		});
 
 		Lua_helper.add_callback(lua, "getHighscoreRating", function(songName:String, ?difficulty:Dynamic = 'normal'):Float {
 			var diffIdx:Int = 0;
 			if(Std.isOfType(difficulty, Int)) {
 				diffIdx = cast(difficulty, Int);
-				if(diffIdx < 0 || diffIdx >= backend.Difficulty.list.length) diffIdx = 0;
+				if(diffIdx < 0 || diffIdx >= funkin.data.Difficulty.list.length) diffIdx = 0;
 			} else if(Std.isOfType(difficulty, String)) {
 				var diffStr:String = cast(difficulty, String).toLowerCase();
-				for(i in 0...backend.Difficulty.list.length) {
-					if(backend.Difficulty.list[i].toLowerCase() == diffStr) { diffIdx = i; break; }
+				for(i in 0...funkin.data.Difficulty.list.length) {
+					if(funkin.data.Difficulty.list[i].toLowerCase() == diffStr) { diffIdx = i; break; }
 				}
 			}
-			return backend.Highscore.getRating(songName, diffIdx);
+			return funkin.save.Highscore.getRating(songName, diffIdx);
 		});
 
 		Lua_helper.add_callback(lua, "getHighscoreMisses", function(songName:String, ?difficulty:Dynamic = 'normal'):Int {
 			var diffIdx:Int = 0;
 			if(Std.isOfType(difficulty, Int)) {
 				diffIdx = cast(difficulty, Int);
-				if(diffIdx < 0 || diffIdx >= backend.Difficulty.list.length) diffIdx = 0;
+				if(diffIdx < 0 || diffIdx >= funkin.data.Difficulty.list.length) diffIdx = 0;
 			} else if(Std.isOfType(difficulty, String)) {
 				var diffStr:String = cast(difficulty, String).toLowerCase();
-				for(i in 0...backend.Difficulty.list.length) {
-					if(backend.Difficulty.list[i].toLowerCase() == diffStr) { diffIdx = i; break; }
+				for(i in 0...funkin.data.Difficulty.list.length) {
+					if(funkin.data.Difficulty.list[i].toLowerCase() == diffStr) { diffIdx = i; break; }
 				}
 			}
-			return backend.Highscore.getMisses(songName, diffIdx);
+			return funkin.save.Highscore.getMisses(songName, diffIdx);
 		});
 
         Lua_helper.add_callback(lua, "resetState", function() {
@@ -323,7 +323,7 @@ class LuaState extends MusicBeatState
 		Lua_helper.add_callback(lua, "openSubState", function(substate:Dynamic) {
 			if(Std.isOfType(substate, String)) {
 				var shortNames:Map<String, String> = [
-					'EditorPickerSubstate' => 'states.editors.EditorPickerSubstate'
+					'EditorPickerSubstate' => 'funkin.editors.EditorPickerSubstate'
 				];
 				var resolved:String = shortNames.exists(substate) ? shortNames.get(substate) : substate;
 				var cls = Type.resolveClass(resolved);
@@ -1095,7 +1095,7 @@ class LuaState extends MusicBeatState
 			}
 
 			var variables = MusicBeatState.getVariables();
-			var oldVideo:objects.VideoSprite = variables.get('videoCutscene');
+			var oldVideo:funkin.graphics.VideoSprite = variables.get('videoCutscene');
 			if(oldVideo != null)
 			{
 				remove(oldVideo);
@@ -1103,7 +1103,7 @@ class LuaState extends MusicBeatState
 				variables.remove('videoCutscene');
 			}
 
-			var video:objects.VideoSprite = new objects.VideoSprite(Paths.video(videoFile), forMidSong, canSkip, shouldLoop);
+			var video:funkin.graphics.VideoSprite = new funkin.graphics.VideoSprite(Paths.video(videoFile), forMidSong, canSkip, shouldLoop);
 			video.finishCallback = function() {
 				variables.remove('videoCutscene');
 				call('onVideoFinished', [videoFile]);
@@ -1155,7 +1155,7 @@ class LuaState extends MusicBeatState
 			if(ShaderFunctions.isCamera(obj)) {
 				var cam:FlxCamera = ShaderFunctions.getCameraByName(obj);
 				var arr:Array<String> = runtimeShaders.get(shader);
-				var rShader:FlxRuntimeShader = new shaders.ErrorHandledShader.ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
+				var rShader:FlxRuntimeShader = new funkin.graphics.shaders.ErrorHandledShader.ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
 				ShaderFunctions.cameraShaders.set(obj, rShader);
 				cam.setFilters([new openfl.filters.ShaderFilter(cast rShader)]);
 				return true;
@@ -1167,7 +1167,7 @@ class LuaState extends MusicBeatState
 				leObj = LuaUtils.getVarInArray(LuaUtils.getPropertyLoop(split), split[split.length - 1]);
 			if(leObj != null) {
 				var arr:Array<String> = runtimeShaders.get(shader);
-				leObj.shader = new shaders.ErrorHandledShader.ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
+				leObj.shader = new funkin.graphics.shaders.ErrorHandledShader.ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
 				return true;
 			}
 			return false;
@@ -1319,7 +1319,7 @@ class LuaState extends MusicBeatState
 			#if (!flash && MODS_ALLOWED && sys)
 			var cam:FlxCamera = ShaderFunctions.getCameraByName(camera);
 			var arr:Array<String> = runtimeShaders.get(shader);
-			var rShader:FlxRuntimeShader = new shaders.ErrorHandledShader.ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
+			var rShader:FlxRuntimeShader = new funkin.graphics.shaders.ErrorHandledShader.ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
 			ShaderFunctions.cameraShaders.set(camera, rShader);
 			cam.setFilters([new openfl.filters.ShaderFilter(cast rShader)]);
 			return true;
@@ -1779,10 +1779,10 @@ class LuaState extends MusicBeatState
 		persistentUpdate = true;
 		super.create();
 
-		luaDebugGroup = new FlxTypedGroup<psychlua.DebugLuaText>();
+		luaDebugGroup = new FlxTypedGroup<funkin.scripting.DebugLuaText>();
 		luaDebugGroup.cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 
-		backend.Highscore.load();
+		funkin.save.Highscore.load();
 		call('onCreate', []);
 
 		add(luaDebugGroup);
@@ -1792,18 +1792,18 @@ class LuaState extends MusicBeatState
 
 		#if CHECK_FOR_UPDATES
 		if(stateName.toLowerCase() == 'mainmenustate' && ClientPrefs.data.checkForUpdates
-			&& substates.OutdatedSubState.updateVersion != null
-			&& Std.parseFloat(substates.OutdatedSubState.updateVersion) > Std.parseFloat(states.MainMenuState.cheeseEngineVersion))
+			&& funkin.ui.states.OutdatedSubState.updateVersion != null
+			&& Std.parseFloat(funkin.ui.states.OutdatedSubState.updateVersion) > Std.parseFloat(funkin.ui.states.MainMenuState.cheeseEngineVersion))
 		{
 			persistentUpdate = false;
-			openSubState(new substates.OutdatedSubState());
+			openSubState(new funkin.ui.states.OutdatedSubState());
 		}
 		#end
 
 		if(oldStickers != null && oldStickers.length > 0) {
 			this.persistentUpdate = false;
 			this.persistentDraw = true;
-			openSubState(new substates.StickerSubState(oldStickers, null));
+			openSubState(new funkin.ui.states.StickerSubState(oldStickers, null));
 		}
 	}
 
@@ -1823,13 +1823,13 @@ class LuaState extends MusicBeatState
 
 		var _hasBlockingSubState:Bool = subState != null
 			&& !Std.isOfType(subState, CustomFadeTransition)
-			&& !Std.isOfType(subState, substates.StickerSubState)
-			&& !Std.isOfType(subState, substates.ResetScoreSubState);
+			&& !Std.isOfType(subState, funkin.ui.states.StickerSubState)
+			&& !Std.isOfType(subState, funkin.ui.states.ResetScoreSubState);
 
 		if(!_hasBlockingSubState)
 		{
 			if(stateName.toLowerCase() == 'mainmenustate' && FlxG.keys.justPressed.TAB) {
-				var sub = new backend.ModSelectorSubstate();
+				var sub = new funkin.modding.ModSelectorSubstate();
 				sub._mouseWasVisible = FlxG.mouse.visible;
 				FlxG.mouse.visible = false;
 				openSubState(sub);
@@ -1955,14 +1955,14 @@ class LuaState extends MusicBeatState
 		trace('[LuaState:$stateName] $text');
 		if(luaDebugGroup == null) return;
 
-		var newText:psychlua.DebugLuaText = luaDebugGroup.recycle(psychlua.DebugLuaText);
+		var newText:funkin.scripting.DebugLuaText = luaDebugGroup.recycle(funkin.scripting.DebugLuaText);
 		newText.text = text;
 		newText.color = color;
 		newText.disableTime = 6;
 		newText.alpha = 1;
 		newText.setPosition(10, 8 - newText.height);
 
-		luaDebugGroup.forEachAlive(function(spr:psychlua.DebugLuaText) {
+		luaDebugGroup.forEachAlive(function(spr:funkin.scripting.DebugLuaText) {
 			spr.y += newText.height + 2;
 		});
 		luaDebugGroup.add(newText);
@@ -2119,7 +2119,7 @@ class LuaStateScript
 
 class LuaStateLoader
 {
-	public static function loadStateScript(stateName:String, ?stickers:Array<substates.StickerSubState.StickerSprite>):FlxState
+	public static function loadStateScript(stateName:String, ?stickers:Array<funkin.ui.states.StickerSubState.StickerSprite>):FlxState
 	{
 		#if MODS_ALLOWED
 		var save = FlxG.save;
@@ -2180,7 +2180,7 @@ class LuaStateLoader
 			return null;
 		}
 
-	public static function createLoadingScript(barBack:flixel.FlxSprite, bar:flixel.FlxSprite, loadingState:states.LoadingState):LoadingLuaScript
+	public static function createLoadingScript(barBack:flixel.FlxSprite, bar:flixel.FlxSprite, loadingState:funkin.ui.states.LoadingState):LoadingLuaScript
 	{
 		#if MODS_ALLOWED
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory.trim().length > 0)
@@ -2212,14 +2212,14 @@ class LoadingLuaScript
 	public var closed:Bool = false;
 	public var lastCalledFunction:String = '';
 
-	var loadingState:states.LoadingState;
+	var loadingState:funkin.ui.states.LoadingState;
 
 	#if HSCRIPT_ALLOWED
 	public var hscript:HScript = null;
 	var modDirectory:String = null;
 	#end
 
-	public function new(scriptPath:String, barBack:flixel.FlxSprite, bar:flixel.FlxSprite, loadingState:states.LoadingState)
+	public function new(scriptPath:String, barBack:flixel.FlxSprite, bar:flixel.FlxSprite, loadingState:funkin.ui.states.LoadingState)
 	{
 		this.scriptName = scriptPath;
 		this.loadingState = loadingState;
@@ -2266,19 +2266,19 @@ class LoadingLuaScript
 	{
 		LuaSharedFunctions.registerFileAndSaveFunctions(lua);
 
-		Lua_helper.add_callback(lua, "getLoaded", function() return states.LoadingState.loaded);
-		Lua_helper.add_callback(lua, "getLoadMax", function() return states.LoadingState.loadMax);
+		Lua_helper.add_callback(lua, "getLoaded", function() return funkin.ui.states.LoadingState.loaded);
+		Lua_helper.add_callback(lua, "getLoadMax", function() return funkin.ui.states.LoadingState.loadMax);
 		Lua_helper.add_callback(lua, "addBehindBar", function(tag:String) {
 			var obj:flixel.FlxBasic = MusicBeatState.getVariables().get(tag);
 			if(obj != null) loadingState.addBehindBar(obj);
 		});
 
 		Lua_helper.add_callback(lua, "switchState", function(stateName:String) {
-			if(stateName == 'PlayState' && states.PlayState.SONG != null) {
+			if(stateName == 'PlayState' && funkin.game.states.PlayState.SONG != null) {
 				FlxG.state.persistentUpdate = false;
-				states.LoadingState.loadAndSwitchState(new states.PlayState());
+				funkin.ui.states.LoadingState.loadAndSwitchState(new funkin.game.states.PlayState());
 			} else {
-				backend.StateManager.switchState(stateName);
+				funkin.backend.StateManager.switchState(stateName);
 			}
 		});
 
@@ -2289,22 +2289,22 @@ class LoadingLuaScript
 				{
 					var diff:String = (difficulty != null && difficulty != '') ? difficulty : 'normal';
 					var diffIdx:Int = 0;
-					for(i in 0...backend.Difficulty.list.length)
-						if(backend.Difficulty.list[i].toLowerCase() == diff.toLowerCase()) { diffIdx = i; break; }
+					for(i in 0...funkin.data.Difficulty.list.length)
+						if(funkin.data.Difficulty.list[i].toLowerCase() == diff.toLowerCase()) { diffIdx = i; break; }
 					var jsonName:String = Paths.formatToSongPath(songName) + '-' + Paths.formatToSongPath(diff);
 					var folder:String = Paths.formatToSongPath(songName);
-					if(backend.Song.getChart(jsonName, folder) == null)
+					if(funkin.data.Song.getChart(jsonName, folder) == null)
 						jsonName = Paths.formatToSongPath(songName);
-					backend.Song.loadFromJson(jsonName, folder);
-					states.PlayState.isStoryMode = false;
-					states.PlayState.storyDifficulty = diffIdx;
+					funkin.data.Song.loadFromJson(jsonName, folder);
+					funkin.game.states.PlayState.isStoryMode = false;
+					funkin.game.states.PlayState.storyDifficulty = diffIdx;
 				}
-				if(states.PlayState.SONG != null)
-					backend.MusicBeatState.switchStateWithStickers(new states.PlayState(), mode);
+				if(funkin.game.states.PlayState.SONG != null)
+					funkin.backend.MusicBeatState.switchStateWithStickers(new funkin.game.states.PlayState(), mode);
 			}
 			else
 			{
-				backend.MusicBeatState.switchStateWithStickersByName(stateName, mode);
+				funkin.backend.MusicBeatState.switchStateWithStickersByName(stateName, mode);
 			}
 			return true;
 		});
@@ -2312,25 +2312,25 @@ class LoadingLuaScript
 			return FlxG.sound.music != null && FlxG.sound.music.playing;
 		});
 		Lua_helper.add_callback(lua, "getScore", function(songName:String, diffIndex:Int) {
-			return backend.Highscore.getScore(songName, diffIndex);
+			return funkin.save.Highscore.getScore(songName, diffIndex);
 		});
 		Lua_helper.add_callback(lua, "getDifficulties", function(?weekName:String = null) {
 			if(weekName != null && weekName.length > 0) {
 				#if MODS_ALLOWED
 				var weekPath = Paths.mods(Mods.currentModDirectory + '/weeks/' + weekName + '.json');
 				if(FileSystem.exists(weekPath)) {
-					var weekData:backend.WeekData = haxe.Json.parse(sys.io.File.getContent(weekPath));
-					if(weekData != null) backend.Difficulty.loadFromWeek(weekData);
+					var weekData:funkin.data.WeekData = haxe.Json.parse(sys.io.File.getContent(weekPath));
+					if(weekData != null) funkin.data.Difficulty.loadFromWeek(weekData);
 				}
 				#end
 			}
-			if(backend.Difficulty.list == null || backend.Difficulty.list.length == 0)
-				backend.Difficulty.resetList();
-			return backend.Difficulty.list;
+			if(funkin.data.Difficulty.list == null || funkin.data.Difficulty.list.length == 0)
+				funkin.data.Difficulty.resetList();
+			return funkin.data.Difficulty.list;
 		});
 		Lua_helper.add_callback(lua, "getDifficultyName", function(index:Int) {
-			if(index < 0 || index >= backend.Difficulty.list.length) return 'normal';
-			return backend.Difficulty.list[index];
+			if(index < 0 || index >= funkin.data.Difficulty.list.length) return 'normal';
+			return funkin.data.Difficulty.list[index];
 		});
 		Lua_helper.add_callback(lua, "lerp", function(a:Float, b:Float, t:Float) return a + (b - a) * t);
 		Lua_helper.add_callback(lua, "flxLerp", function(a:Float, b:Float, t:Float) return flixel.math.FlxMath.lerp(a, b, t));
@@ -2346,7 +2346,7 @@ class LoadingLuaScript
 		Lua_helper.add_callback(lua, "openSubState", function(substate:Dynamic) {
 			if(Std.isOfType(substate, String)) {
 				var shortNames:Map<String, String> = [
-					'EditorPickerSubstate' => 'states.editors.EditorPickerSubstate'
+					'EditorPickerSubstate' => 'funkin.editors.EditorPickerSubstate'
 				];
 				var resolved:String = shortNames.exists(substate) ? shortNames.get(substate) : substate;
 				var cls = Type.resolveClass(resolved);

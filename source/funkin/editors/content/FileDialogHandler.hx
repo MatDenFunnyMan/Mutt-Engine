@@ -177,7 +177,7 @@ class FileDialogHandler extends FlxBasic
 //Only way I could find to keep the path after saving a file
 class FileReferenceCustom extends FileReference
 {
-	@:allow(backend.FileDialogHandler)
+	@:allow(funkin.editors.content.FileDialogHandler)
 	var _trackSavedPath:String;
 	override function saveFileDialog_onSelect(path:String):Void
 	{

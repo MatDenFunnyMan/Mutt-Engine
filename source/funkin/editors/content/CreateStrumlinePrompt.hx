@@ -1,6 +1,6 @@
 package funkin.editors.content;
 
-import states.editors.content.Prompt.BasePrompt;
+import funkin.editors.content.Prompt.BasePrompt;
 
 typedef StrumlineConfigData =
 {

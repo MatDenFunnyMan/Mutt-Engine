@@ -3,7 +3,7 @@ package funkin.scripting;
 import Type.ValueType;
 import haxe.Constraints;
 
-import substates.GameOverSubstate;
+import funkin.game.states.GameOverSubstate;
 
 //
 // Functions that use a high amount of Reflections, which are somewhat CPU intensive

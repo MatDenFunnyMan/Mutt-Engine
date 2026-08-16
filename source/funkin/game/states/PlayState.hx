@@ -1,10 +1,10 @@
 package funkin.game.states;
 
-import backend.Highscore;
-import backend.StageData;
-import backend.WeekData;
-import backend.Song;
-import backend.Rating;
+import funkin.save.Highscore;
+import funkin.data.StageData;
+import funkin.data.WeekData;
+import funkin.data.Song;
+import funkin.game.Rating;
 
 import flixel.FlxBasic;
 import flixel.FlxObject;
@@ -19,47 +19,50 @@ import openfl.utils.Assets as OpenFlAssets;
 import openfl.events.KeyboardEvent;
 import haxe.Json;
 
-import cutscenes.DialogueBoxPsych;
+import funkin.game.cutscenes.DialogueBoxPsych;
 
-import states.StoryMenuState;
-import states.FreeplayState;
-import states.editors.ChartingState;
-import states.editors.CharacterEditorState;
-import backend.EditorHelper;
+import funkin.ui.states.StoryMenuState;
+import funkin.ui.states.FreeplayState;
+import funkin.editors.ChartingState;
+import funkin.editors.CharacterEditorState;
+import funkin.editors.EditorHelper;
 
-import substates.PauseSubState;
-import substates.GameOverSubstate;
+import funkin.game.states.PauseSubState;
+import funkin.game.states.GameOverSubstate;
 
-import substates.StickerSubState;
+import funkin.ui.states.StickerSubState;
 
 #if HSCRIPT_ALLOWED
-import backend.HScriptStateLoader.HScriptState;
+import funkin.backend.HScriptStateLoader.HScriptState;
 #end
 
 #if !flash
 import openfl.filters.ShaderFilter;
 #end
 
-import shaders.ErrorHandledShader;
-import shaders.RGBPalette.RGBShaderReference;
+import funkin.graphics.shaders.ErrorHandledShader;
+import funkin.graphics.shaders.RGBPalette.RGBShaderReference;
 
-import objects.VideoSprite;
-import objects.Note.EventNote;
-import objects.*;
-import objects.HoldCover;
-import states.stages.*;
-import states.stages.objects.*;
+import funkin.graphics.VideoSprite;
+import funkin.game.notes.Note.EventNote;
+import funkin.game.notes.*;
+import funkin.ui.*;
+import funkin.graphics.*;
+import funkin.game.Character;
+import funkin.game.notes.HoldCover;
+import funkin.game.stages.*;
+import funkin.game.stages.objects.*;
 import flixel.FlxObject;
 
 #if LUA_ALLOWED
-import psychlua.*;
+import funkin.scripting.*;
 #else
-import psychlua.LuaUtils;
-import psychlua.HScript;
+import funkin.scripting.LuaUtils;
+import funkin.scripting.HScript;
 #end
 
 #if HSCRIPT_ALLOWED
-import psychlua.HScript.HScriptInfos;
+import funkin.scripting.HScript.HScriptInfos;
 import crowplexus.iris.Iris;
 import crowplexus.hscript.Expr.Error as IrisError;
 import crowplexus.hscript.Printer;
@@ -68,7 +71,7 @@ import crowplexus.hscript.Printer;
 #if windows
 import lime.system.System;
 #end
-import backend.MetaData;
+import funkin.data.MetaData;
 
 /**
  * This is where all the Gameplay stuff happens and is managed
@@ -286,7 +289,7 @@ class PlayState extends MusicBeatState
 	#if LUA_ALLOWED public var luaArray:Array<FunkinLua> = []; #end
 
 	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-	private var luaDebugGroup:FlxTypedGroup<psychlua.DebugLuaText>;
+	private var luaDebugGroup:FlxTypedGroup<funkin.scripting.DebugLuaText>;
 	#end
 	public var introSoundsSuffix:String = '';
 
@@ -440,7 +443,7 @@ class PlayState extends MusicBeatState
 		if(isPixelStage) introSoundsSuffix = '-pixel';
 
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-		luaDebugGroup = new FlxTypedGroup<psychlua.DebugLuaText>();
+		luaDebugGroup = new FlxTypedGroup<funkin.scripting.DebugLuaText>();
 		luaDebugGroup.cameras = [camOther];
 		add(luaDebugGroup);
 		#end
@@ -875,14 +878,14 @@ class PlayState extends MusicBeatState
 
 	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 	public function addTextToDebug(text:String, color:FlxColor) {
-		var newText:psychlua.DebugLuaText = luaDebugGroup.recycle(psychlua.DebugLuaText);
+		var newText:funkin.scripting.DebugLuaText = luaDebugGroup.recycle(funkin.scripting.DebugLuaText);
 		newText.text = text;
 		newText.color = color;
 		newText.disableTime = 6;
 		newText.alpha = 1;
 		newText.setPosition(10, 8 - newText.height);
 
-		luaDebugGroup.forEachAlive(function(spr:psychlua.DebugLuaText) {
+		luaDebugGroup.forEachAlive(function(spr:funkin.scripting.DebugLuaText) {
 			spr.y += newText.height + 2;
 		});
 		luaDebugGroup.add(newText);
@@ -1874,7 +1877,7 @@ class PlayState extends MusicBeatState
 		}
 
 		#if VIDEOS_ALLOWED
-		for(vName in states.LoadingState.videosToPrecache)
+		for(vName in funkin.ui.states.LoadingState.videosToPrecache)
 		{
 			if(!VideoSprite.precachedVideos.exists(vName))
 			{
@@ -4854,7 +4857,7 @@ class PlayState extends MusicBeatState
 					if(checkNoStickers)
 					{
 						#if HSCRIPT_ALLOWED
-						var hscriptState = backend.HScriptStateLoader.loadStateScript(stateToReturn);
+						var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
 						if(hscriptState != null)
 						{
 							MusicBeatState.switchState(hscriptState);
@@ -4862,14 +4865,14 @@ class PlayState extends MusicBeatState
 						else
 						#end
 						{
-							var luaState = backend.StateManager.loadLuaState(stateToReturn);
+							var luaState = funkin.backend.StateManager.loadLuaState(stateToReturn);
 							if(luaState != null)
 							{
 								MusicBeatState.switchState(luaState);
 							}
 							else
 							{
-								var stateClass = backend.StateManager.getStateClass(stateToReturn);
+								var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
 								if(stateClass != null)
 								{
 									var stateInstance = Type.createInstance(stateClass, []);
@@ -4891,14 +4894,14 @@ class PlayState extends MusicBeatState
 
 						stickerSubState = new StickerSubState(null, function(sticker) {
 						#if HSCRIPT_ALLOWED
-						var hscriptState = backend.HScriptStateLoader.loadStateScript(stateToReturn);
+						var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
 						if(hscriptState != null)
 							return hscriptState;
 						#end
-						var luaState = backend.StateManager.loadLuaState(stateToReturn);
+						var luaState = funkin.backend.StateManager.loadLuaState(stateToReturn);
 						if(luaState != null)
 							return luaState;
-						var stateClass = backend.StateManager.getStateClass(stateToReturn);
+						var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
 						if(stateClass != null)
 							return Type.createInstance(stateClass, []);
 						return new FreeplayState();
@@ -6115,7 +6118,7 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
-		if (psychlua.CustomSubstate.instance != null)
+		if (funkin.scripting.CustomSubstate.instance != null)
 		{
 			closeSubState();
 			resetSubState();
@@ -6166,7 +6169,7 @@ class PlayState extends MusicBeatState
 		FlxG.animationTimeScale = 1;
 
 		Note.globalRgbShaders = [];
-		backend.NoteTypesConfig.clearNoteTypesData();
+		funkin.data.NoteTypesConfig.clearNoteTypesData();
 
 		NoteSplash.configs.clear();
 		instance = null;

@@ -4,46 +4,41 @@ import flixel.FlxState;
 
 class StateManager
 {
+	static final STATE_PKGS:Array<String> = [
+		'funkin.ui.states',
+		'funkin.game.states',
+		'funkin.ui.options',
+		'funkin.editors'
+	];
+
 	public static function getStateClass(stateName:String):Class<FlxState>
-	{
-		var stateClass:Class<FlxState> = null;
-		
+	{		
 		#if MODS_ALLOWED
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory != '')
 		{
 			var sanitizedModName = sanitizeModName(Mods.currentModDirectory);
-			var modStatePath = 'states.mods.$sanitizedModName.$stateName';
+			var modStatePath = 'funkin.mods.$sanitizedModName.$stateName';
 			var resolvedClass = Type.resolveClass(modStatePath);
-			
+
 			if(resolvedClass != null)
 			{
-				stateClass = cast resolvedClass;
 				trace('Loading custom compiled state from mod: $modStatePath');
-				return stateClass;
+				return cast resolvedClass;
 			}
 		}
 		#end
-		
-		var originalPath = 'states.$stateName';
-		var resolvedClass = Type.resolveClass(originalPath);
-		
-		if(resolvedClass != null)
-		{
-			stateClass = cast resolvedClass;
-			trace('Loading original state: $originalPath');
-			return stateClass;
+
+		for (pkg in STATE_PKGS){
+			var path = '$pkg.$stateName';
+			var resolvedClass = Type.resolveClass(path);
+
+			if(resolvedClass != null)
+			{
+				trace('Loading state: $path');
+				return cast resolvedClass;
+			}
 		}
-		
-		var optionsPath = 'options.$stateName';
-		resolvedClass = Type.resolveClass(optionsPath);
-		
-		if(resolvedClass != null)
-		{
-			stateClass = cast resolvedClass;
-			trace('Loading options state: $optionsPath');
-			return stateClass;
-		}
-		
+
 		trace('State not found: $stateName');
 		return null;
 	}
@@ -68,7 +63,7 @@ class StateManager
 		#end
 		#if LUA_ALLOWED
 		trace('Checking for Lua state...');
-		var luaState = psychlua.LuaStateLoader.loadStateScript(stateName);
+		var luaState = funkin.scripting.LuaStateLoader.loadStateScript(stateName);
 		if(luaState != null)
 		{
 			trace('Lua state found! Loading: $stateName');
@@ -103,10 +98,10 @@ class StateManager
 		}
 	}
 
-	public static function loadLuaState(stateName:String, ?stickers:Array<substates.StickerSubState.StickerSprite>):FlxState
+	public static function loadLuaState(stateName:String, ?stickers:Array<funkin.ui.states.StickerSubState.StickerSprite>):FlxState
 	{
 		#if LUA_ALLOWED
-		var luaState = psychlua.LuaStateLoader.loadStateScript(stateName, stickers);
+		var luaState = funkin.scripting.LuaStateLoader.loadStateScript(stateName, stickers);
 		if(luaState != null) return luaState;
 		#end
 		return null;

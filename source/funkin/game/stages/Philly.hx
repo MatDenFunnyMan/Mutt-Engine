@@ -1,7 +1,7 @@
 package funkin.game.stages;
 
-import states.stages.objects.*;
-import objects.Character;
+import funkin.game.stages.objects.*;
+import funkin.game.Character;
 
 class Philly extends BaseStage
 {
@@ -48,7 +48,7 @@ class Philly extends BaseStage
 		phillyStreet = new BGSprite('philly/street', -40, 50);
 		add(phillyStreet);
 	}
-	override function eventPushed(event:objects.Note.EventNote)
+	override function eventPushed(event:funkin.game.notes.Note.EventNote)
 	{
 		switch(event.event)
 		{

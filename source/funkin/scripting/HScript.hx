@@ -1,16 +1,17 @@
 package funkin.scripting;
+import funkin.Main;
 
 import flixel.FlxBasic;
-import objects.Character;
-import psychlua.LuaUtils;
-import psychlua.CustomSubstate;
+import funkin.game.Character;
+import funkin.scripting.LuaUtils;
+import funkin.scripting.CustomSubstate;
 
 #if (lime || openfl)
 import lime.system.System;
 #end
 
 #if LUA_ALLOWED
-import psychlua.FunkinLua;
+import funkin.scripting.FunkinLua;
 #end
 
 #if HSCRIPT_ALLOWED
@@ -182,7 +183,7 @@ class HScript extends Iris
 		set('FlxSprite', flixel.FlxSprite);
 		set('FlxText', flixel.text.FlxText);
 		set('FlxCamera', flixel.FlxCamera);
-		set('PsychCamera', backend.PsychCamera);
+		set('PsychCamera', funkin.game.PsychCamera);
 		set('FlxTimer', flixel.util.FlxTimer);
 		set('FlxTween', HScriptTweenCompat);
 		set('FlxEase', flixel.tweens.FlxEase);
@@ -204,33 +205,33 @@ class HScript extends Iris
 		set('SCREEN', BlendMode.SCREEN);
 		set('SHADER', BlendMode.SHADER);
 		set('SUBTRACT', BlendMode.SUBTRACT);
-		set('Countdown', backend.BaseStage.Countdown);
+		set('Countdown', funkin.game.stages.BaseStage.Countdown);
 		set('PlayState', PlayState);
 		set('Paths', Paths);
 		set('Conductor', Conductor);
 		set('FlxSubState', flixel.FlxSubState);
-		set('MusicBeatSubstate', backend.MusicBeatSubstate);
+		set('MusicBeatSubstate', funkin.backend.MusicBeatSubstate);
 		set('FlxGradient', flixel.util.FlxGradient);
 		set('FlxAxes', {
 			X: flixel.util.FlxAxes.X,
 			Y: flixel.util.FlxAxes.Y,
 			XY: flixel.util.FlxAxes.XY
 		});
-		set('LoadingState', states.LoadingState);
-		set('StickerSubState', substates.StickerSubState);
+		set('LoadingState', funkin.ui.states.LoadingState);
+		set('StickerSubState', funkin.ui.states.StickerSubState);
 		set('switchStateWithStickers', function(nextState:flixel.FlxState, ?mode:String) {
-			backend.MusicBeatState.switchStateWithStickers(nextState, mode);
+			funkin.backend.MusicBeatState.switchStateWithStickers(nextState, mode);
 		});
-		set('StateManager', backend.StateManager);
+		set('StateManager', funkin.backend.StateManager);
 		set('switchState', function(nextState:Dynamic) {
 			if (Std.isOfType(nextState, String))
-				backend.MusicBeatState.switchStateByName(nextState);
+				funkin.backend.MusicBeatState.switchStateByName(nextState);
 			else
-				backend.MusicBeatState.switchState(nextState);
+				funkin.backend.MusicBeatState.switchState(nextState);
 		});
-		set('switchStateDirect', function(nextState:Dynamic) { backend.MusicBeatState.switchStateDirect(nextState); });
-		set('switchStateByName', function(name:String) { backend.MusicBeatState.switchStateByName(name); });
-		set('switchStateDirectByName', function(name:String) { backend.MusicBeatState.switchStateDirectByName(name); });
+		set('switchStateDirect', function(nextState:Dynamic) { funkin.backend.MusicBeatState.switchStateDirect(nextState); });
+		set('switchStateByName', function(name:String) { funkin.backend.MusicBeatState.switchStateByName(name); });
+		set('switchStateDirectByName', function(name:String) { funkin.backend.MusicBeatState.switchStateDirectByName(name); });
 		set('resetState', function() { FlxG.resetState(); });
 		set('ClientPrefs', ClientPrefs);
 		set('Mods', Mods);
@@ -239,11 +240,11 @@ class HScript extends Iris
 		#end
 		set('Character', Character);
 		set('Alphabet', Alphabet);
-		set('Note', objects.Note);
-		set('HoldCover', objects.HoldCover);
+		set('Note', funkin.game.notes.Note);
+		set('HoldCover', funkin.game.notes.HoldCover);
 		set('getHoldCoverProperty', function(cover:Dynamic, variable:String) {
 			if(PlayState.instance == null) return null;
-			var coverObj:objects.HoldCover = null;
+			var coverObj:funkin.game.notes.HoldCover = null;
 			if(Std.isOfType(cover, Int)) {
 				coverObj = PlayState.instance.grpHoldCovers.members[cover];
 			} else {
@@ -254,7 +255,7 @@ class HScript extends Iris
 		});
 		set('setHoldCoverProperty', function(cover:Dynamic, variable:String, value:Dynamic) {
 			if(PlayState.instance == null) return null;
-			var coverObj:objects.HoldCover = null;
+			var coverObj:funkin.game.notes.HoldCover = null;
 			if(Std.isOfType(cover, Int)) {
 				coverObj = PlayState.instance.grpHoldCovers.members[cover];
 			} else {
@@ -265,7 +266,7 @@ class HScript extends Iris
 		});
 		set('updateHoldCoverHitbox', function(cover:Dynamic) {
 			if(PlayState.instance == null) return;
-			var coverObj:objects.HoldCover = null;
+			var coverObj:funkin.game.notes.HoldCover = null;
 			if(Std.isOfType(cover, Int)) {
 				coverObj = PlayState.instance.grpHoldCovers.members[cover];
 			} else {
@@ -276,7 +277,7 @@ class HScript extends Iris
 		set('CustomSubstate', CustomSubstate);
 		#if (!flash && sys)
 		set('FlxRuntimeShader', flixel.addons.display.FlxRuntimeShader);
-		set('ErrorHandledRuntimeShader', shaders.ErrorHandledShader.ErrorHandledRuntimeShader);
+		set('ErrorHandledRuntimeShader', funkin.graphics.shaders.ErrorHandledShader.ErrorHandledRuntimeShader);
 		#end
 		set('ShaderFilter', openfl.filters.ShaderFilter);
 		set('StringTools', StringTools);
@@ -286,16 +287,16 @@ class HScript extends Iris
 		set('StageSizeScaleMode', flixel.system.scaleModes.StageSizeScaleMode);
 		set('Sound', flash.media.Sound);
 		set('Json', haxe.Json);
-		set('ColorSwap', shaders.ColorSwap);
+		set('ColorSwap', funkin.graphics.shaders.ColorSwap);
 		#if flxanimate
 		set('FlxAnimate', FlxAnimate);
 		#end
 
 		//AWAY 3D
-		set('Flxview3D', flx3d.FlxView3D);
-		set('Flx3DView', flx3d.Flx3DView);
-		set('Flx3DUtil', flx3d.Flx3DUtil);
-		set('Flx3DCamera', flx3d.Flx3DCamera);
+		set('Flxview3D', funkin.external.flx3d.FlxView3D);
+		set('Flx3DView', funkin.external.flx3d.Flx3DView);
+		set('Flx3DUtil', funkin.external.flx3d.Flx3DUtil);
+		set('Flx3DCamera', funkin.external.flx3d.Flx3DCamera);
 		set('Asset3DType', away3d.library.assets.Asset3DType);
 		set('Mesh', away3d.entities.Mesh);
 		set('PerspectiveLens', away3d.cameras.lenses.PerspectiveLens);
@@ -478,15 +479,15 @@ class HScript extends Iris
 		set('customSubstateName', CustomSubstate.name);
 
 		set('setReturnState', function(stateName:String) {
-			states.PlayState.returnAfterSongState = stateName;
+			funkin.game.states.PlayState.returnAfterSongState = stateName;
 		});
 
 		set('switchStateDirect', function(stateName:String) {
-			backend.MusicBeatState.switchStateDirectByName(stateName);
+			funkin.backend.MusicBeatState.switchStateDirectByName(stateName);
 		});
 		
 		set('getReturnState', function() {
-			return states.PlayState.returnAfterSongState;
+			return funkin.game.states.PlayState.returnAfterSongState;
 		});
 
 		var parseJsonFunc = function(jsonString:String):Dynamic {
@@ -503,8 +504,8 @@ class HScript extends Iris
 					return parsed;
 				} catch(e2:Dynamic) {
 					try {
-						if(Type.resolveClass('backend.Song') != null) {
-							var songClass = Type.resolveClass('backend.Song');
+						if(Type.resolveClass('funkin.data.Song') != null) {
+							var songClass = Type.resolveClass('funkin.data.Song');
 							if(Reflect.hasField(songClass, 'parseJSONshit')) {
 								parsed = Reflect.callMethod(songClass, Reflect.field(songClass, 'parseJSONshit'), [jsonString]);
 								return parsed;
@@ -537,7 +538,7 @@ class HScript extends Iris
 			}
 		});
 		
-		set('Song', backend.Song);
+		set('Song', funkin.data.Song);
 		set('CoolUtil', CoolUtil);
 		set('Reflect', Reflect);
 

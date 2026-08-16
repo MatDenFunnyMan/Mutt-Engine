@@ -1,11 +1,11 @@
 package funkin.ui.options;
 
-import backend.StageData;
-import objects.Character;
-import objects.Bar;
+import funkin.data.StageData;
+import funkin.game.Character;
+import funkin.ui.Bar;
 import flixel.addons.display.shapes.FlxShapeCircle;
 
-import states.stages.StageWeek1 as BackgroundStage;
+import funkin.game.stages.StageWeek1 as BackgroundStage;
 
 class NoteOffsetState extends MusicBeatState
 {
@@ -405,7 +405,7 @@ class NoteOffsetState extends MusicBeatState
 			if(beatTween != null) beatTween.cancel();
 
 			persistentUpdate = false;
-			MusicBeatState.switchState(new options.OptionsState());
+			MusicBeatState.switchState(new funkin.ui.options.OptionsState());
 			if(OptionsState.onPlayState)
 			{
 				if(ClientPrefs.data.pauseMusic != 'None')

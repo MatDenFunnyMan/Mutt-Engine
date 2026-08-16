@@ -11,12 +11,12 @@ import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.utils.Assets;
 
-import objects.Character;
-import objects.HealthIcon;
-import objects.Bar;
+import funkin.game.Character;
+import funkin.ui.HealthIcon;
+import funkin.ui.Bar;
 
-import states.editors.content.Prompt;
-import states.editors.content.PsychJsonPrinter;
+import funkin.editors.content.Prompt;
+import funkin.editors.content.PsychJsonPrinter;
 
 class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
@@ -1447,7 +1447,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 					FlxG.mouse.visible = false;
 					Conductor.reset();
 					FlxG.sound.playMusic(Paths.music('freakyMenu'));
-					backend.EditorHelper.returnToPreviousState();
+					funkin.editors.EditorHelper.returnToPreviousState();
 				}
 				else openSubState(new ExitConfirmationPrompt());
 			}

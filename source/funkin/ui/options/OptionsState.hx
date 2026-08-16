@@ -1,8 +1,8 @@
 package funkin.ui.options;
 
-import states.MainMenuState;
-import backend.StageData;
-import backend.StateManager;
+import funkin.ui.states.MainMenuState;
+import funkin.data.StageData;
+import funkin.backend.StateManager;
 import flixel.FlxObject;
 
 class OptionsState extends MusicBeatState
@@ -37,23 +37,23 @@ class OptionsState extends MusicBeatState
 		{
 			/*
 			case 'Note Colors':
-				openSubState(new options.NotesColorSubState());
+				openSubState(new funkin.ui.options.NotesColorSubState());
 			*/
 			case 'Controls':
-				openSubState(new options.ControlsSubState());
+				openSubState(new funkin.ui.options.ControlsSubState());
 			case 'Graphics':
-				openSubState(new options.GraphicsSettingsSubState());
+				openSubState(new funkin.ui.options.GraphicsSettingsSubState());
 			case 'Visuals':
-				openSubState(new options.VisualsSettingsSubState());
+				openSubState(new funkin.ui.options.VisualsSettingsSubState());
 			case 'Gameplay':
-				openSubState(new options.GameplaySettingsSubState());
+				openSubState(new funkin.ui.options.GameplaySettingsSubState());
 			case 'Adjust Delay and Combo':
-				MusicBeatState.switchState(new options.NoteOffsetState());
+				MusicBeatState.switchState(new funkin.ui.options.NoteOffsetState());
 			//case 'Developer':
-				//openSubState(new options.DeveloperSettingsSubState());
+				//openSubState(new funkin.ui.options.DeveloperSettingsSubState());
 			/*
 			case 'Language':
-				openSubState(new options.LanguageSubState());
+				openSubState(new funkin.ui.options.LanguageSubState());
 			*/
 		}
 	}

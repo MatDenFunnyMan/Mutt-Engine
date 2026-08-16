@@ -1,9 +1,9 @@
 package funkin.ui.options;
 
-import objects.AttachedText;
-import objects.CheckboxThingie;
+import funkin.graphics.AttachedText;
+import funkin.ui.CheckboxThingie;
 
-import options.Option.OptionType;
+import funkin.ui.options.Option.OptionType;
 
 class GameplayChangersSubstate extends MusicBeatSubstate
 {

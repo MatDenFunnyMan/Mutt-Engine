@@ -1,7 +1,7 @@
 package funkin.ui.states;
 
-import backend.WeekData;
-import backend.Mods;
+import funkin.data.WeekData;
+import funkin.modding.Mods;
 
 import flixel.FlxBasic;
 import flixel.graphics.FlxGraphic;
@@ -9,8 +9,8 @@ import flash.geom.Rectangle;
 import haxe.Json;
 
 import flixel.util.FlxSpriteUtil;
-import objects.AttachedSprite;
-import options.ModSettingsSubState;
+import funkin.graphics.AttachedSprite;
+import funkin.ui.options.ModSettingsSubState;
 
 import openfl.display.BitmapData;
 import lime.utils.Assets;

@@ -1,7 +1,7 @@
 package funkin.ui.states;
 
-import objects.AttachedSprite;
-import backend.StateManager;
+import funkin.graphics.AttachedSprite;
+import funkin.backend.StateManager;
 
 class CreditsState extends MusicBeatState
 {

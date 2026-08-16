@@ -1,4 +1,5 @@
 package funkin.util;
+import funkin.Main;
 
 import lime.app.Application;
 import lime.system.Display;
@@ -140,7 +141,7 @@ class AudioFixClient : public IMMNotificationClient {
 		ERole role,
 		LPCWSTR pwstrDeviceId)
 	{
-		::Main_obj::audioDisconnected = true;
+		::funkin::Main_obj::audioDisconnected = true;
 		return S_OK;
 	}
 };

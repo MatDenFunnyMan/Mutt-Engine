@@ -1,20 +1,20 @@
 package funkin.ui.states;
 
-import backend.WeekData;
-import backend.Highscore;
-import backend.Song;
+import funkin.data.WeekData;
+import funkin.save.Highscore;
+import funkin.data.Song;
 
 import flixel.group.FlxGroup;
 import flixel.graphics.FlxGraphic;
 
-import objects.MenuItem;
-import objects.MenuCharacter;
+import funkin.ui.MenuItem;
+import funkin.ui.MenuCharacter;
 
-import options.GameplayChangersSubstate;
-import substates.ResetScoreSubState;
+import funkin.ui.options.GameplayChangersSubstate;
+import funkin.ui.states.ResetScoreSubState;
 
-import backend.StageData;
-import backend.StateManager;
+import funkin.data.StageData;
+import funkin.backend.StateManager;
 
 class StoryMenuState extends MusicBeatState
 {
@@ -51,7 +51,7 @@ class StoryMenuState extends MusicBeatState
 		savedModDirectory = Mods.currentModDirectory;
 		trace('DEBUG StoryMenu: Saved mod directory = $savedModDirectory');
 
-		var hasPendingStickers:Bool = substates.StickerSubState.pendingStickers != null;
+		var hasPendingStickers:Bool = funkin.ui.states.StickerSubState.pendingStickers != null;
 		trace('StoryMenu create - hasPendingStickers: $hasPendingStickers');
 
 		if(!hasPendingStickers)
@@ -77,8 +77,8 @@ class StoryMenuState extends MusicBeatState
 		{
 			FlxTransitionableState.skipNextTransIn = true;
 			persistentUpdate = false;
-			MusicBeatState.switchState(new states.ErrorState("COMING SOON!\n\nStory Mode is NOT AVAILABLE in this demo, go to FREEPLAY.\nPress BACK to return to Main Menu.",
-				function() MusicBeatState.switchState(new states.editors.WeekEditorState()),
+			MusicBeatState.switchState(new funkin.ui.states.ErrorState("NO WEEKS ADDED FOR STORY MODE\n\nPress ACCEPT to go to the Week Editor Menu.\nPress BACK to return to Main Menu.",
+				function() MusicBeatState.switchState(new funkin.editors.WeekEditorState()),
 				function() StateManager.switchState('MainMenuState')));
 			return;
 		}

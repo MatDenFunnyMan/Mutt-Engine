@@ -1,6 +1,6 @@
 package funkin.ui.psychui;
 
-import backend.ui.PsychUIBox.UIStyleData;
+import funkin.ui.psychui.PsychUIBox.UIStyleData;
 import flixel.util.FlxSpriteUtil;
 
 class PsychUIButton extends FlxSpriteGroup

@@ -1,11 +1,11 @@
 package funkin.editors;
 
-import backend.WeekData;
+import funkin.data.WeekData;
 
-import objects.Character;
+import funkin.game.Character;
 
-import states.MainMenuState;
-import states.FreeplayState;
+import funkin.ui.states.MainMenuState;
+import funkin.ui.states.FreeplayState;
 
 class MasterEditorMenu extends MusicBeatState
 {

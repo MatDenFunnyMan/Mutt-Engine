@@ -1,18 +1,18 @@
 package funkin.game.states;
 
-import backend.WeekData;
-import backend.Highscore;
-import backend.Song;
+import funkin.data.WeekData;
+import funkin.save.Highscore;
+import funkin.data.Song;
 
 import flixel.util.FlxStringUtil;
 
-import states.StoryMenuState;
-import states.FreeplayState;
-import options.OptionsState;
-import substates.StickerSubState;
+import funkin.ui.states.StoryMenuState;
+import funkin.ui.states.FreeplayState;
+import funkin.ui.options.OptionsState;
+import funkin.ui.states.StickerSubState;
 
 #if HSCRIPT_ALLOWED
-import backend.HScriptStateLoader.HScriptState;
+import funkin.backend.HScriptStateLoader.HScriptState;
 #end
 class PauseSubState extends MusicBeatSubstate
 {
@@ -42,7 +42,7 @@ class PauseSubState extends MusicBeatSubstate
 
 	override function create()
 	{
-		PlayState.songmeta = backend.MetaData.parse(Paths.formatToSongPath(PlayState.SONG.song));
+		PlayState.songmeta = funkin.data.MetaData.parse(Paths.formatToSongPath(PlayState.SONG.song));
 
 		if(Difficulty.list.length < 2) menuItemsOG.remove('Change Difficulty'); //No need to change difficulty if there is only one!
 		if(PlayState.chartingMode)
@@ -496,7 +496,7 @@ class PauseSubState extends MusicBeatSubstate
 							PlayState.returnAfterSongState = null;
 							
 							#if HSCRIPT_ALLOWED
-							var hscriptState = backend.HScriptStateLoader.loadStateScript(stateToReturn);
+							var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
 							if(hscriptState != null)
 							{
 								MusicBeatState.switchState(hscriptState);
@@ -504,14 +504,14 @@ class PauseSubState extends MusicBeatSubstate
 							else
 							#end
 							{
-								var luaState = backend.StateManager.loadLuaState(stateToReturn);
+								var luaState = funkin.backend.StateManager.loadLuaState(stateToReturn);
 								if(luaState != null)
 								{
 									MusicBeatState.switchState(luaState);
 								}
 								else
 								{
-									var stateClass = backend.StateManager.getStateClass(stateToReturn);
+									var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
 									if(stateClass != null)
 									{
 										var stateInstance = Type.createInstance(stateClass, []);
@@ -543,12 +543,12 @@ class PauseSubState extends MusicBeatSubstate
 								var oldStickers = sticker.grpStickers != null ? sticker.grpStickers.members.copy() : null;
 								
 								#if HSCRIPT_ALLOWED
-								var hscriptState = backend.HScriptStateLoader.loadStateScript(stateToReturn);
+								var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
 								if(hscriptState != null)
 								{
-									if(Std.isOfType(hscriptState, backend.HScriptState))
+									if(Std.isOfType(hscriptState, funkin.backend.HScriptStateLoader.HScriptState))
 									{
-										var hstate = cast(hscriptState, backend.HScriptState);
+										var hstate = cast(hscriptState, funkin.backend.HScriptStateLoader.HScriptState);
 										hstate.oldStickers = oldStickers;
 									}
 									return hscriptState;
@@ -556,10 +556,10 @@ class PauseSubState extends MusicBeatSubstate
 								else
 								#end
 								{
-									var luaState = backend.StateManager.loadLuaState(stateToReturn, oldStickers);
+									var luaState = funkin.backend.StateManager.loadLuaState(stateToReturn, oldStickers);
 									if(luaState != null)
 										return luaState;
-									var stateClass = backend.StateManager.getStateClass(stateToReturn);
+									var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
 									if(stateClass != null)
 									{
 										var stateInstance = Type.createInstance(stateClass, []);

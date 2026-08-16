@@ -1,16 +1,16 @@
 package funkin.ui.states;
 
-import backend.WeekData;
-import backend.Highscore;
-import backend.Song;
+import funkin.data.WeekData;
+import funkin.save.Highscore;
+import funkin.data.Song;
 import flixel.util.FlxSave;
-import backend.StateManager;
+import funkin.backend.StateManager;
 
-import objects.HealthIcon;
-import objects.MusicPlayer;
+import funkin.ui.HealthIcon;
+import funkin.ui.MusicPlayer;
 
-import options.GameplayChangersSubstate;
-import substates.ResetScoreSubState;
+import funkin.ui.options.GameplayChangersSubstate;
+import funkin.ui.states.ResetScoreSubState;
 
 import flixel.math.FlxMath;
 import flixel.util.FlxDestroyUtil;
@@ -19,8 +19,8 @@ import openfl.utils.Assets;
 import openfl.media.Sound;
 
 import haxe.Json;
-import substates.StickerSubState;
-import substates.StickerSubState.StickerSprite;
+import funkin.ui.states.StickerSubState;
+import funkin.ui.states.StickerSubState.StickerSprite;
 
 class FreeplayState extends MusicBeatState
 {
@@ -131,8 +131,8 @@ class FreeplayState extends MusicBeatState
 		{
 			FlxTransitionableState.skipNextTransIn = true;
 			persistentUpdate = false;
-			MusicBeatState.switchState(new states.ErrorState("YOU ARE NOT SUPPOSED TO SEE THIS!\n\nIf you see this text, WHY DID YOU REMOVE THE MOD FOLDER???\nPress BACK to return to Main Menu.",
-				function() MusicBeatState.switchState(new states.editors.WeekEditorState()),
+			MusicBeatState.switchState(new funkin.ui.states.ErrorState("THERE ARE NO SONGS AVAILABLE IN FREEPLAY!\n\nMAKE A WEEK IN the Week Editor Menu.\nPress BACK to return to Main Menu.",
+				function() MusicBeatState.switchState(new funkin.editors.WeekEditorState()),
 				function() StateManager.switchState('MainMenuState')));
 			return;
 		}
@@ -206,8 +206,8 @@ class FreeplayState extends MusicBeatState
 		{
 			FlxTransitionableState.skipNextTransIn = true;
 			persistentUpdate = false;
-			MusicBeatState.switchState(new states.ErrorState("YOU ARE NOT SUPPOSED TO SEE THIS!\n\nIf you see this text, WHY DID YOU REMOVE THE MOD FOLDER???\nPress BACK to return to Main Menu.",
-				function() MusicBeatState.switchState(new states.editors.WeekEditorState()),
+			MusicBeatState.switchState(new funkin.ui.states.ErrorState("THERE ARE NO SONGS AVAILABLE IN FREEPLAY!\n\nMAKE A WEEK IN the Week Editor Menu.\nPress BACK to return to Main Menu.",
+				function() MusicBeatState.switchState(new funkin.editors.WeekEditorState()),
 				function() StateManager.switchState('MainMenuState')));
 			return;
 		}

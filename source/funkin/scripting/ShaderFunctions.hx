@@ -60,7 +60,7 @@ class ShaderFunctions
 			if(isCamera(obj)) {
 				var cam:FlxCamera = getCameraByName(obj);
 				var arr:Array<String> = funk.runtimeShaders.get(shader);
-				var rShader:FlxRuntimeShader = new shaders.ErrorHandledShader.ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
+				var rShader:FlxRuntimeShader = new funkin.graphics.shaders.ErrorHandledShader.ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
 				cameraShaders.set(obj, rShader);
 				cam.setFilters([new openfl.filters.ShaderFilter(cast rShader)]);
 				return true;
@@ -75,7 +75,7 @@ class ShaderFunctions
 
 			if(leObj != null) {
 				var arr:Array<String> = funk.runtimeShaders.get(shader);
-				leObj.shader = new shaders.ErrorHandledShader.ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
+				leObj.shader = new funkin.graphics.shaders.ErrorHandledShader.ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
 				return true;
 			}
 			#else

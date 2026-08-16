@@ -1,10 +1,13 @@
 package funkin.editors.content;
 
-import backend.Song;
-import backend.Difficulty;
+import funkin.data.Song;
+import funkin.data.Difficulty;
+import funkin.game.notes.Note;
 
 import flixel.math.FlxMath;
 import flixel.util.FlxSort;
+
+import funkin.ui.states.MainMenuState;
 
 // Chart
 typedef VSliceChart =

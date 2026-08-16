@@ -4,12 +4,12 @@ import flixel.group.FlxGroup;
 import flixel.ui.FlxBar;
 import flixel.util.FlxStringUtil;
 
-import states.FreeplayState;
+import funkin.ui.states.FreeplayState;
 
 /**
  * Music player used for Freeplay
  */
-@:access(states.FreeplayState)
+@:access(funkin.ui.states.FreeplayState)
 class MusicPlayer extends FlxGroup 
 {
 	public var instance:FreeplayState;

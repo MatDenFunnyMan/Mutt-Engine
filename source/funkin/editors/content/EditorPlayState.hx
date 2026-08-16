@@ -1,11 +1,11 @@
 package funkin.editors.content;
 
-import backend.Song;
-import backend.Rating;
+import funkin.data.Song;
+import funkin.game.Rating;
 
-import objects.Note;
-import objects.NoteSplash;
-import objects.StrumNote;
+import funkin.game.notes.Note;
+import funkin.game.notes.NoteSplash;
+import funkin.game.notes.StrumNote;
 
 import flixel.util.FlxSort;
 import flixel.util.FlxStringUtil;

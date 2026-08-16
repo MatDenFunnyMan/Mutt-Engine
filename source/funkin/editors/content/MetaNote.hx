@@ -1,7 +1,8 @@
 package funkin.editors.content;
+import funkin.editors.ChartingState;
 
-import objects.Note;
-import shaders.RGBPalette;
+import funkin.game.notes.Note;
+import funkin.graphics.shaders.RGBPalette;
 import flixel.util.FlxDestroyUtil;
 
 class MetaNote extends Note

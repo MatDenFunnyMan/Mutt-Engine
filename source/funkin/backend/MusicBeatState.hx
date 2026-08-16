@@ -3,8 +3,8 @@ package funkin.backend;
 import openfl.display.BitmapData;
 import flixel.FlxState;
 import flixel.util.FlxSave;
-import backend.PsychCamera;
-import debug.CMD;
+import funkin.game.PsychCamera;
+import funkin.debug.CMD;
 
 class MusicBeatState extends FlxState
 {
@@ -30,18 +30,18 @@ class MusicBeatState extends FlxState
 
 	override function create() {
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
-		backend.CursorLoader.load();
+		funkin.util.CursorLoader.load();
 		#if MODS_ALLOWED Mods.updatedOnState = false; #end
 
 		try {
-			Reflect.setProperty(Type.resolveClass('states.PlayState'), 'introSoundsSuffix', '');
+			Reflect.setProperty(Type.resolveClass('funkin.game.states.PlayState'), 'introSoundsSuffix', '');
 		} catch(e:Dynamic) {}
 
 		if(!_psychCameraInitialized) initPsychCamera();
 
 		super.create();
 
-		var pending = substates.StickerSubState.pendingStickers;
+		var pending = funkin.ui.states.StickerSubState.pendingStickers;
 
 		if(!skip && pending == null) {
 			openSubState(new CustomFadeTransition(0.5, true));
@@ -52,8 +52,8 @@ class MusicBeatState extends FlxState
 
 		if(pending != null)
 		{
-			substates.StickerSubState.pendingStickers = null;
-			openSubState(new substates.StickerSubState(pending));
+			funkin.ui.states.StickerSubState.pendingStickers = null;
+			openSubState(new funkin.ui.states.StickerSubState(pending));
 		}
 	}
 
@@ -100,15 +100,15 @@ class MusicBeatState extends FlxState
 				var hscriptState:HScriptStateLoader.HScriptState = cast FlxG.state;
 				stateName = hscriptState.stateName;
 			}
-			else if(stateName == 'LuaState' && Std.isOfType(FlxG.state, psychlua.LuaStateLoader.LuaState))
+			else if(stateName == 'LuaState' && Std.isOfType(FlxG.state, funkin.scripting.LuaStateLoader.LuaState))
 			{
-				var luaState:psychlua.LuaStateLoader.LuaState = cast FlxG.state;
+				var luaState:funkin.scripting.LuaStateLoader.LuaState = cast FlxG.state;
 				stateName = luaState.stateName;
 			}
 			if(stateName.toLowerCase() == 'mainmenustate')
 			{
-				backend.EditorHelper.saveCurrentState();
-				FlxG.state.openSubState(new states.editors.EditorPickerSubstate());
+				funkin.editors.EditorHelper.saveCurrentState();
+				FlxG.state.openSubState(new funkin.editors.EditorPickerSubstate());
 			}
 		}
 
@@ -130,10 +130,10 @@ class MusicBeatState extends FlxState
 			FlxG.save.data.fullscreen = FlxG.fullscreen;
 
 		#if DISCORD_ALLOWED
-		if(backend.DiscordClient._pendingPresenceUpdate)
+		if(funkin.util.Discord.DiscordClient._pendingPresenceUpdate)
 		{
-			backend.DiscordClient._pendingPresenceUpdate = false;
-			backend.DiscordClient.changePresence();
+			funkin.util.Discord.DiscordClient._pendingPresenceUpdate = false;
+			funkin.util.Discord.DiscordClient.changePresence();
 		}
 		#end
 		
@@ -194,28 +194,28 @@ class MusicBeatState extends FlxState
 
 	public static function switchStateWithStickers(nextState:FlxState, ?mode:String) {
 		if (nextState == null) return;
-		if (mode != null) substates.StickerSubState.stickerMode = mode;
+		if (mode != null) funkin.ui.states.StickerSubState.stickerMode = mode;
 		FlxTransitionableState.skipNextTransIn = true;
 		FlxTransitionableState.skipNextTransOut = true;
-		FlxG.state.openSubState(new substates.StickerSubState(null, function(_) return nextState));
+		FlxG.state.openSubState(new funkin.ui.states.StickerSubState(null, function(_) return nextState));
 	}
 
 	public static function switchStateWithStickersByName(stateName:String, ?mode:String) {
-		if (mode != null) substates.StickerSubState.stickerMode = mode;
+		if (mode != null) funkin.ui.states.StickerSubState.stickerMode = mode;
 		FlxTransitionableState.skipNextTransIn = true;
 		FlxTransitionableState.skipNextTransOut = true;
-		FlxG.state.openSubState(new substates.StickerSubState(null, function(_) {
+		FlxG.state.openSubState(new funkin.ui.states.StickerSubState(null, function(_) {
 			#if HSCRIPT_ALLOWED
 			var hscriptState = HScriptStateLoader.loadStateScript(stateName);
 			if (hscriptState != null) return hscriptState;
 			#end
 			#if LUA_ALLOWED
-			var luaState = psychlua.LuaStateLoader.loadStateScript(stateName);
+			var luaState = funkin.scripting.LuaStateLoader.loadStateScript(stateName);
 			if (luaState != null) return luaState;
 			#end
-			var stateClass = backend.StateManager.getStateClass(stateName);
+			var stateClass = funkin.backend.StateManager.getStateClass(stateName);
 			if (stateClass != null) return Type.createInstance(stateClass, []);
-			return new states.MainMenuState();
+			return new funkin.ui.states.MainMenuState();
 		}));
 	}
 
@@ -235,12 +235,12 @@ class MusicBeatState extends FlxState
 		if (hscriptState != null) { switchState(hscriptState); return; }
 		#end
 		#if LUA_ALLOWED
-		var luaState = psychlua.LuaStateLoader.loadStateScript(stateName);
+		var luaState = funkin.scripting.LuaStateLoader.loadStateScript(stateName);
 		if (luaState != null) { switchState(luaState); return; }
 		#end
-		var stateClass = backend.StateManager.getStateClass(stateName);
+		var stateClass = funkin.backend.StateManager.getStateClass(stateName);
 		if (stateClass != null) switchState(Type.createInstance(stateClass, []));
-		else switchState(new states.MainMenuState());
+		else switchState(new funkin.ui.states.MainMenuState());
 	}
 
 	public static function switchState(nextState:FlxState = null) {
@@ -269,7 +269,7 @@ class MusicBeatState extends FlxState
 					nextState = hscriptState;
 				#end
 				#if LUA_ALLOWED
-				var luaState = psychlua.LuaStateLoader.loadStateScript(stateName);
+				var luaState = funkin.scripting.LuaStateLoader.loadStateScript(stateName);
 				if(luaState != null)
 					nextState = luaState;
 				#end
@@ -345,7 +345,7 @@ class MusicBeatState extends FlxState
 				}
 				#end
 				#if LUA_ALLOWED
-				var luaState = psychlua.LuaStateLoader.loadStateScript(stateName);
+				var luaState = funkin.scripting.LuaStateLoader.loadStateScript(stateName);
 				if(luaState != null)
 				{
 					switchState(luaState);

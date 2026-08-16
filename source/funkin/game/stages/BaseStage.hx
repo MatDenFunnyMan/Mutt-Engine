@@ -5,8 +5,8 @@ import flixel.FlxObject;
 import flixel.FlxSubState;
 import flixel.group.FlxGroup;
 
-import objects.Note;
-import objects.Character;
+import funkin.game.notes.Note;
+import funkin.game.Character;
 
 enum Countdown
 {
@@ -163,8 +163,8 @@ class BaseStage extends FlxBasic
 	}
 	inline private function get_members() return game.members;
 
-	inline private function get_game() return Std.isOfType(FlxG.state, states.PlayState) ? cast FlxG.state : PlayState.instance;
-	inline private function get_onPlayState() return (Std.isOfType(FlxG.state, states.PlayState));
+	inline private function get_game() return Std.isOfType(FlxG.state, funkin.game.states.PlayState) ? cast FlxG.state : PlayState.instance;
+	inline private function get_onPlayState() return (Std.isOfType(FlxG.state, funkin.game.states.PlayState));
 
 	inline private function get_boyfriend():Character return game.boyfriend;
 	inline private function get_dad():Character return game.dad;

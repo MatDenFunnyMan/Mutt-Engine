@@ -1,6 +1,7 @@
 package funkin.ui.states;
+import funkin.Main;
 
-import backend.StateManager;
+import funkin.backend.StateManager;
 
 class InitialState extends MusicBeatState
 {
@@ -32,7 +33,7 @@ class InitialState extends MusicBeatState
 				}
 
 				if (pack != null && pack.name != null)
-					winapi.WindowsCPP.reDefineMainWindowTitle(pack.name);
+					funkin.external.winapi.WindowsCPP.reDefineMainWindowTitle(pack.name);
 				Main.applyModWindowColor();
 			} catch(e:Dynamic) {
 				trace("Error loading mod pack info: " + e);
@@ -81,7 +82,7 @@ class InitialState extends MusicBeatState
 								if(sys.FileSystem.exists(fullPath))
 								{
 									try {
-										var hscript = new psychlua.HScript(null, fullPath, null, false);
+										var hscript = new funkin.scripting.HScript(null, fullPath, null, false);
 										if(hscript.exists('isInitialState'))
 										{
 											var result = hscript.call('isInitialState', []);
@@ -113,7 +114,7 @@ class InitialState extends MusicBeatState
 									if(sys.FileSystem.exists(fullPath))
 									{
 										try {
-											var luaState = new psychlua.LuaStateLoader.LuaState(fullPath, stateName, modDir, null);
+											var luaState = new funkin.scripting.LuaStateLoader.LuaState(fullPath, stateName, modDir, null);
 											if(luaState.isInitialState)
 											{
 												trace('InitialState: Found Lua initial state: $stateName');
@@ -135,13 +136,13 @@ class InitialState extends MusicBeatState
 					if(found == null)
 					{
 						#if HSCRIPT_ALLOWED
-						var titleHx = backend.HScriptStateLoader.findScriptInDir(statesDir, 'TitleState.hx');
+						var titleHx = funkin.backend.HScriptStateLoader.findScriptInDir(statesDir, 'TitleState.hx');
 						if(titleHx != null) { found = 'TitleState'; fallback = true; }
 						#end
 						#if LUA_ALLOWED
 						if(found == null)
 						{
-							var titleLua = psychlua.LuaStateLoader.findScriptInDir(statesDir, 'TitleState.lua');
+							var titleLua = funkin.scripting.LuaStateLoader.findScriptInDir(statesDir, 'TitleState.lua');
 							if(titleLua != null) { found = 'TitleState'; fallback = true; }
 						}
 						#end
@@ -155,7 +156,7 @@ class InitialState extends MusicBeatState
 			}
 			#end
 
-			MusicBeatState.switchState(new states.TitleState());
+			MusicBeatState.switchState(new funkin.ui.states.TitleState());
 		}
 
 		#if MODS_ALLOWED
@@ -175,7 +176,7 @@ class InitialState extends MusicBeatState
 				StateManager.switchState(_pendingState);
 			}
 			else
-				MusicBeatState.switchState(new states.TitleState());
+				MusicBeatState.switchState(new funkin.ui.states.TitleState());
 		}
 		#end
 	}

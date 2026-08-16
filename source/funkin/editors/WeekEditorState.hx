@@ -1,6 +1,6 @@
 package funkin.editors;
 
-import backend.WeekData;
+import funkin.data.WeekData;
 
 import openfl.utils.Assets;
 import openfl.net.FileReference;
@@ -10,12 +10,12 @@ import flash.net.FileFilter;
 import lime.system.Clipboard;
 import haxe.Json;
 
-import objects.HealthIcon;
-import objects.MenuCharacter;
-import objects.MenuItem;
+import funkin.ui.HealthIcon;
+import funkin.ui.MenuCharacter;
+import funkin.ui.MenuItem;
 
-import states.editors.MasterEditorMenu;
-import states.editors.content.Prompt;
+import funkin.editors.MasterEditorMenu;
+import funkin.editors.content.Prompt;
 
 class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
@@ -405,7 +405,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 				if(!unsavedProgress)
 				{
 					FlxG.sound.playMusic(Paths.music('freakyMenu'));
-					backend.EditorHelper.returnToPreviousState();
+					funkin.editors.EditorHelper.returnToPreviousState();
 				}
 				else openSubState(new ExitConfirmationPrompt(function() unsavedProgress = false));
 			}
@@ -761,7 +761,7 @@ class WeekEditorFreeplayState extends MusicBeatState implements PsychUIEventHand
 				if(!WeekEditorState.unsavedProgress)
 				{
 					FlxG.sound.playMusic(Paths.music('freakyMenu'));
-					backend.EditorHelper.returnToPreviousState();
+					funkin.editors.EditorHelper.returnToPreviousState();
 				}
 				else openSubState(new ExitConfirmationPrompt());
 			}

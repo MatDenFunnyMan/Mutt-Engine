@@ -7,9 +7,9 @@ import flixel.effects.FlxFlicker;
 import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
 import flixel.tweens.FlxEase;
-import backend.MusicBeatSubstate;
-import states.editors.*;
-import objects.Alphabet;
+import funkin.backend.MusicBeatSubstate;
+import funkin.editors.*;
+import funkin.ui.Alphabet;
 
 typedef EditorOption = {
 	var name:String;
@@ -144,7 +144,7 @@ class EditorPickerSubstate extends MusicBeatSubstate {
 				
 				subCam.fade(0xFF000000, 0.5, false, function() {
 					sprites[curSelected].flicker(function() {
-						backend.EditorHelper.saveCurrentState();
+						funkin.editors.EditorHelper.saveCurrentState();
 						MusicBeatState.switchState(Type.createInstance(options[curSelected].state, []));
 					});
 				});

@@ -1,11 +1,12 @@
 package funkin.ui.options;
+import funkin.Main;
 
-import objects.Note;
-import objects.StrumNote;
-import objects.NoteSplash;
-import objects.Alphabet;
+import funkin.game.notes.Note;
+import funkin.game.notes.StrumNote;
+import funkin.game.notes.NoteSplash;
+import funkin.ui.Alphabet;
 import flixel.FlxSprite;
-import backend.ui.PsychUITheme;
+import funkin.ui.psychui.PsychUITheme;
 
 class VisualsSettingsSubState extends BaseOptionsMenu
 {

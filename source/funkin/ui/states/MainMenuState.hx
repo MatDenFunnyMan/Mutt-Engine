@@ -3,10 +3,10 @@ package funkin.ui.states;
 import flixel.FlxObject;
 import flixel.effects.FlxFlicker;
 import lime.app.Application;
-import states.editors.MasterEditorMenu;
-import options.OptionsState;
-import backend.ModSelectorSubstate;
-import backend.StateManager;
+import funkin.editors.MasterEditorMenu;
+import funkin.ui.options.OptionsState;
+import funkin.modding.ModSelectorSubstate;
+import funkin.backend.StateManager;
 
 enum MainMenuColumn {
 	LEFT;
@@ -141,10 +141,10 @@ class MainMenuState extends MusicBeatState
 		#end
 
 		#if CHECK_FOR_UPDATES
-		if (showOutdatedWarning && ClientPrefs.data.checkForUpdates && Std.parseFloat(substates.OutdatedSubState.updateVersion) > Std.parseFloat(cheeseEngineVersion)) {
+		if (showOutdatedWarning && ClientPrefs.data.checkForUpdates && Std.parseFloat(funkin.ui.states.OutdatedSubState.updateVersion) > Std.parseFloat(cheeseEngineVersion)) {
 			persistentUpdate = false;
 			showOutdatedWarning = false;
-			openSubState(new substates.OutdatedSubState());
+			openSubState(new funkin.ui.states.OutdatedSubState());
 		}
 		#end
 
@@ -375,7 +375,7 @@ class MainMenuState extends MusicBeatState
 			{
 				FlxG.mouse.visible = false;
 				persistentUpdate = false;
-				openSubState(new states.editors.EditorPickerSubstate());
+				openSubState(new funkin.editors.EditorPickerSubstate());
 			}
 			*/
 		}

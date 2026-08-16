@@ -2,7 +2,7 @@ package funkin.ui.states;
 
 import flixel.FlxObject;
 import flixel.util.FlxSort;
-import objects.Bar;
+import funkin.ui.Bar;
 
 #if ACHIEVEMENTS_ALLOWED
 class AchievementsMenuState extends MusicBeatState

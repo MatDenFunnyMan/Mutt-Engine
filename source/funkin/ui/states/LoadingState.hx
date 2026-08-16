@@ -13,25 +13,25 @@ import flixel.FlxState;
 
 import flash.media.Sound;
 
-import backend.Song;
-import backend.StageData;
-import objects.Character;
+import funkin.data.Song;
+import funkin.data.StageData;
+import funkin.game.Character;
 
 import sys.thread.Thread;
 import sys.thread.Mutex;
 
-import objects.Note;
-import objects.NoteSplash;
+import funkin.game.notes.Note;
+import funkin.game.notes.NoteSplash;
 
 #if HSCRIPT_ALLOWED
-import psychlua.HScript;
+import funkin.scripting.HScript;
 import crowplexus.iris.Iris;
 import crowplexus.hscript.Expr.Error as IrisError;
 import crowplexus.hscript.Printer;
 #end
 
 #if LUA_ALLOWED
-import psychlua.LuaStateLoader;
+import funkin.scripting.LuaStateLoader;
 #end
 
 #if cpp
@@ -530,7 +530,7 @@ class LoadingState extends MusicBeatState
 		videosToPrecache = [];
 		try
 		{
-			var eventsChart:backend.Song.SwagSong = backend.Song.getChart('events', Song.loadedSongName);
+			var eventsChart:funkin.data.Song.SwagSong = funkin.data.Song.getChart('events', Song.loadedSongName);
 			if(eventsChart != null && eventsChart.events != null)
 			{
 				for(event in eventsChart.events)

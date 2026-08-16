@@ -11,7 +11,7 @@ import away3d.events.LoaderEvent;
 import away3d.loaders.AssetLoader;
 import away3d.loaders.misc.AssetLoaderToken;
 import flixel.FlxG;
-import flx3d.Flx3DUtil;
+import funkin.external.flx3d.Flx3DUtil;
 import away3d.library.assets.Asset3DType;
 import away3d.library.Asset3DLibrary;
 import away3d.events.Asset3DEvent;
@@ -58,7 +58,7 @@ class Flx3DView extends FlxView3D {
 		#if sys
 		if (texturePath != null) material = new TextureMaterial(Cast.bitmapTexture(texturePath.bitmap), smoothTexture);
 		#else
-		if (texturePath != null) material = new TextureMaterial(Cast.bitmapTexture(backend.BitmapAssets.getBitmapData(texturePath, true, false)), smoothTexture);
+		if (texturePath != null) material = new TextureMaterial(Cast.bitmapTexture(funkin.graphics.BitmapAssets.getBitmapData(texturePath, true, false)), smoothTexture);
 		#end
 		
 		return loadData(model, context, switch(Path.extension(assetPath).toLowerCase()) {

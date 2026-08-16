@@ -1,8 +1,9 @@
 package funkin.audio;
+import funkin.Main;
 
 import flixel.FlxState;
 import flixel.sound.FlxSound;
-import backend.Native;
+import funkin.util.Native;
 import lime.media.AudioManager;
 import lime.media.AudioSource;
 import lime._internal.backend.native.NativeAudioSource;

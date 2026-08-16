@@ -1,8 +1,8 @@
 package funkin.editors;
 
-import objects.Note;
-import objects.NoteSplash;
-import objects.StrumNote;
+import funkin.game.notes.Note;
+import funkin.game.notes.NoteSplash;
+import funkin.game.notes.StrumNote;
 
 import openfl.net.FileFilter;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
@@ -12,7 +12,7 @@ import openfl.events.IOErrorEvent;
 import openfl.net.FileReference;
 import haxe.Json;
 
-@:access(objects.NoteSplash)
+@:access(funkin.game.notes.NoteSplash)
 class NoteSplashEditorState extends MusicBeatState
 {
     var strums:FlxTypedSpriteGroup<StrumNote> = new FlxTypedSpriteGroup();
@@ -594,7 +594,7 @@ class NoteSplashEditorState extends MusicBeatState
         if (!blockInput)
         {
             if (controls.BACK)
-                backend.EditorHelper.returnToPreviousState();
+                funkin.editors.EditorHelper.returnToPreviousState();
             if (FlxG.keys.justPressed.F1)
                 openSubState(new NoteSplashEditorHelpSubState());
         }

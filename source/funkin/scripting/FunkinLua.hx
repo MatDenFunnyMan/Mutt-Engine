@@ -1,9 +1,9 @@
 #if LUA_ALLOWED
 package funkin.scripting;
 
-import backend.WeekData;
-import backend.Highscore;
-import backend.Song;
+import funkin.data.WeekData;
+import funkin.save.Highscore;
+import funkin.data.Song;
 
 import openfl.Lib;
 import openfl.utils.Assets;
@@ -16,27 +16,28 @@ import flixel.FlxState;
 import flixel.addons.display.FlxRuntimeShader;
 #end
 
-import cutscenes.DialogueBoxPsych;
+import funkin.game.cutscenes.DialogueBoxPsych;
 
-import objects.StrumNote;
-import objects.Note;
-import objects.NoteSplash;
-import objects.Character;
+import funkin.game.notes.StrumNote;
+import funkin.game.notes.Note;
+import funkin.game.notes.NoteSplash;
+import funkin.game.notes.HoldCover;
+import funkin.game.Character;
 
-import states.MainMenuState;
-import states.StoryMenuState;
-import states.FreeplayState;
+import funkin.ui.states.MainMenuState;
+import funkin.ui.states.StoryMenuState;
+import funkin.ui.states.FreeplayState;
 
-import substates.PauseSubState;
-import substates.GameOverSubstate;
+import funkin.game.states.PauseSubState;
+import funkin.game.states.GameOverSubstate;
 
-import psychlua.LuaUtils;
-import psychlua.LuaUtils.LuaTweenOptions;
+import funkin.scripting.LuaUtils;
+import funkin.scripting.LuaUtils.LuaTweenOptions;
 #if HSCRIPT_ALLOWED
-import psychlua.HScript;
+import funkin.scripting.HScript;
 #end
-import psychlua.DebugLuaText;
-import psychlua.ModchartSprite;
+import funkin.scripting.DebugLuaText;
+import funkin.scripting.ModchartSprite;
 
 import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
@@ -545,31 +546,31 @@ class FunkinLua {
 				{
 					var diff:String = (difficulty != null && difficulty != '') ? difficulty : 'normal';
 					var diffIdx:Int = 0;
-					for(i in 0...backend.Difficulty.list.length)
-						if(backend.Difficulty.list[i].toLowerCase() == diff.toLowerCase()) { diffIdx = i; break; }
+					for(i in 0...funkin.data.Difficulty.list.length)
+						if(funkin.data.Difficulty.list[i].toLowerCase() == diff.toLowerCase()) { diffIdx = i; break; }
 					var jsonName:String = Paths.formatToSongPath(songName) + '-' + Paths.formatToSongPath(diff);
 					var folder:String = Paths.formatToSongPath(songName);
-					if(backend.Song.getChart(jsonName, folder) == null)
+					if(funkin.data.Song.getChart(jsonName, folder) == null)
 						jsonName = Paths.formatToSongPath(songName);
-					backend.Song.loadFromJson(jsonName, folder);
-					states.PlayState.isStoryMode = false;
-					states.PlayState.storyDifficulty = diffIdx;
+					funkin.data.Song.loadFromJson(jsonName, folder);
+					funkin.game.states.PlayState.isStoryMode = false;
+					funkin.game.states.PlayState.storyDifficulty = diffIdx;
 				}
-				if(states.PlayState.SONG != null)
-					backend.MusicBeatState.switchStateWithStickers(new states.PlayState(), mode);
+				if(funkin.game.states.PlayState.SONG != null)
+					funkin.backend.MusicBeatState.switchStateWithStickers(new funkin.game.states.PlayState(), mode);
 			}
 			else
 			{
-				backend.MusicBeatState.switchStateWithStickersByName(stateName, mode);
+				funkin.backend.MusicBeatState.switchStateWithStickersByName(stateName, mode);
 			}
 			return true;
 		});
 		Lua_helper.add_callback(lua, "switchStateDirect", function(stateName:String) {
-			backend.MusicBeatState.switchStateDirectByName(stateName);
+			funkin.backend.MusicBeatState.switchStateDirectByName(stateName);
 			return true;
 		});
 		Lua_helper.add_callback(lua, "switchState", function(stateName:String) {
-			backend.MusicBeatState.switchStateByName(stateName);
+			funkin.backend.MusicBeatState.switchStateByName(stateName);
 			return true;
 		});
 		Lua_helper.add_callback(lua, "restartSong", function(?skipTransition:Bool = false) {
@@ -907,7 +908,7 @@ class FunkinLua {
 
 		Lua_helper.add_callback(lua, "getHoldCoverProperty", function(cover:Dynamic, variable:String) {
 			if(PlayState.instance == null) return null;
-			var coverObj:objects.HoldCover = null;
+			var coverObj:funkin.game.notes.HoldCover = null;
 			if(Std.isOfType(cover, Int)) {
 				coverObj = PlayState.instance.grpHoldCovers.members[cover];
 			} else {
@@ -921,7 +922,7 @@ class FunkinLua {
 		});
 		Lua_helper.add_callback(lua, "setHoldCoverProperty", function(cover:Dynamic, variable:String, value:Dynamic) {
 			if(PlayState.instance == null) return null;
-			var coverObj:objects.HoldCover = null;
+			var coverObj:funkin.game.notes.HoldCover = null;
 			if(Std.isOfType(cover, Int)) {
 				coverObj = PlayState.instance.grpHoldCovers.members[cover];
 			} else {
@@ -935,7 +936,7 @@ class FunkinLua {
 		});
 		Lua_helper.add_callback(lua, "updateHoldCoverHitbox", function(cover:Dynamic) {
 			if(PlayState.instance == null) return;
-			var coverObj:objects.HoldCover = null;
+			var coverObj:funkin.game.notes.HoldCover = null;
 			if(Std.isOfType(cover, Int)) {
 				coverObj = PlayState.instance.grpHoldCovers.members[cover];
 			} else {

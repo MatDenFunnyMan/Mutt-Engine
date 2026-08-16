@@ -1,13 +1,13 @@
 package funkin.scripting;
 
-import backend.WeekData;
-import objects.Character;
-import backend.StageData;
+import funkin.data.WeekData;
+import funkin.game.Character;
+import funkin.data.StageData;
 
 import openfl.display.BlendMode;
 import Type.ValueType;
 
-import substates.GameOverSubstate;
+import funkin.game.states.GameOverSubstate;
 
 typedef LuaTweenOptions = {
 	type:FlxTweenType,

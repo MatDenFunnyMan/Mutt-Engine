@@ -7,11 +7,11 @@ import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
 import lime.system.Clipboard;
 import flixel.util.FlxGradient;
-import objects.StrumNote;
-import objects.Note;
+import funkin.game.notes.StrumNote;
+import funkin.game.notes.Note;
 
-import shaders.RGBPalette;
-import shaders.RGBPalette.RGBShaderReference;
+import funkin.graphics.shaders.RGBPalette;
+import funkin.graphics.shaders.RGBPalette.RGBShaderReference;
 
 class NotesColorSubState extends MusicBeatSubstate
 {

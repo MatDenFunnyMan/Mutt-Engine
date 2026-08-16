@@ -1,7 +1,7 @@
 package funkin.game.notes;
 
-import backend.animation.PsychAnimationController;
-import shaders.RGBPalette;
+import funkin.graphics.PsychAnimationController;
+import funkin.graphics.shaders.RGBPalette;
 import flixel.system.FlxAssets.FlxShader;
 
 typedef RGB = {

@@ -2,7 +2,7 @@ package funkin.editors.content;
 
 import flixel.FlxSprite;
 import flixel.util.FlxTimer;
-import objects.Character;
+import funkin.game.Character;
 
 class Toy extends Character
 {
@@ -103,8 +103,8 @@ class Toy extends Character
 				alpha = 1.0;
 				
 				@:privateAccess
-				if(states.editors.ChartingState.instance != null)
-					states.editors.ChartingState.instance.saveToyPosition(toyName, baseX, baseY);
+				if(funkin.editors.ChartingState.instance != null)
+					funkin.editors.ChartingState.instance.saveToyPosition(toyName, baseX, baseY);
 			}
 		}
 		

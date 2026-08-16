@@ -5,8 +5,8 @@ import openfl.text.TextField;
 import openfl.text.TextFormat;
 import openfl.display.Shape;
 import openfl.display.Sprite;
-import debug.StatsGraph;
-import backend.MemoryUtils;
+import funkin.debug.StatsGraph;
+import funkin.util.MemoryUtils;
 
 class FPSCounter extends Sprite
 {

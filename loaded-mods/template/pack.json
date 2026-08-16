@@ -1,0 +1,11 @@
+{
+	"name": "Template Mod - Mutt Engine",
+	"description": "aahahhahaha funny template for mod",
+	"restart": false,
+	"runsGlobally": false,
+	"color": [170, 0, 255],
+	"windowColor": "PC Theme",
+	"_comment_windowColor": "To use a custom color instead, replace 'PC Theme' with an RGB array like [255, 0, 0]",
+	"discordRPC": "863222024192262205",
+	"iconFramerate": 10
+}

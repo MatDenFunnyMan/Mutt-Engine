@@ -1,17 +1,17 @@
 package funkin.game.stages;
 
 import openfl.filters.ShaderFilter;
-import shaders.RainShader;
+import funkin.graphics.shaders.RainShader;
 
 import flixel.addons.display.FlxTiledSprite;
 import flixel.graphics.frames.FlxAtlasFrames;
 
-import substates.GameOverSubstate;
-import states.stages.objects.*;
+import funkin.game.states.GameOverSubstate;
+import funkin.game.stages.objects.*;
 
-import objects.Note;
+import funkin.game.notes.Note;
 
-import cutscenes.CutsceneHandler;
+import funkin.game.cutscenes.CutsceneHandler;
 
 enum NeneState
 {

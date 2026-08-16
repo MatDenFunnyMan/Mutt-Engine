@@ -6,11 +6,11 @@ import openfl.events.IOErrorEvent;
 import flash.net.FileFilter;
 import haxe.Json;
 
-import objects.TypedAlphabet;
+import funkin.ui.TypedAlphabet;
 
-import cutscenes.DialogueBoxPsych;
-import cutscenes.DialogueCharacter;
-import states.editors.content.Prompt;
+import funkin.game.cutscenes.DialogueBoxPsych;
+import funkin.game.cutscenes.DialogueCharacter;
+import funkin.editors.content.Prompt;
 
 class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
@@ -318,7 +318,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 				{
 					FlxG.sound.playMusic(Paths.music('freakyMenu'));
 					transitioning = true;
-					backend.EditorHelper.returnToPreviousState();
+					funkin.editors.EditorHelper.returnToPreviousState();
 				}
 				else openSubState(new ExitConfirmationPrompt(function() transitioning = true));
 				return;

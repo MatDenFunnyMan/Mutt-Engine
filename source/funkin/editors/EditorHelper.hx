@@ -1,4 +1,6 @@
 package funkin.editors;
+import funkin.backend.HScriptStateLoader.HScriptState;
+import funkin.backend.StateManager;
 
 class EditorHelper
 {
@@ -11,14 +13,14 @@ class EditorHelper
 		{
 			var parts = currentState.split('.');
 			var stateName = parts[parts.length - 1];
-			if(stateName == 'HScriptState' && Std.isOfType(FlxG.state, HScriptStateLoader.HScriptState))
+			if(stateName == 'HScriptState' && Std.isOfType(FlxG.state, HScriptState))
 			{
-				var hscriptState:HScriptStateLoader.HScriptState = cast FlxG.state;
+				var hscriptState:HScriptState = cast FlxG.state;
 				stateName = hscriptState.stateName;
 			}
-			else if(stateName == 'LuaState' && Std.isOfType(FlxG.state, psychlua.LuaStateLoader.LuaState))
+			else if(stateName == 'LuaState' && Std.isOfType(FlxG.state, funkin.scripting.LuaStateLoader.LuaState))
 			{
-				var luaState:psychlua.LuaStateLoader.LuaState = cast FlxG.state;
+				var luaState:funkin.scripting.LuaStateLoader.LuaState = cast FlxG.state;
 				stateName = luaState.stateName;
 			}
 			if(stateName == 'MasterEditorMenu')

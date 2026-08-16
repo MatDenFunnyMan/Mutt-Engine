@@ -1,7 +1,8 @@
 package funkin;
 
-import backend.Song;
-import objects.Note;
+import funkin.data.Song;
+import funkin.game.notes.Note;
+import funkin.game.Rating;
 
 typedef BPMChangeEvent =
 {

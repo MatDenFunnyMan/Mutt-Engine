@@ -1,11 +1,12 @@
 package funkin.modding;
+import funkin.Main;
 
-import objects.Alphabet;
+import funkin.ui.Alphabet;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.util.FlxColor;
 import flixel.util.FlxSave;
-import states.TitleState;
-import backend.StateManager;
+import funkin.ui.states.TitleState;
+import funkin.backend.StateManager;
 
 class ModSelectorSubstate extends MusicBeatSubstate
 {
@@ -186,7 +187,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 			}
 			save.flush();
 			#if DISCORD_ALLOWED
-			backend.DiscordClient.resetClientID();
+			funkin.util.Discord.DiscordClient.resetClientID();
 			#end
 			
 			Mods.loadTopMod();
@@ -201,7 +202,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 			}
 			save.flush();
 			#if DISCORD_ALLOWED
-			backend.DiscordClient.resetClientID();
+			funkin.util.Discord.DiscordClient.resetClientID();
 			#end
 			
 			Mods.loadTopMod();
@@ -216,7 +217,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 				}
 				save.flush();
 				#if DISCORD_ALLOWED
-				backend.DiscordClient.resetClientID();
+				funkin.util.Discord.DiscordClient.resetClientID();
 				#end
 			}
 			else
@@ -296,8 +297,8 @@ class ModSelectorSubstate extends MusicBeatSubstate
 		
 		#if DISCORD_ALLOWED
 		try {
-			backend.DiscordClient.loadModRPC();
-			backend.DiscordClient.changePresence();
+			funkin.util.Discord.DiscordClient.loadModRPC();
+			funkin.util.Discord.DiscordClient.changePresence();
 		} catch(e:Dynamic) {}
 		#end
 
@@ -311,7 +312,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 				
 				try {
 					#if (cpp && windows)
-					winapi.WindowsCPP.resetWindowIconFromExe();
+					funkin.external.winapi.WindowsCPP.resetWindowIconFromExe();
 					#else
 					var defaultIconPath:String = "icon.png";
 					if (sys.FileSystem.exists(defaultIconPath))
@@ -327,8 +328,8 @@ class ModSelectorSubstate extends MusicBeatSubstate
 				
 				#if (cpp && windows)
 				try {
-					winapi.WindowsCPP.reDefineMainWindowTitle("Friday Night Funkin': Psych Engine");
-					winapi.WindowsCPP.resetWindowBorderColor();
+					funkin.external.winapi.WindowsCPP.reDefineMainWindowTitle("Friday Night Funkin': Psych Engine");
+					funkin.external.winapi.WindowsCPP.resetWindowBorderColor();
 					Main.updateWindowTheme();
 				} catch(e:Dynamic) {}
 				#end
@@ -340,7 +341,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 				if (pack != null && pack.name != null)
 					newTitle = pack.name;
 				lime.app.Application.current.window.title = newTitle;
-				winapi.WindowsCPP.reDefineMainWindowTitle(newTitle);
+				funkin.external.winapi.WindowsCPP.reDefineMainWindowTitle(newTitle);
 
 				Main.applyModWindowColor();
 
@@ -353,7 +354,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 				else
 				{
 					#if (cpp && windows)
-					winapi.WindowsCPP.resetWindowIconFromExe();
+					funkin.external.winapi.WindowsCPP.resetWindowIconFromExe();
 					#else
 					var defaultIconPath:String = "icon.png";
 					if (sys.FileSystem.exists(defaultIconPath))
@@ -369,11 +370,11 @@ class ModSelectorSubstate extends MusicBeatSubstate
 		#end
 		
 		try {
-			backend.WeekData.reloadWeekFiles(false);
+			funkin.data.WeekData.reloadWeekFiles(false);
 		} catch(e:Dynamic) {}
 		
 		try {
-			backend.Highscore.load();
+			funkin.save.Highscore.load();
 		} catch(e:Dynamic) {}
 
 		var isMultiModMode = (_selectedModForReset == 'ALL MODS' || _selectedModForReset == 'MODS + FNF SONGS');
@@ -400,7 +401,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 		FlxTransitionableState.skipNextTransIn = false;
 		FlxTransitionableState.skipNextTransOut = false;
 
-		MusicBeatState.switchState(new states.InitialState());
+		MusicBeatState.switchState(new funkin.ui.states.InitialState());
 	}
 
 	function changeSelection(change:Int = 0, force:Bool = false)

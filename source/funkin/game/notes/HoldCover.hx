@@ -2,9 +2,9 @@ package funkin.game.notes;
 
 import flixel.FlxSprite;
 import flixel.FlxCamera;
-import backend.ClientPrefs;
-import shaders.RGBPalette;
-import shaders.RGBPalette.RGBShaderReference;
+import funkin.save.ClientPrefs;
+import funkin.graphics.shaders.RGBPalette;
+import funkin.graphics.shaders.RGBPalette.RGBShaderReference;
 
 class HoldCover extends FlxSprite
 {

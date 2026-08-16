@@ -20,25 +20,25 @@ import haxe.io.Bytes;
 
 import openfl.display.BitmapData;
 
-import states.editors.content.MetaNote;
-import states.editors.content.VSlice;
-import states.editors.content.Prompt;
-import states.editors.content.*;
-import states.editors.content.CreateStrumlinePrompt.StrumlineConfigData;
+import funkin.editors.content.MetaNote;
+import funkin.editors.content.VSlice;
+import funkin.editors.content.Prompt;
+import funkin.editors.content.*;
+import funkin.editors.content.CreateStrumlinePrompt.StrumlineConfigData;
 
-import backend.Song;
-import backend.StageData;
-import backend.Highscore;
-import backend.Difficulty;
-import backend.StateManager;
-import backend.CursorLoader.PointerCursor;
-import backend.CursorLoader.GrabbingCursor;
-import backend.CursorLoader.CellCursor;
+import funkin.data.Song;
+import funkin.data.StageData;
+import funkin.save.Highscore;
+import funkin.data.Difficulty;
+import funkin.backend.StateManager;
+import funkin.util.CursorLoader.PointerCursor;
+import funkin.util.CursorLoader.GrabbingCursor;
+import funkin.util.CursorLoader.CellCursor;
 
-import objects.Character;
-import objects.HealthIcon;
-import objects.Note;
-import objects.StrumNote;
+import funkin.game.Character;
+import funkin.ui.HealthIcon;
+import funkin.game.notes.Note;
+import funkin.game.notes.StrumNote;
 
 using DateTools;
 
@@ -923,7 +923,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	function loadMetaDataCredits()
 	{
-		var loadedMeta:backend.MetaData.SongMeta = backend.MetaData.parse(Paths.formatToSongPath(PlayState.SONG.song));
+		var loadedMeta:funkin.data.MetaData.SongMeta = funkin.data.MetaData.parse(Paths.formatToSongPath(PlayState.SONG.song));
 		
 		for(credit in loadedMeta.credits)
 		{
@@ -3439,7 +3439,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	function addMetaDataTab()
 	{
-		var loadedMeta:backend.MetaData.SongMeta = backend.MetaData.parse(Paths.formatToSongPath(PlayState.SONG.song));
+		var loadedMeta:funkin.data.MetaData.SongMeta = funkin.data.MetaData.parse(Paths.formatToSongPath(PlayState.SONG.song));
 		
 		var tab_group = mainBox.getTab('MetaData').menu;
 		var objX = 10;
@@ -3805,7 +3805,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			try
 			{
-				var hs:psychlua.HScript = new psychlua.HScript(null, content, null, true);
+				var hs:funkin.scripting.HScript = new funkin.scripting.HScript(null, content, null, true);
 				hs.execute();
 				if(hs.exists('getEventUI'))
 				{
@@ -5743,7 +5743,7 @@ end
 		{
 			PlayState.chartingMode = false;
 			FlxG.mouse.visible = false;
-			backend.EditorHelper.returnToPreviousState();
+			funkin.editors.EditorHelper.returnToPreviousState();
 		}, btnWid);
 		btn.text.alignment = LEFT;
 		tab_group.add(btn);
@@ -6708,7 +6708,7 @@ end
 			note.rgbShader.enabled = !noRGBCheckBox.checked;
 			if(note.rgbShader.enabled)
 			{
-				var data = backend.NoteTypesConfig.loadNoteTypeData(note.noteType);
+				var data = funkin.data.NoteTypesConfig.loadNoteTypeData(note.noteType);
 				if(data == null || data.length < 1) continue;
 
 				for (line in data)
@@ -6943,7 +6943,7 @@ end
 	{
 		instance = null;
 		Note.globalRgbShaders = [];
-		backend.NoteTypesConfig.clearNoteTypesData();
+		funkin.data.NoteTypesConfig.clearNoteTypesData();
 
 		for (num => text in MetaNote.noteTypeTexts)
 			text.destroy();

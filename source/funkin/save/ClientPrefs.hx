@@ -1,11 +1,12 @@
 package funkin.save;
+import funkin.Main;
 
 import flixel.util.FlxSave;
 import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
 
-import states.TitleState;
-import backend.ui.PsychUITheme;
+import funkin.ui.states.TitleState;
+import funkin.ui.psychui.PsychUITheme;
 
 // Add a variable here and it will get automatically saved
 @:structInit class SaveVariables {

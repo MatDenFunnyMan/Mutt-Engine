@@ -1,16 +1,17 @@
 package funkin.ui.states;
 
-import backend.WeekData;
+import funkin.data.WeekData;
 import flixel.input.keyboard.FlxKey;
 import flixel.group.FlxGroup;
 import flixel.input.gamepad.FlxGamepad;
 import haxe.Json;
 import openfl.Assets;
-import states.StoryMenuState;
-import states.MainMenuState;
-import backend.StateManager;
+import funkin.ui.states.StoryMenuState;
+import funkin.ui.states.MainMenuState;
+import funkin.editors.ChartingState;
+import funkin.backend.StateManager;
 import flixel.graphics.frames.FlxFrame;
-import substates.StickerSubState;
+import funkin.ui.states.StickerSubState;
 
 class TitleState extends MusicBeatState
 {

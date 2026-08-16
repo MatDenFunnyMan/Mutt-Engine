@@ -3,8 +3,8 @@ package funkin.game.cutscenes;
 import haxe.Json;
 import openfl.utils.Assets;
 
-import objects.TypedAlphabet;
-import cutscenes.DialogueCharacter;
+import funkin.ui.TypedAlphabet;
+import funkin.game.cutscenes.DialogueCharacter;
 
 typedef DialogueFile = {
 	var dialogue:Array<DialogueLine>;
