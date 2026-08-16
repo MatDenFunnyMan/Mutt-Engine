@@ -1,4 +1,4 @@
-package backend;
+package funkin.game;
 
 import backend.ClientPrefs;
 

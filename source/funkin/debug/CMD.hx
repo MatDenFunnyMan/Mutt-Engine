@@ -1,4 +1,4 @@
-package debug;
+package funkin.debug;
 
 #if cpp
 import cpp.Lib;

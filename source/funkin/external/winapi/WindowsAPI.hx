@@ -1,4 +1,4 @@
-package winapi;
+package funkin.external.winapi;
 
 import sys.io.Process;
 

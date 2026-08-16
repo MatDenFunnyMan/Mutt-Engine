@@ -1,4 +1,4 @@
-package objects;
+package funkin.game;
 
 import backend.animation.PsychAnimationController;
 

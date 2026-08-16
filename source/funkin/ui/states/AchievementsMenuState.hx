@@ -1,4 +1,4 @@
-package states;
+package funkin.ui.states;
 
 import flixel.FlxObject;
 import flixel.util.FlxSort;

@@ -1,4 +1,4 @@
-package states.editors.content;
+package funkin.editors.content;
 
 import backend.Song;
 import backend.Rating;

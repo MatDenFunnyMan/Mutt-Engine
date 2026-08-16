@@ -1,4 +1,4 @@
-package backend;
+package funkin;
 
 import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
 import flixel.graphics.frames.FlxAtlasFrames;

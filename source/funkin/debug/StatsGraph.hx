@@ -1,4 +1,4 @@
-package debug;
+package funkin.debug;
 
 import flixel.math.FlxMath;
 import flixel.util.FlxColor;

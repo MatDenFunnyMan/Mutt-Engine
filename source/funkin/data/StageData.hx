@@ -1,4 +1,4 @@
-package backend;
+package funkin.data;
 
 import openfl.utils.Assets;
 import haxe.Json;

@@ -1,4 +1,4 @@
-package objects;
+package funkin.game.notes;
 
 import backend.animation.PsychAnimationController;
 import backend.NoteTypesConfig;

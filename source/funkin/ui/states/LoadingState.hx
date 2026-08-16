@@ -1,4 +1,4 @@
-package states;
+package funkin.ui.states;
 
 import lime.app.Future;
 import sys.thread.FixedThreadPool;

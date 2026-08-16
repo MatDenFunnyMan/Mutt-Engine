@@ -1,4 +1,4 @@
-package backend;
+package funkin.save;
 
 #if ACHIEVEMENTS_ALLOWED
 import objects.AchievementPopup;

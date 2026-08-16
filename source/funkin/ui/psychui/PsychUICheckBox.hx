@@ -1,4 +1,4 @@
-package backend.ui;
+package funkin.ui.psychui;
 
 class PsychUICheckBox extends FlxSpriteGroup
 {

@@ -1,4 +1,4 @@
-package options;
+package funkin.ui.options;
 
 import backend.InputFormatter;
 import flixel.addons.display.FlxBackdrop;

@@ -1,4 +1,4 @@
-package options;
+package funkin.ui.options;
 
 typedef Keybind = {
 	keyboard:String,

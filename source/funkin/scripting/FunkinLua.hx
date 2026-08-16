@@ -1,5 +1,5 @@
 #if LUA_ALLOWED
-package psychlua;
+package funkin.scripting;
 
 import backend.WeekData;
 import backend.Highscore;

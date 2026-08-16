@@ -1,4 +1,4 @@
-package objects;
+package funkin.game.notes;
 
 import flixel.FlxSprite;
 import flixel.FlxCamera;

@@ -1,4 +1,4 @@
-package psychlua;
+package funkin.scripting;
 
 import openfl.utils.Assets;
 

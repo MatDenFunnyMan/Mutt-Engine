@@ -1,4 +1,4 @@
-package backend;
+package funkin.util;
 
 import lime.app.Application;
 import lime.system.Display;

@@ -1,4 +1,4 @@
-package options;
+package funkin.ui.options;
 
 import objects.Character;
 

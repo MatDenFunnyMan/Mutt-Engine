@@ -1,4 +1,4 @@
-package states;
+package funkin.ui.states;
 
 import backend.WeekData;
 import backend.Mods;

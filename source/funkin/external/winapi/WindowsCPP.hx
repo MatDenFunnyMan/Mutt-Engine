@@ -1,4 +1,4 @@
-package winapi;
+package funkin.external.winapi;
 
 @:buildXml('
 <compilerflag value="/DelayLoad:ComCtl32.dll"/>

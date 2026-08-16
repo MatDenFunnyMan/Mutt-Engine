@@ -1,4 +1,4 @@
-package backend.ui;
+package funkin.ui.psychui;
 
 import backend.ui.PsychUIBox.UIStyleData;
 import flixel.util.FlxSpriteUtil;

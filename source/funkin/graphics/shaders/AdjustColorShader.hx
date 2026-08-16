@@ -1,4 +1,4 @@
-package shaders;
+package funkin.graphics.shaders;
 
 import lime.utils.Assets;
 import flixel.addons.display.FlxRuntimeShader;

@@ -1,4 +1,4 @@
-package objects;
+package funkin.ui;
 
 #if ACHIEVEMENTS_ALLOWED
 import openfl.events.Event;

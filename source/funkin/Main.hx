@@ -1,4 +1,4 @@
-package;
+package funkin;
 
 #if android
 import android.content.Context;

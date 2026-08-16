@@ -1,4 +1,4 @@
-package objects;
+package funkin.graphics;
 
 class AttachedSprite extends FlxSprite
 {

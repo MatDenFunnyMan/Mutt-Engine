@@ -1,4 +1,4 @@
-package objects;
+package funkin.ui;
 
 import flixel.group.FlxGroup;
 import flixel.ui.FlxBar;

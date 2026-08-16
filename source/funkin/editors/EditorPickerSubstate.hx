@@ -1,4 +1,4 @@
-package states.editors;
+package funkin.editors;
 
 import flixel.FlxSprite;
 import flixel.FlxCamera;

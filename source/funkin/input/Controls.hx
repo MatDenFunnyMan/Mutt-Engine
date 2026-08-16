@@ -1,4 +1,4 @@
-package backend;
+package funkin.input;
 
 import flixel.input.gamepad.FlxGamepadButton;
 import flixel.input.gamepad.FlxGamepadInputID;

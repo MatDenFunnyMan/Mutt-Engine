@@ -1,4 +1,4 @@
-package cutscenes;
+package funkin.game.cutscenes;
 
 import flixel.addons.text.FlxTypeText;
 import backend.Song;

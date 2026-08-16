@@ -1,4 +1,4 @@
-package states.editors.content;
+package funkin.editors.content;
 
 import states.editors.content.Prompt.BasePrompt;
 

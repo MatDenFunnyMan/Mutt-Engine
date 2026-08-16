@@ -1,4 +1,4 @@
-package backend;
+package funkin.modding;
 
 import objects.Alphabet;
 import flixel.group.FlxGroup.FlxTypedGroup;

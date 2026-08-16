@@ -1,4 +1,4 @@
-package backend;
+package funkin.graphics;
 
 import openfl.utils._internal.Log;
 import openfl.display.BitmapData;

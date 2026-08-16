@@ -1,4 +1,4 @@
-package states.editors;
+package funkin.editors;
 
 import openfl.net.FileReference;
 import openfl.events.Event;

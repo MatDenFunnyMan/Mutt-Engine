@@ -1,4 +1,4 @@
-package backend;
+package funkin.game.stages;
 
 import flixel.FlxBasic;
 import flixel.FlxObject;

@@ -1,4 +1,4 @@
-package states.stages;
+package funkin.game.stages;
 
 import states.stages.objects.*;
 import objects.Character;

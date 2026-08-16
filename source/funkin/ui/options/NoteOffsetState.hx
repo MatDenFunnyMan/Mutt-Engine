@@ -1,4 +1,4 @@
-package options;
+package funkin.ui.options;
 
 import backend.StageData;
 import objects.Character;

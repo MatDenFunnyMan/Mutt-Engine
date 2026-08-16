@@ -1,4 +1,4 @@
-package backend;
+package funkin.modding;
 
 class CodenameEventCompat
 {

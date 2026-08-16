@@ -1,4 +1,4 @@
-package options;
+package funkin.ui.options;
 
 import states.MainMenuState;
 import backend.StageData;

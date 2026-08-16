@@ -1,4 +1,4 @@
-package backend;
+package funkin.backend;
 
 import openfl.display.BitmapData;
 import flixel.FlxState;

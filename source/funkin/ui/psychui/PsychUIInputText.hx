@@ -1,4 +1,4 @@
-package backend.ui;
+package funkin.ui.psychui;
 
 import flixel.FlxObject;
 import flixel.input.keyboard.FlxKey;

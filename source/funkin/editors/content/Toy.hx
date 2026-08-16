@@ -1,4 +1,4 @@
-package states.editors.content;
+package funkin.editors.content;
 
 import flixel.FlxSprite;
 import flixel.util.FlxTimer;

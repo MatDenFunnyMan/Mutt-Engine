@@ -1,4 +1,4 @@
-package backend;
+package funkin.audio;
 
 import flixel.system.ui.FlxSoundTray;
 import openfl.display.Bitmap;

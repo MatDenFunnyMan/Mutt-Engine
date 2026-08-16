@@ -1,4 +1,4 @@
-package options;
+package funkin.ui.options;
 
 import flixel.addons.display.FlxBackdrop;
 import flixel.addons.display.FlxGridOverlay;

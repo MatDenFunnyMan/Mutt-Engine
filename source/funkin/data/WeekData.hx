@@ -1,4 +1,4 @@
-package backend;
+package funkin.data;
 
 import lime.utils.Assets;
 import openfl.utils.Assets as OpenFlAssets;

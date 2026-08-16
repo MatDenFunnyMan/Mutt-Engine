@@ -1,4 +1,4 @@
-package backend;
+package funkin.game;
 
 // PsychCamera handles followLerp based on elapsed
 // and stops camera from snapping at higher framerates

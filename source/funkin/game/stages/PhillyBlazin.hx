@@ -1,4 +1,4 @@
-package states.stages;
+package funkin.game.stages;
 
 import openfl.filters.ShaderFilter;
 import shaders.RainShader;

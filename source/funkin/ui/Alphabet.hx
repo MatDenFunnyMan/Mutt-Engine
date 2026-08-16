@@ -1,4 +1,4 @@
-package objects;
+package funkin.ui;
 
 import haxe.Json;
 import openfl.utils.Assets;

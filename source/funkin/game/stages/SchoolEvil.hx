@@ -1,4 +1,4 @@
-package states.stages;
+package funkin.game.stages;
 
 import flixel.addons.effects.FlxTrail;
 import states.stages.objects.*;

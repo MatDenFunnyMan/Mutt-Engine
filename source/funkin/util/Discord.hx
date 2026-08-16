@@ -1,4 +1,4 @@
-package backend;
+package funkin.util;
 
 #if DISCORD_ALLOWED
 import Sys.sleep;

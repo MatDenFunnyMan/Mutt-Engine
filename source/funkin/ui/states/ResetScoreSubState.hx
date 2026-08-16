@@ -1,4 +1,4 @@
-package substates;
+package funkin.ui.states;
 
 import backend.WeekData;
 import backend.Highscore;

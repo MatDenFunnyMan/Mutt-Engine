@@ -1,4 +1,4 @@
-package shaders;
+package funkin.graphics.shaders;
 
 import openfl.display.ShaderParameter;
 

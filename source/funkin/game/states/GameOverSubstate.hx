@@ -1,4 +1,4 @@
-package substates;
+package funkin.game.states;
 
 import backend.WeekData;
 

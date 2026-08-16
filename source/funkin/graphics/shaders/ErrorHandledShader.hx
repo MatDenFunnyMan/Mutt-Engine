@@ -1,4 +1,4 @@
-package shaders;
+package funkin.graphics.shaders;
 
 import flixel.system.FlxAssets.FlxShader;
 import flixel.addons.display.FlxRuntimeShader;

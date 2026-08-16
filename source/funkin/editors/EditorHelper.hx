@@ -1,4 +1,4 @@
-package backend;
+package funkin.editors;
 
 class EditorHelper
 {

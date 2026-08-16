@@ -1,4 +1,4 @@
-package backend;
+package funkin.audio;
 
 import flixel.FlxState;
 import flixel.sound.FlxSound;

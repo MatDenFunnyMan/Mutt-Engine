@@ -1,4 +1,4 @@
-package objects;
+package funkin.ui;
 
 class TypedAlphabet extends Alphabet
 {

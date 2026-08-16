@@ -1,4 +1,4 @@
-package states.editors;
+package funkin.editors;
 
 import flixel.FlxSubState;
 import flixel.util.FlxSave;

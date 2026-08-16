@@ -1,4 +1,4 @@
-package substates;
+package funkin.ui.states;
 
 import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase;

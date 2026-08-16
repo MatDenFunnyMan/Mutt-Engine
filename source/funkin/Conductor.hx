@@ -1,4 +1,4 @@
-package backend;
+package funkin;
 
 import backend.Song;
 import objects.Note;

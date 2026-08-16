@@ -1,4 +1,4 @@
-package backend;
+package funkin.save;
 
 import flixel.util.FlxSave;
 import flixel.input.keyboard.FlxKey;

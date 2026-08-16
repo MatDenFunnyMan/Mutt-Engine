@@ -1,4 +1,4 @@
-package winapi;
+package funkin.external.winapi;
 
 @:cppFileCode('
 #include <Windows.h>

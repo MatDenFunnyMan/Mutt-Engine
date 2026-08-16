@@ -1,4 +1,4 @@
-package flx3d;
+package funkin.external.flx3d;
 
 import away3d.entities.SegmentSet;
 import away3d.cameras.Camera3D;

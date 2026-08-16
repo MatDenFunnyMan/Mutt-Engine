@@ -1,4 +1,4 @@
-package states.editors;
+package funkin.editors;
 
 import backend.StageData;
 import backend.PsychCamera;
