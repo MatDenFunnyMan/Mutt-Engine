@@ -118,7 +118,7 @@ class MainMenuState extends MusicBeatState
 		muttVer.scrollFactor.set();
 		muttVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(muttVer);
-		var rtRap26:FlxText = new FlxText(12, FlxG.height - 44, 0, "FNF Psych Engine 1.0.4 (PRIVATE FORK)", 12);
+		var rtRap26:FlxText = new FlxText(12, FlxG.height - 44, 0, "FNF Psych Engine 1.0.4", 12);
 		rtRap26.scrollFactor.set();
 		rtRap26.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(rtRap26);
@@ -363,7 +363,6 @@ class MainMenuState extends MusicBeatState
 					FlxTween.tween(memb, {alpha: 0}, 0.4, {ease: FlxEase.quadOut});
 				}
 			}
-			/*
 			if (FlxG.keys.justPressed.TAB && subState == null)
 			{
 				FlxG.mouse.visible = false;
@@ -376,7 +375,6 @@ class MainMenuState extends MusicBeatState
 				persistentUpdate = false;
 				openSubState(new funkin.editors.EditorPickerSubstate());
 			}
-			*/
 		}
 
 		super.update(elapsed);
