@@ -24,7 +24,7 @@ class OutdatedSubState extends MusicBeatSubstate
 		add(bg);
 
 		warnText = new FlxText(0, 0, FlxG.width,
-			'Sup bro, looks like you\'re running an outdated version of\nCheese Engine (${MainMenuState.muttEngineVersion})\n
+			'Sup bro, looks like you\'re running an outdated version of\nMutt Engine (${MainMenuState.muttEngineVersion})\n
 			-----------------------------------------------\n
 			Press ENTER to update to the latest version ${updateVersion}\n
 			Press ESCAPE to proceed anyway.\n
@@ -48,7 +48,7 @@ class OutdatedSubState extends MusicBeatSubstate
 		if(!leftState) {
 			if (controls.ACCEPT) {
 				leftState = true;
-				CoolUtil.browserLoad("https://github.com/whenkenas/Cheese-Engine/releases");
+				CoolUtil.browserLoad("https://github.com/MatDenFunnyMan/Mutt-Engine/releases");
 			}
 			else if(controls.BACK) {
 				leftState = true;

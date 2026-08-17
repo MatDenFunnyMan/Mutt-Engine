@@ -27,11 +27,6 @@ class TitleState extends MusicBeatState
 
 	var curWacky:Array<String> = [];
 	
-	var bg:FlxSprite;
-	var logo:FlxSprite;
-	var text:FlxSprite;
-	var expansion:FlxSprite;
-	var box:FlxSprite;
 	var isSingleMod:Bool = false;
 	var logoBl:FlxSprite;
 	var gfDance:FlxSprite;
@@ -150,48 +145,45 @@ class TitleState extends MusicBeatState
 
 		Conductor.bpm = 102;
 
-		if(isSingleMod)
+		logoBl = new FlxSprite(-150, -100);
+		logoBl.frames = Paths.getSparrowAtlas('logoBumpin');
+		logoBl.antialiasing = ClientPrefs.data.antialiasing;
+		logoBl.animation.addByPrefix('bump', 'logo bumpin', 24, false);
+		logoBl.animation.play('bump');
+		logoBl.updateHitbox();
+
+		gfDance = new FlxSprite(512, 40);
+		gfDance.antialiasing = ClientPrefs.data.antialiasing;
+		gfDance.frames = Paths.getSparrowAtlas('gfDanceTitle');
+		gfDance.animation.addByIndices('danceLeft', 'gfDance', [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], "", 24, false);
+		gfDance.animation.addByIndices('danceRight', 'gfDance', [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
+		gfDance.animation.play('danceRight');
+
+		var animFrames:Array<FlxFrame> = [];
+		titleText = new FlxSprite(100, 576);
+		titleText.frames = Paths.getSparrowAtlas('titleEnter');
+		@:privateAccess
 		{
-			logoBl = new FlxSprite(-150, -100);
-			logoBl.frames = Paths.getSparrowAtlas('logoBumpin');
-			logoBl.antialiasing = ClientPrefs.data.antialiasing;
-			logoBl.animation.addByPrefix('bump', 'logo bumpin', 24, false);
-			logoBl.animation.play('bump');
-			logoBl.updateHitbox();
-
-			gfDance = new FlxSprite(512, 40);
-			gfDance.antialiasing = ClientPrefs.data.antialiasing;
-			gfDance.frames = Paths.getSparrowAtlas('gfDanceTitle');
-			gfDance.animation.addByIndices('danceLeft', 'gfDance', [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], "", 24, false);
-			gfDance.animation.addByIndices('danceRight', 'gfDance', [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
-			gfDance.animation.play('danceRight');
-
-			var animFrames:Array<FlxFrame> = [];
-			titleText = new FlxSprite(100, 576);
-			titleText.frames = Paths.getSparrowAtlas('titleEnter');
-			@:privateAccess
-			{
-				titleText.animation.findByPrefix(animFrames, "ENTER IDLE");
-				titleText.animation.findByPrefix(animFrames, "ENTER FREEZE");
-			}
-
-			if (newTitle = animFrames.length > 0)
-			{
-				titleText.animation.addByPrefix('idle', "ENTER IDLE", 24);
-				titleText.animation.addByPrefix('press', ClientPrefs.data.flashing ? "ENTER PRESSED" : "ENTER FREEZE", 24);
-			}
-			else
-			{
-				titleText.animation.addByPrefix('idle', "Press Enter to Begin", 24);
-				titleText.animation.addByPrefix('press', "ENTER PRESSED", 24);
-			}
-			titleText.animation.play('idle');
-			titleText.updateHitbox();
-
-			add(gfDance);
-			add(logoBl);
-			add(titleText);
+			titleText.animation.findByPrefix(animFrames, "ENTER IDLE");
+			titleText.animation.findByPrefix(animFrames, "ENTER FREEZE");
 		}
+
+		if (newTitle = animFrames.length > 0)
+		{
+			titleText.animation.addByPrefix('idle', "ENTER IDLE", 24);
+			titleText.animation.addByPrefix('press', ClientPrefs.data.flashing ? "ENTER PRESSED" : "ENTER FREEZE", 24);
+		}
+		else
+		{
+			titleText.animation.addByPrefix('idle', "Press Enter to Begin", 24);
+			titleText.animation.addByPrefix('press', "ENTER PRESSED", 24);
+		}
+		titleText.animation.play('idle');
+		titleText.updateHitbox();
+
+		add(gfDance);
+		add(logoBl);
+		add(titleText);
 
 		blackScreen = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
 		blackScreen.scale.set(FlxG.width, FlxG.height);
@@ -269,7 +261,7 @@ class TitleState extends MusicBeatState
 			#end
 		}
 
-		if(isSingleMod && newTitle)
+		if(newTitle)
 		{
 			titleTimer += FlxMath.bound(elapsed, 0, 1);
 			if(titleTimer > 2) titleTimer -= 2;
@@ -277,7 +269,7 @@ class TitleState extends MusicBeatState
 
 		if (initialized && !transitioning && skippedIntro)
 		{
-			if(isSingleMod && newTitle && !canSkip && titleText != null)
+			if(newTitle && !canSkip && titleText != null)
 			{
 				var timer:Float = titleTimer;
 				if(timer >= 1)
@@ -295,7 +287,7 @@ class TitleState extends MusicBeatState
 				}
 				else
 				{
-					if(isSingleMod && titleText != null)
+					if(titleText != null)
 					{
 						titleText.color = FlxColor.WHITE;
 						titleText.alpha = 1;
@@ -435,51 +427,13 @@ class TitleState extends MusicBeatState
 			remove(credGroup);
 			FlxG.camera.flash(FlxColor.WHITE, 4);
 
-			if(isSingleMod)
-			{
-				if(gfDance != null) remove(gfDance);
-				if(logoBl != null) remove(logoBl);
-				if(titleText != null) remove(titleText);
+			if(gfDance != null) remove(gfDance);
+			if(logoBl != null) remove(logoBl);
+			if(titleText != null) remove(titleText);
 
-				if(gfDance != null) add(gfDance);
-				if(logoBl != null) add(logoBl);
-				if(titleText != null) add(titleText);
-			}
-			else
-			{
-				bg = new FlxSprite(0, 0).loadGraphic(Paths.image('TitleMenu/bg'));
-				bg.antialiasing = false;
-				bg.setGraphicSize(FlxG.width, FlxG.height);
-				bg.updateHitbox();
-				add(bg);
-
-				logo = new FlxSprite(0, 0).loadGraphic(Paths.image('TitleMenu/logo'));
-				logo.antialiasing = false;
-				logo.setGraphicSize(FlxG.width, FlxG.height);
-				logo.updateHitbox();
-				add(logo);
-				FlxTween.tween(logo, {y: logo.y - 15}, 3, {ease: FlxEase.sineInOut, type: PINGPONG});
-
-				text = new FlxSprite(0, 0).loadGraphic(Paths.image('TitleMenu/text'));
-				text.antialiasing = false;
-				text.setGraphicSize(FlxG.width, FlxG.height);
-				text.updateHitbox();
-				add(text);
-				FlxTween.tween(text, {y: text.y - 15}, 3, {ease: FlxEase.sineInOut, type: PINGPONG});
-
-				expansion = new FlxSprite(0, 0).loadGraphic(Paths.image('TitleMenu/expansion'));
-				expansion.antialiasing = false;
-				expansion.setGraphicSize(FlxG.width, FlxG.height);
-				expansion.updateHitbox();
-				add(expansion);
-				FlxTween.tween(expansion, {y: expansion.y - 15}, 3, {ease: FlxEase.sineInOut, type: PINGPONG});
-
-				box = new FlxSprite(0, 0).loadGraphic(Paths.image('TitleMenu/box'));
-				box.antialiasing = false;
-				box.setGraphicSize(FlxG.width, FlxG.height);
-				box.updateHitbox();
-				add(box);
-			}
+			if(gfDance != null) add(gfDance);
+			if(logoBl != null) add(logoBl);
+			if(titleText != null) add(titleText);
 
 			skippedIntro = true;
 		}

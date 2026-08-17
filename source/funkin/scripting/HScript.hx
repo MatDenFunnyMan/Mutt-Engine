@@ -549,14 +549,14 @@ class HScript extends Iris
 		set('engineName', Main.engineName);
 		set('engineVersion', Main.engineVersion);
 		set('build', {
-			name: 'Cheese',
-			fullName: 'Cheese Engine',
+			name: 'Mutt',
+			fullName: 'Mutt Engine',
 			version: Main.engineVersion
 		});
 		set('isEngine', function(name:String):Bool {
 			var clean = StringTools.replace(StringTools.replace(name.toLowerCase(), '-', ''), ' ', '');
 			return switch(clean) {
-				case 'cheeseengine' | 'cheese' | 'cheesee' | 'ce': true;
+				case 'muttengine' | 'mutt' | 'me': true;
 				default: false;
 			}
 		});
