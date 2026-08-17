@@ -50,7 +50,7 @@ class HScriptState extends MusicBeatState
 		#if CHECK_FOR_UPDATES
 		if(stateName == 'MainMenuState' && funkin.ui.states.OutdatedSubState.updateVersion != null
 			&& ClientPrefs.data.checkForUpdates
-			&& Std.parseFloat(funkin.ui.states.OutdatedSubState.updateVersion) > Std.parseFloat(funkin.ui.states.MainMenuState.cheeseEngineVersion))
+			&& Std.parseFloat(funkin.ui.states.OutdatedSubState.updateVersion) > Std.parseFloat(funkin.ui.states.MainMenuState.muttEngineVersion))
 		{
 			persistentUpdate = false;
 			openSubState(new funkin.ui.states.OutdatedSubState());
@@ -60,7 +60,7 @@ class HScriptState extends MusicBeatState
 		#if CHECK_FOR_UPDATES
 		if(stateName == 'MainMenuState' && ClientPrefs.data.checkForUpdates
 			&& funkin.ui.states.OutdatedSubState.updateVersion != null
-			&& Std.parseFloat(funkin.ui.states.OutdatedSubState.updateVersion) > Std.parseFloat(funkin.ui.states.MainMenuState.cheeseEngineVersion))
+			&& Std.parseFloat(funkin.ui.states.OutdatedSubState.updateVersion) > Std.parseFloat(funkin.ui.states.MainMenuState.muttEngineVersion))
 		{
 			persistentUpdate = false;
 			openSubState(new funkin.ui.states.OutdatedSubState());

@@ -19,6 +19,7 @@
 	<define name="IRIS_DEBUG"/>
 	<define name="MULTITHREADED_LOADING" />
 	<define name="VIDEOS_ALLOWED" if="windows || linux || android || mac" unless="32bits"/>
+	<define name="TRANSLATIONS_ALLOWED" />
 	<define name="officialBuild"/>
 
 	<section if="officialBuild">
