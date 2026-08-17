@@ -6,7 +6,6 @@ import funkin.game.notes.StrumNote;
 import funkin.game.notes.NoteSplash;
 import funkin.ui.Alphabet;
 import flixel.FlxSprite;
-import funkin.ui.psychui.PsychUITheme;
 
 class VisualsSettingsSubState extends BaseOptionsMenu
 {
@@ -125,7 +124,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = playNoteSplashes;
 
-		var option:Option = new Option('Strumline Background Player:',
+		var option:Option = new Option('Strumline Background:',
 			'Give player strumline a semi-transparent background',
 			'strumlineBackgroundPlayer',
 			PERCENT);
@@ -167,6 +166,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			'detailedRanking',
 			BOOL);
 		addOption(option);
+		*/
 
 		var option:Option = new Option('Hide HUD',
 			'If checked, hides most HUD elements.',
@@ -180,7 +180,6 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			STRING,
 			['Time Left', 'Time Elapsed', 'Song Name', 'Disabled']);
 		addOption(option);
-		*/
 
 		var option:Option = new Option('Flashing Lights',
 			"Uncheck this if you're sensitive to flashing lights!",
@@ -243,7 +242,6 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = onChangePauseMusic;
 		
-		/*
 		#if CHECK_FOR_UPDATES
 		var option:Option = new Option('Check for Updates',
 			'On Release builds, turn this on to check for updates when you start the game.',
@@ -251,7 +249,6 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 		#end
-		*/
 
 		#if DISCORD_ALLOWED
 		var option:Option = new Option('Discord Rich Presence',
@@ -292,14 +289,6 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = onChangeWindowColor;
 		#end
-
-		var option:Option = new Option('UI Theme:',
-			'Select the color scheme for the Editors interface.',
-			'uiTheme',
-			STRING,
-			['Default', 'Cheese']);
-		addOption(option);
-		option.onChange = onChangeUITheme;
 		*/
 
 		super();
@@ -637,9 +626,5 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		}
 		#end
 		return splashes;
-	}
-	function onChangeUITheme()
-	{
-		PsychUITheme.applyTheme(ClientPrefs.data.uiTheme);
 	}
 }

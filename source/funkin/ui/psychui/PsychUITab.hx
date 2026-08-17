@@ -18,17 +18,9 @@ class PsychUITab extends FlxSprite
 	public function new(name:String)
 	{
 		super();
-		if(ClientPrefs.data.uiTheme == 'Cheese')
-		{
-			makeGraphic(1, 1, FlxColor.TRANSPARENT);
-			alpha = 1.0;
-		}
-		else
-		{
-			makeGraphic(1, 1, FlxColor.WHITE);
-			color = FlxColor.BLACK;
-			alpha = 0.6;
-		}
+		makeGraphic(1, 1, FlxColor.WHITE);
+		color = FlxColor.BLACK;
+		alpha = 0.6;
 
 		@:bypassAccessor this.name = name;
 		text = new FlxText(0, 0, 100, name);
@@ -90,24 +82,16 @@ class PsychUITab extends FlxSprite
 	{
 		if(menu != null && menu.exists && menu.visible)
 		{
-			var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
 			menu.x = parent.x + menuOffsetX;
-			menu.y = parent.y + parent.tabHeight + (isCheese ? 6 : 0);
+			menu.y = parent.y + parent.tabHeight;
 			menu.draw();
 		}
 	}
 
 	public function resize(width:Int, height:Int)
 	{
-		if(ClientPrefs.data.uiTheme == 'Cheese')
-		{
-			_redrawTab(width, height, _isSelected);
-		}
-		else
-		{
-			setGraphicSize(width, height);
-			updateHitbox();
-		}
+		setGraphicSize(width, height);
+		updateHitbox();
 		text.fieldWidth = width;
 	}
 

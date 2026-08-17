@@ -6,7 +6,6 @@ import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
 
 import funkin.ui.states.TitleState;
-import funkin.ui.psychui.PsychUITheme;
 
 // Add a variable here and it will get automatically saved
 @:structInit class SaveVariables {
@@ -92,7 +91,6 @@ import funkin.ui.psychui.PsychUITheme;
 	public var windowTheme:String = 'PC Theme';
 	public var windowColor:String = 'Default';
 	public var allowModWindowColor:Bool = true;
-	public var uiTheme:String = 'Default';
 	// CUSTOM SETTINGS!!!
 }
 
@@ -254,7 +252,6 @@ class ClientPrefs {
 			}
 			reloadVolumeKeys();
 		}
-		PsychUITheme.applyTheme(data.uiTheme);
 	}
 
 	public static function updateFPSCounter():Void

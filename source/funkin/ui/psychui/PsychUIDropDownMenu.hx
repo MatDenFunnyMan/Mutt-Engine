@@ -28,8 +28,7 @@ class PsychUIDropDownMenu extends PsychUIInputText
 		updateHitbox();
 		textObj.y += 2;
 
-		var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-		var buttonPath:String = isCheese ? 'psych-ui/themes/cheese/dropdown_button' : 'psych-ui/dropdown_button';
+		var buttonPath:String = 'psych-ui/dropdown_button';
 		button = new FlxSprite(behindText.width + 1, 0).loadGraphic(Paths.image(buttonPath, 'embed'), true, 20, 20);
 		button.animation.add('normal', [0], false);
 		button.animation.add('pressed', [1], false);
@@ -84,49 +83,8 @@ class PsychUIDropDownMenu extends PsychUIInputText
 		showDropDown(false);
 	}
 
-	override public function setGraphicSize(width:Float = 0, height:Float = 0)
-	{
-		var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-		if(isCheese)
-		{
-			var w:Int = Std.int(width);
-			if(w > 0)
-			{
-				bg.makeGraphic(w, 20, FlxColor.TRANSPARENT, true);
-				FlxSpriteUtil.drawRoundRect(bg, 0, 0, w, 20, 8, 8, FlxColor.TRANSPARENT, {thickness: 2, color: 0xFFE8A800});
-				FlxSpriteUtil.drawRoundRect(bg, 2, 2, w - 4, 16, 6, 6, FlxColor.WHITE, {thickness: 0, color: FlxColor.TRANSPARENT});
-				bg.updateHitbox();
-			}
-			behindText.setGraphicSize(width - 2, 18);
-			behindText.updateHitbox();
-			if(textObj != null && textObj.exists)
-			{
-				textObj.scale.x = 1;
-				textObj.scale.y = 1;
-			}
-		}
-		else
-		{
-			super.setGraphicSize(width, height);
-		}
-	}
-
-	override public function updateHitbox()
-	{
-		if(ClientPrefs.data.uiTheme == 'Cheese')
-		{
-			bg.updateHitbox();
-			behindText.updateHitbox();
-			if(textObj != null && textObj.exists)
-				textObj.updateHitbox();
-			width = bg.width;
-			height = bg.height;
-		}
-		else
-		{
-			super.updateHitbox();
-		}
-	}
+	override public function setGraphicSize(width:Float = 0, height:Float = 0) { super.setGraphicSize(width, height); }
+	override public function updateHitbox() { super.updateHitbox(); }
 
 	function set_selectedIndex(v:Int)
 	{
@@ -239,41 +197,17 @@ class PsychUIDropDownMenu extends PsychUIInputText
 				txtY += item.height;
 				item.forceNextUpdate = true;
 			}
-			if(ClientPrefs.data.uiTheme == 'Cheese')
-			{
-				var totalH:Int = Std.int(txtY - behindText.y + 2);
-				var w:Int = Std.int(bg.width);
-				bg.makeGraphic(w, totalH, FlxColor.TRANSPARENT, true);
-				FlxSpriteUtil.drawRoundRect(bg, 0, 0, w, totalH, 8, 8, FlxColor.TRANSPARENT, {thickness: 2, color: 0xFFE8A800});
-				FlxSpriteUtil.drawRoundRect(bg, 2, 2, w - 4, 16, 6, 6, FlxColor.WHITE, {thickness: 0, color: FlxColor.TRANSPARENT});
-				bg.scale.set(1, 1);
-				bg.updateHitbox();
-			}
-			else
-			{
-				bg.scale.y = txtY - behindText.y + 2;
-				bg.updateHitbox();
-			}
+			
+			bg.scale.y = txtY - behindText.y + 2;
+			bg.updateHitbox();
 		}
 		else
 		{
 			for (item in _items)
 				item.active = item.visible = false;
 
-			if(ClientPrefs.data.uiTheme == 'Cheese')
-			{
-				var w:Int = Std.int(bg.width);
-				bg.makeGraphic(w, 20, FlxColor.TRANSPARENT, true);
-				FlxSpriteUtil.drawRoundRect(bg, 0, 0, w, 20, 8, 8, FlxColor.TRANSPARENT, {thickness: 2, color: 0xFFE8A800});
-				FlxSpriteUtil.drawRoundRect(bg, 2, 2, w - 4, 16, 6, 6, FlxColor.WHITE, {thickness: 0, color: FlxColor.TRANSPARENT});
-				bg.scale.set(1, 1);
-				bg.updateHitbox();
-			}
-			else
-			{
-				bg.scale.y = 20;
-				bg.updateHitbox();
-			}
+			bg.scale.y = 20;
+			bg.updateHitbox();
 		}
 	}
 
@@ -349,29 +283,13 @@ class PsychUIDropDownItem extends FlxSpriteGroup
 	public function new(x:Float = 0, y:Float = 0, width:Float = 100)
 	{
 		super(x, y);
+		bg = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
+		bg.setGraphicSize(width, 20);
+		bg.updateHitbox();
 
-		var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-		if(isCheese)
-		{
-			hoverStyle  = {bgColor: 0xFFFFE270, textColor: 0xFFC78A00, bgAlpha: 1};
-			normalStyle = {bgColor: 0xFFFFFFF5, textColor: 0xFF3D2800, bgAlpha: 1};
+		text = new FlxText(0, 0, width, 8);
+		text.color = FlxColor.BLACK;
 
-			bg = new FlxSprite();
-			bg.makeGraphic(Std.int(width), 24, 0xFFFFFFF5, true);
-			bg.updateHitbox();
-
-			text = new FlxText(6, 0, width - 8, 8);
-			text.color = 0xFF3D2800;
-		}
-		else
-		{
-			bg = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
-			bg.setGraphicSize(width, 20);
-			bg.updateHitbox();
-
-			text = new FlxText(0, 0, width, 8);
-			text.color = FlxColor.BLACK;
-		}
 		add(bg);
 		add(text);
 	}
@@ -386,25 +304,11 @@ class PsychUIDropDownItem extends FlxSpriteGroup
 		{
 			var overlapped:Bool = (FlxG.mouse.overlaps(bg, camera));
 
-			var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-			if(isCheese)
-			{
-				if(overlapped != _wasHovered || forceNextUpdate)
-				{
-					_wasHovered = overlapped;
-					var style = overlapped ? hoverStyle : normalStyle;
-					bg.color = style.bgColor;
-					bg.alpha = style.bgAlpha;
-					text.color = style.textColor;
-				}
-			}
-			else
-			{
-				var style = overlapped ? hoverStyle : normalStyle;
-				bg.color = style.bgColor;
-				text.color = style.textColor;
-				bg.alpha = style.bgAlpha;
-			}
+			var style = overlapped ? hoverStyle : normalStyle;
+			bg.color = style.bgColor;
+			text.color = style.textColor;
+			bg.alpha = style.bgAlpha;
+
 			forceNextUpdate = false;
 
 			if(overlapped && FlxG.mouse.justPressed)
@@ -423,16 +327,9 @@ class PsychUIDropDownItem extends FlxSpriteGroup
 	{
 		label = v;
 		text.text = v;
-		if(ClientPrefs.data.uiTheme == 'Cheese')
-		{
-			bg.makeGraphic(Std.int(bg.width), Std.int(text.height + 6), 0xFFFFFFF5, true);
-			bg.updateHitbox();
-		}
-		else
-		{
-			bg.scale.y = text.height + 6;
-			bg.updateHitbox();
-		}
+		
+		bg.scale.y = text.height + 6;
+		bg.updateHitbox();
 		return v;
 	}
 }

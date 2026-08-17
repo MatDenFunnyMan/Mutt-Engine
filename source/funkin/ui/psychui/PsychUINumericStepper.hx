@@ -25,10 +25,9 @@ class PsychUINumericStepper extends PsychUIInputText
 		this.step = step;
 		_updateFilter();
 
-		var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-		var plusPath:String  = isCheese ? 'psych-ui/themes/cheese/stepper_plus'  : 'psych-ui/stepper_plus';
-		var minusPath:String = isCheese ? 'psych-ui/themes/cheese/stepper_minus' : 'psych-ui/stepper_minus';
-		var uiFolder:String  = isCheese ? 'embed' : 'embed';
+		var plusPath:String  = 'psych-ui/stepper_plus';
+		var minusPath:String = 'psych-ui/stepper_minus';
+		var uiFolder:String  = 'embed';
 
 		buttonPlus = new FlxSprite(fieldWidth).loadGraphic(Paths.image(plusPath, uiFolder), true, 16, 16);
 		buttonPlus.animation.add('normal', [0], false);

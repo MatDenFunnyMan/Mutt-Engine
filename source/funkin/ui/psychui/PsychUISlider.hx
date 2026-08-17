@@ -22,58 +22,36 @@ class PsychUISlider extends FlxSpriteGroup
 	{
 		super(x, y);
 		this.onChange = callback;
-
-		var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-		if(isCheese)
-		{
-			mainColor = 0xFFE8A800;
-			handleColor = 0xFFF5C842;
-
-			bar = new FlxSprite();
-			bar.makeGraphic(Std.int(wid), 8, FlxColor.TRANSPARENT, true);
-			FlxSpriteUtil.drawRoundRect(bar, 0, 0, Std.int(wid), 8, 8, 8, 0x33E8A800, {thickness: 2, color: mainColor});
-			bar.updateHitbox();
-		}
-		else
-		{
-			bar = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
-			bar.scale.set(wid, 5);
-			bar.updateHitbox();
-			bar.color = mainColor;
-		}
+		
+		bar = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
+		bar.scale.set(wid, 5);
+		bar.updateHitbox();
+		bar.color = mainColor;
 		add(bar);
 
 		minText = new FlxText(0, 0, 80, '', 8);
 		minText.alignment = CENTER;
 		minText.color = mainColor;
 		add(minText);
+
 		maxText = new FlxText(0, 0, 80, '', 8);
 		maxText.alignment = CENTER;
 		maxText.color = mainColor;
 		add(maxText);
+
 		valueText = new FlxText(0, 0, 80, '', 8);
 		valueText.alignment = CENTER;
-		valueText.color = isCheese ? 0xFFC78A00 : handleColor;
+		valueText.color = handleColor;
 		add(valueText);
+
 		labelText = new FlxText(0, 0, wid, '', 8);
 		labelText.alignment = CENTER;
-		if(isCheese) labelText.color = 0xFF8A6000;
 		add(labelText);
 
-		if(isCheese)
-		{
-			handle = new FlxSprite();
-			handle.makeGraphic(20, 20, FlxColor.TRANSPARENT, true);
-			FlxSpriteUtil.drawCircle(handle, 10, 10, 9, handleColor, {thickness: 2.5, color: 0xFFC78A00});
-			handle.updateHitbox();
-		}
-		else
-		{
-			handle = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
-			handle.scale.set(5, 15);
-			handle.updateHitbox();
-			handle.color = handleColor;
-		}
+		handle = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
+		handle.scale.set(5, 15);
+		handle.updateHitbox();
+		handle.color = handleColor;
 		add(handle);
 
 		this.min = min;

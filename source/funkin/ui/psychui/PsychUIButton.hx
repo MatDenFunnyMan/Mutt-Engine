@@ -35,21 +35,9 @@ class PsychUIButton extends FlxSpriteGroup
 	{
 		super(x, y);
 
-		var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-		if(isCheese)
-		{
-			bg = new FlxSprite();
-			bg.alpha = 1.0;
-			clickStyle  = {bgColor: 0xFFC67800, textColor: 0xFFFFFBEA, bgAlpha: 1};
-			hoverStyle  = {bgColor: 0xFFFFE270, textColor: 0xFF3D2800, bgAlpha: 1};
-			normalStyle = {bgColor: 0xFFF5C842, textColor: 0xFF3D2800, bgAlpha: 1};
-		}
-		else
-		{
-			bg = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
-			bg.color = 0xFFAAAAAA;
-			bg.alpha = 0.6;
-		}
+		bg = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
+		bg.color = 0xFFAAAAAA;
+		bg.alpha = 0.6;
 		add(bg);
 
 		text = new FlxText(0, 0, 1, '');
@@ -70,14 +58,9 @@ class PsychUIButton extends FlxSpriteGroup
 	{
 		super.update(elapsed);
 
-		var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-
 		if(_firstFrame)
 		{
-			if(isCheese)
-				_redrawBtn(Std.int(bg.width), Std.int(bg.height) - 3, normalStyle.bgColor);
-			else
-				bg.color = normalStyle.bgColor;
+			bg.color = normalStyle.bgColor;
 			bg.alpha = normalStyle.bgAlpha;
 			text.color = normalStyle.textColor;
 			_firstFrame = false;
@@ -98,10 +81,7 @@ class PsychUIButton extends FlxSpriteGroup
 			if(!isClicked)
 			{
 				var style:UIStyleData = (overlapped) ? hoverStyle : normalStyle;
-				if(isCheese)
-					_redrawBtn(Std.int(bg.width), Std.int(bg.height) - 3, style.bgColor);
-				else
-					bg.color = style.bgColor;
+				bg.color = style.bgColor;
 				bg.alpha = style.bgAlpha;
 				text.color = style.textColor;
 			}
@@ -109,10 +89,7 @@ class PsychUIButton extends FlxSpriteGroup
 			if(overlapped && FlxG.mouse.justPressed)
 			{
 				isClicked = true;
-				if(isCheese)
-					_redrawBtn(Std.int(bg.width), Std.int(bg.height) - 3, clickStyle.bgColor);
-				else
-					bg.color = clickStyle.bgColor;
+				bg.color = clickStyle.bgColor;
 				bg.alpha = clickStyle.bgAlpha;
 				text.color = clickStyle.textColor;
 				if(onClick != null) onClick();
@@ -123,13 +100,9 @@ class PsychUIButton extends FlxSpriteGroup
 
 	public function resize(width:Int, height:Int)
 	{
-		if(ClientPrefs.data.uiTheme == 'Cheese')
-			_redrawBtn(width, height, normalStyle.bgColor);
-		else
-		{
-			bg.setGraphicSize(width, height);
-			bg.updateHitbox();
-		}
+		bg.setGraphicSize(width, height);
+		bg.updateHitbox();
+		
 		text.fieldWidth = width;
 		text.x = bg.x;
 		text.y = bg.y + height/2 - text.height/2;

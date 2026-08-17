@@ -37,8 +37,6 @@ class AnimScrollList extends FlxSpriteGroup
 		listHeight = height;
 		_visibleRows = Std.int((listHeight - TITLE_H) / ROW_H);
 
-		var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-
 		_bg = new FlxSprite();
 		add(_bg);
 
@@ -47,9 +45,9 @@ class AnimScrollList extends FlxSpriteGroup
 
 		_titleTxt = new FlxText(0, 3, listWidth, 'Animations');
 		_titleTxt.setFormat(null, 12,
-			isCheese ? 0xFF7A3D00 : FlxColor.WHITE,
+			FlxColor.WHITE,
 			CENTER,
-			isCheese ? NONE : OUTLINE_FAST,
+			OUTLINE_FAST,
 			FlxColor.BLACK);
 		_titleTxt.borderSize = 1;
 		_titleTxt.antialiasing = true;
@@ -67,9 +65,9 @@ class AnimScrollList extends FlxSpriteGroup
 
 			var rt:FlxText = new FlxText(PAD, rowY + 2, innerW - PAD * 2, '');
 			rt.setFormat(null, 10,
-				isCheese ? 0xFF7A3D00 : FlxColor.WHITE,
+				FlxColor.WHITE,
 				LEFT,
-				isCheese ? NONE : OUTLINE_FAST,
+				OUTLINE_FAST,
 				FlxColor.BLACK);
 			rt.borderSize = 1;
 			rt.antialiasing = true;
@@ -78,12 +76,12 @@ class AnimScrollList extends FlxSpriteGroup
 		}
 
 		_sbarTrack = new FlxSprite(listWidth - SBAR_W, TITLE_H).makeGraphic(SBAR_W, listHeight - TITLE_H, FlxColor.WHITE);
-		_sbarTrack.color = isCheese ? 0xFFD47A00 : FlxColor.BLACK;
-		_sbarTrack.alpha = isCheese ? 0.3 : 0.25;
+		_sbarTrack.color = FlxColor.BLACK;
+		_sbarTrack.alpha = 0.25;
 		add(_sbarTrack);
 
 		_sbarThumb = new FlxSprite(listWidth - SBAR_W, TITLE_H).makeGraphic(SBAR_W, listHeight - TITLE_H, FlxColor.WHITE);
-		_sbarThumb.color = isCheese ? 0xFFD47A00 : FlxColor.WHITE;
+		_sbarThumb.color = FlxColor.WHITE;
 		_sbarThumb.alpha = 0.8;
 		_sbarThumb.origin.set(0, 0);
 		_sbarThumb.visible = false;
@@ -183,8 +181,6 @@ class AnimScrollList extends FlxSpriteGroup
 
 	function _refresh()
 	{
-		var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-
 		for (i in 0..._visibleRows)
 		{
 			var idx:Int = _scrollY + i;
@@ -193,17 +189,8 @@ class AnimScrollList extends FlxSpriteGroup
 
 			if (anim != null)
 			{
-				if (isCheese)
-				{
-					_rowBgs[i].color = sel ? 0xFFF5C842 : 0xFFFFF8E7;
-					_rowBgs[i].alpha = sel ? 0.92 : (i == _hoverRow ? 0.65 : 0.4);
-					_rowTxts[i].color = 0xFF7A3D00;
-				}
-				else
-				{
-					_rowBgs[i].alpha = 0;
-					_rowTxts[i].color = sel ? FlxColor.LIME : (i == _hoverRow ? FlxColor.YELLOW : FlxColor.WHITE);
-				}
+				_rowBgs[i].alpha = 0;
+				_rowTxts[i].color = sel ? FlxColor.LIME : (i == _hoverRow ? FlxColor.YELLOW : FlxColor.WHITE);
 				_rowTxts[i].text = anim.anim + ': ' + anim.offsets;
 			}
 			else
@@ -236,41 +223,15 @@ class AnimScrollList extends FlxSpriteGroup
 
 	function _redrawBg()
 	{
-		var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-		if (isCheese)
-		{
-			var bodyH:Int = listHeight - TITLE_H;
-			_bg.makeGraphic(listWidth, listHeight, FlxColor.TRANSPARENT, true);
-			_bg.alpha = 0.5;
-			FlxSpriteUtil.drawRoundRect(_bg, 0, TITLE_H - 2, listWidth, bodyH + 2, 18, 18, 0xFFD47A00, {thickness: 0, color: FlxColor.TRANSPARENT});
-			FlxSpriteUtil.drawRoundRect(_bg, 1, TITLE_H - 1, listWidth - 2, bodyH, 16, 16, 0xFFFFF0D0, {thickness: 0, color: FlxColor.TRANSPARENT});
-			FlxSpriteUtil.drawRect(_bg, 1, TITLE_H - 1, listWidth - 2, 14, 0xFFFFF0D0);
-			FlxSpriteUtil.drawRoundRect(_bg, 0, TITLE_H - 2, listWidth, bodyH + 2, 18, 18, FlxColor.TRANSPARENT, {thickness: 2, color: 0xFFD47A00});
-			_bg.updateHitbox();
-		}
-		else
-		{
-			_bg.makeGraphic(listWidth, listHeight, FlxColor.WHITE);
-			_bg.color = FlxColor.BLACK;
-			_bg.alpha = 0.6;
-		}
+		_bg.makeGraphic(listWidth, listHeight, FlxColor.WHITE);
+		_bg.color = FlxColor.BLACK;
+		_bg.alpha = 0.6;
 	}
 
 	function _redrawTitleBg()
 	{
-		var isCheese:Bool = (ClientPrefs.data.uiTheme == 'Cheese');
-		if (isCheese)
-		{
-			_titleBg.makeGraphic(listWidth, TITLE_H + 6, FlxColor.TRANSPARENT, true);
-			FlxSpriteUtil.drawRoundRect(_titleBg, 0, 0, listWidth, TITLE_H + 6, 14, 14, 0xFFFFFBEA, {thickness: 2, color: 0xFFE8A800});
-			FlxSpriteUtil.drawRect(_titleBg, 2, TITLE_H - 2, listWidth - 4, 8, 0xFFFFFBEA);
-			_titleBg.updateHitbox();
-		}
-		else
-		{
-			_titleBg.makeGraphic(listWidth, TITLE_H, FlxColor.WHITE);
-			_titleBg.color = FlxColor.BLACK;
-			_titleBg.alpha = 0.7;
-		}
+		_titleBg.makeGraphic(listWidth, TITLE_H, FlxColor.WHITE);
+		_titleBg.color = FlxColor.BLACK;
+		_titleBg.alpha = 0.7;
 	}
 }
