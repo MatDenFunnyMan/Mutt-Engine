@@ -114,12 +114,11 @@ class MainMenuState extends MusicBeatState
 		tabText.scrollFactor.set();
 		tabText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(tabText);
-		var cheeseVer:FlxText = new FlxText(12, FlxG.height - 64, 0, "Mutt Engine v" + muttEngineVersion, 12);
-		cheeseVer.scrollFactor.set();
-		cheeseVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(cheeseVer);
-		*/
-		var rtRap26:FlxText = new FlxText(12, FlxG.height - 44, 0, "FNF Vs. Ace Rechilled (FANMADE) v1.0", 12);
+		var muttVer:FlxText = new FlxText(12, FlxG.height - 64, 0, "Mutt Engine v" + muttEngineVersion, 12);
+		muttVer.scrollFactor.set();
+		muttVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(muttVer);
+		var rtRap26:FlxText = new FlxText(12, FlxG.height - 44, 0, "FNF Psych Engine 1.0.4 (PRIVATE FORK)", 12);
 		rtRap26.scrollFactor.set();
 		rtRap26.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(rtRap26);

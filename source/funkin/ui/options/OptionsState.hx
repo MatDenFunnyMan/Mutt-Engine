@@ -8,14 +8,14 @@ import flixel.FlxObject;
 class OptionsState extends MusicBeatState
 {
 	var options:Array<String> = [
-		//'Note Colors',
+		'Note Colors',
 		'Controls',
 		'Adjust Delay and Combo',
 		'Graphics',
 		'Visuals',
 		'Gameplay',
-		//'Developer',
-		//#if TRANSLATIONS_ALLOWED , 'Language' #end
+		'Developer',
+		#if TRANSLATIONS_ALLOWED , 'Language' #end
 	];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
@@ -35,10 +35,8 @@ class OptionsState extends MusicBeatState
 
 		switch(label)
 		{
-			/*
 			case 'Note Colors':
 				openSubState(new funkin.ui.options.NotesColorSubState());
-			*/
 			case 'Controls':
 				openSubState(new funkin.ui.options.ControlsSubState());
 			case 'Graphics':
@@ -49,12 +47,10 @@ class OptionsState extends MusicBeatState
 				openSubState(new funkin.ui.options.GameplaySettingsSubState());
 			case 'Adjust Delay and Combo':
 				MusicBeatState.switchState(new funkin.ui.options.NoteOffsetState());
-			//case 'Developer':
-				//openSubState(new funkin.ui.options.DeveloperSettingsSubState());
-			/*
+			case 'Developer':
+				openSubState(new funkin.ui.options.DeveloperSettingsSubState());
 			case 'Language':
 				openSubState(new funkin.ui.options.LanguageSubState());
-			*/
 		}
 	}
 
