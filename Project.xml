@@ -19,7 +19,7 @@
 	<define name="IRIS_DEBUG"/>
 	<define name="MULTITHREADED_LOADING" />
 	<define name="VIDEOS_ALLOWED" if="windows || linux || android || mac" unless="32bits"/>
-	<define name="officialBuild" />
+	<define name="officialBuild"/>
 
 	<section if="officialBuild">
 		<define name="BASE_GAME_FILES" />
@@ -53,6 +53,20 @@
 		<assets path='loaded-mods' rename='mods' embed='false' if="mac"/>
 		<assets path='list.txt' rename='modsList.txt' />
 	</section>
+
+	<section if="BASE_GAME_FILES">
+		<assets path="assets/base_game" rename="assets" exclude="*.ogg" if="web"/>
+		<assets path="assets/base_game" rename="assets" exclude="*.mp3" unless="web"/>
+		<haxelib name="grig.audio" if="BASE_GAME_FILES"/>
+		<haxelib name="funkin.vis" if="BASE_GAME_FILES"/>
+	</section>
+
+	<section if="TRANSLATIONS_ALLOWED">
+		<assets path="assets/translations" rename="assets" exclude="*.ogg" if="web"/>
+		<assets path="assets/translations" rename="assets" exclude="*.mp3" unless="web"/>
+	</section>
+
+	<define name="CHECK_FOR_UPDATES" if="desktop officialBuild"/>
 
 	<assets path='projFiles/readme.txt' rename='fnf-readme.txt' />
 
