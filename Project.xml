@@ -22,7 +22,6 @@
 	<define name="officialBuild" />
 
 	<section if="officialBuild">
-		<define name="TITLE_SCREEN_EASTER_EGG"/>
 		<define name="BASE_GAME_FILES" />
 	</section>
 
