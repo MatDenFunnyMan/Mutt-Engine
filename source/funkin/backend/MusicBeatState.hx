@@ -5,6 +5,7 @@ import flixel.FlxState;
 import flixel.util.FlxSave;
 import funkin.game.PsychCamera;
 import funkin.debug.CMD;
+import funkin.util.CursorLoader;
 
 class MusicBeatState extends FlxState
 {
@@ -64,6 +65,8 @@ class MusicBeatState extends FlxState
 
 	override function update(elapsed:Float)
 	{
+		CursorLoader.isVisible();
+
 		//everyStep();
 		var oldStep:Int = curStep;
 		timePassedOnState += elapsed;

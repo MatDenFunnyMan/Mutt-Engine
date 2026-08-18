@@ -52,6 +52,12 @@ class CursorLoader
 			FlxG.mouse.load(new FunkinCursor(0, 0));
 	}
 
+	public static function isVisible():Void {
+		#if FLX_DEBUG if (FlxG.debugger.visible) return; #end
+		if (FlxG.mouse.useSystemCursor)
+			FlxG.mouse.useSystemCursor = false;
+	}
+
 	public static function reset():Void
 	{
 		_lastMod = null;

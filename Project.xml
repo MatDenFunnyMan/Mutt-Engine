@@ -36,7 +36,7 @@
 
 	<classpath name="source" />
 
-	<define name="CRASH_HANDLER" if="desktop release" />
+	<define name="CRASH_HANDLER" if="desktop " />
 
 	<assets path="assets/fonts" />
 	<assets path="assets/shared" exclude="*.ogg" if="web"/>

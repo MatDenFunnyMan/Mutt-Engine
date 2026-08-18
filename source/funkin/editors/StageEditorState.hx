@@ -26,6 +26,7 @@ import flash.net.FileFilter;
 
 import funkin.editors.content.Prompt;
 import funkin.editors.content.PreloadListSubState;
+import funkin.editors.content.PsychJsonPrinter;
 
 class StageEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
@@ -374,44 +375,43 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			for (field in Reflect.fields(spr))
 			{
 				if(field == 'sprite') continue; //do NOT copy sprite or it might get messy
-
 				try
 				{
 					var fld:Dynamic = Reflect.getProperty(spr, field);
-					if(fld is Array)
+					if(field == 'animations')
 					{
-						var arr:Array<Dynamic> = fld;
-						arr = arr.copy();
+						var arr:Array<Dynamic> = cast fld;
 						if(arr != null)
 						{
-							for (k => v in arr)
+							var copiedAnims:Array<Dynamic> = [];
+							for (v in arr)
 							{
+								if (v == null) continue;
+
 								var indices:Array<Int> = v.indices;
 								if(indices != null) indices = indices.copy();
 	
 								var offs:Array<Int> = v.offsets;
 								if(offs != null) offs = offs.copy();
 
-								fld[k] = {
+								copiedAnims.push({
 									anim: v.anim,
 									name: v.name,
 									fps: v.fps,
 									loop: v.loop,
 									indices: indices,
 									offsets: offs
-								}
+								});
 							}
+							fld = copiedAnims;
 						}
-						fld = arr;
+					} else if (fld is Array){
+						var arr:Array<Dynamic> = fld;
+						fld = arr.copy();
 					}
-
 					Reflect.setProperty(copiedMeta, field, fld);
-					//trace('success? $field');
 				}
-				catch(e:Dynamic)
-				{
-					//trace('failed: $field');
-				}
+				catch(e:Dynamic){}
 			}
 
 			if(copiedMeta.animations != null)
@@ -434,7 +434,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			}
 			copiedMeta.setScale(copiedMeta.scale[0], copiedMeta.scale[1]);
 			copiedMeta.setScrollFactor(copiedMeta.scroll[0], copiedMeta.scroll[1]);
-			copiedMeta.name = findUnoccupiedName('${copiedMeta.name}_copy');
+			copiedMeta.name = findUnoccupiedCopyName(copiedMeta.name);
 			insertMeta(copiedMeta, 1);
 		});
 		buttonDuplicate.cameras = [camHUD];
@@ -462,7 +462,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		tab_group.add(buttonDelete);
 	}
 
-	function showOutput(txt:String, isError:Bool = false)
+	public function showOutput(txt:String, isError:Bool = false)
 	{
 		outputTxt.color = isError ? FlxColor.RED : FlxColor.WHITE;
 		outputTxt.text = txt;
@@ -498,6 +498,32 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			}
 			break;
 		}
+		return name;
+	}
+
+	function nameExists(name:String):Bool {
+		for (basic in stageSprites)
+			if (basic.name == name) return true;
+		return false;
+	}
+
+	function findUnoccupiedCopyName(baseName:String):String {
+		var clean:String = baseName;
+		var open:Int = clean.lastIndexOf(' (');
+
+		if (open > 0 && StringTools.endsWith(clean, ')')) {
+			var inner:String = clean.substring(open+2, clean.length-1);
+			if (inner.length>0 && ~/^[0-9]+$/.match(inner))
+				clean = clean.substring(0, open);
+		}
+
+		var num:Int = 1;
+		var name:String = '$clean ($num)';
+		while(nameExists(name)){
+			num++;
+			name = '$clean ($num)';
+		}
+
 		return name;
 	}
 
@@ -1842,6 +1868,14 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		if(hideDadCheckbox.checked)
 			cleanJson.hide_opponent = true;
 		
+		if(stageJson.preload =! null)
+			cleanJson.preload = stageJson.preload;
+
+		cleanJson.objects = objectsArray;
+
+		if(stageJson._editorMeta != null)
+			cleanJson._editorMeta = stageJson._editorMeta;
+
 		stageJson = cleanJson;
 	}
 
@@ -1850,33 +1884,8 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		if(_file != null) return;
 
 		saveObjectsToJson();
-		
-		var orderedJson:String = '{\n';
-		orderedJson += '\t"directory": "' + stageJson.directory + '",\n';
-		orderedJson += '\t"defaultZoom": ' + stageJson.defaultZoom + ',\n';
-		
-		if(stageJson.isPixelStage != null)
-			orderedJson += '\t"isPixelStage": ' + stageJson.isPixelStage + ',\n';
-		
-		var uiValue = (stageJson.stageUI != null && stageJson.stageUI != 'null') ? stageJson.stageUI : '';
-		orderedJson += '\t"stageUI": "' + uiValue + '",\n\n';
-		
-		orderedJson += '\t"boyfriend": [' + stageJson.boyfriend[0] + ', ' + stageJson.boyfriend[1] + '],\n';
-		orderedJson += '\t"girlfriend": [' + stageJson.girlfriend[0] + ', ' + stageJson.girlfriend[1] + '],\n';
-		orderedJson += '\t"opponent": [' + stageJson.opponent[0] + ', ' + stageJson.opponent[1] + '],\n';
-		orderedJson += '\t"hide_girlfriend": ' + stageJson.hide_girlfriend + ',\n';
-		
-		if(stageJson.hide_boyfriend == true)
-			orderedJson += '\t"hide_boyfriend": true,\n';
-		
-		if(stageJson.hide_opponent == true)
-			orderedJson += '\t"hide_opponent": true,\n';
-		
-		orderedJson += '\t"camera_boyfriend": [' + stageJson.camera_boyfriend[0] + ', ' + stageJson.camera_boyfriend[1] + '],\n';
-		orderedJson += '\t"camera_opponent": [' + stageJson.camera_opponent[0] + ', ' + stageJson.camera_opponent[1] + '],\n';
-		orderedJson += '\t"camera_girlfriend": [' + stageJson.camera_girlfriend[0] + ', ' + stageJson.camera_girlfriend[1] + '],\n';
-		orderedJson += '\t"camera_speed": ' + stageJson.camera_speed + '\n';
-		orderedJson += '}';
+
+		var orderedJson:String = haxe.format.JsonPrinter.print(stageJson, null, '\t');
 		
 		if (orderedJson.length > 0)
 		{
@@ -2878,7 +2887,19 @@ class StageEditorMetaSprite
 		if(detectedPrefix != null)
 		{
 			sprite.animation.addByPrefix('idle', detectedPrefix, animFps, animLoop);
-			sprite.animation.play('idle', true);
+			if(sprite.animation.exists('idle')){
+				if(animations == null) animations = [];
+				animations.push({
+					anim: 'idle',
+					name: detectedPrefix,
+					fps: animFps,
+					loop: animLoop,
+					indices: [],
+					offsets: [0,0]
+				});
+				if(firstAnimation == null) firstAnimation = 'idle';
+				sprite.animation.play('idle', true);
+			}
 		}
 	}
 
@@ -3057,12 +3078,17 @@ class StageEditorAnimationSubstate extends MusicBeatSubstate {
 
 			var lastAnim:String = (target.animations[curAnim] != null) ? target.animations[curAnim].anim : '';
 			var lastOffsets:Array<Int> = null;
-			for (anim in target.animations)
+			var sprCast:ModchartSprite = cast (target.sprite, ModchartSprite);
+
+			for (anim in target.animations.copy())
 				if(animationInputText.text == anim.anim)
 				{
 					lastOffsets = anim.offsets;
-					cast (target.sprite, ModchartSprite).animOffsets.remove(animationInputText.text);
-					target.sprite.animation.remove(animationInputText.text);
+					sprCast.animOffsets.remove(animationInputText.text);
+					if(sprCast.animation.curAnim != null && sprCast.animation.curAnim.name == animationInputText.text)
+						sprCast.animation.curAnim = null;
+
+					sprCast.animation.remove(animationInputText.text);
 					target.animations.remove(anim);
 				}
 
@@ -3078,7 +3104,10 @@ class StageEditorAnimationSubstate extends MusicBeatSubstate {
 			if(addedAnim.indices != null && addedAnim.indices.length > 0)
 				target.sprite.animation.addByIndices(addedAnim.anim, addedAnim.name, addedAnim.indices, '', addedAnim.fps, addedAnim.loop);
 			else
-				target.sprite.animation.addByPrefix(addedAnim.anim, addedAnim.name, addedAnim.fps, addedAnim.loop);
+				if(!target.sprite.animation.exists(addedAnim.anim)){
+					cast (FlxG.state, StageEditorState).showOutput('No animation found with tag "${addedAnim.name}"', true);
+					return;
+				}
 
 			target.animations.push(addedAnim);
 			reloadAnimList();

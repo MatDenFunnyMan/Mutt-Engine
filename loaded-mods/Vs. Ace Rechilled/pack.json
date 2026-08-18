@@ -1,0 +1,11 @@
+{
+	"name": "Vs Ace Rechilled",
+	"description": "We doing this lmao",
+	"restart": false,
+	"runsGlobally": false,
+	"color": [170, 0, 255],
+	"windowColor": [184, 229, 255],
+	"_comment_windowColor": "To use a custom color instead, replace 'PC Theme' with an RGB array like [255, 0, 0]",
+	"discordRPC": "863222024192262205",
+	"iconFramerate": 10
+}

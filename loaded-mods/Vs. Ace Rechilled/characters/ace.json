@@ -1,0 +1,74 @@
+{
+	"animations": [
+		{
+			"offsets": [257, 134],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWN",
+			"loop": false,
+			"name": "down"
+		},
+		{
+			"offsets": [248, 135],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFT",
+			"loop": false,
+			"name": "left"
+		},
+		{
+			"offsets": [290, 125],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHT",
+			"loop": false,
+			"name": "right"
+		},
+		{
+			"offsets": [258, 131],
+			"indices": [],
+			"fps": 24,
+			"anim": "singUP",
+			"loop": false,
+			"name": "up"
+		},
+		{
+			"offsets": [246, 136],
+			"indices": [],
+			"fps": 24,
+			"anim": "idle",
+			"loop": false,
+			"name": "idleAlt"
+		},
+		{
+			"offsets": [246, 136],
+			"indices": [],
+			"fps": 24,
+			"anim": "idle-alt",
+			"loop": false,
+			"name": "lader0"
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": false,
+	"image": "characters/aceNew",
+	"position": [0, 0],
+	"dance_every_num_beats": 2,
+	"player_camera_position": [
+		0,
+		0
+	],
+	"healthicon": "ace",
+	"swap_sing_sides": false,
+	"vslice_sustains": false,
+	"flip_x": false,
+	"healthbar_colors": [196, 229, 248],
+	"camera_position": [-320, -70],
+	"player_position": [
+		0,
+		0
+	],
+	"sing_duration": 4.8,
+	"scale": 1,
+	"_editor_isPlayer": false
+}
