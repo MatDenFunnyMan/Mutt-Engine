@@ -180,6 +180,7 @@ class HScript extends Iris
 		#end
 		set('FlxG', flixel.FlxG);
 		set('FlxMath', flixel.math.FlxMath);
+		set('ModchartSprite', funkin.scripting.ModchartSprite);
 		set('FlxSprite', flixel.FlxSprite);
 		set('FlxText', flixel.text.FlxText);
 		set('FlxCamera', flixel.FlxCamera);

@@ -189,8 +189,16 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		if(stageJson.objects != null && stageJson.objects.length > 0)
 		{
 			list = StageData.addObjectsToState(stageJson.objects, gf, dad, boyfriend, null, true);
+			var byID:Array<StageEditorMetaSprite> = [];
 			for (key => spr in list)
-				stageSprites[spr.ID] = new StageEditorMetaSprite(stageJson.objects[spr.ID], spr);
+				byID[spr.ID] = new StageEditorMetaSprite(stageJson.objects[spr.ID], spr);
+
+			var lost:Int = 0;
+			for (i in 0...stageJson.objects.length){
+				if(byID[i] != null) stageSprites.push(byID[i]);
+				else lost++;
+			}
+			if (lost > 0) showOutput('$lost object(s) skipped: cannot have duplicates for the stage!', true);
 		}
 
 		var characterIndices:Array<Int> = [];
@@ -324,7 +332,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var selected:Int = spriteListRadioGroup.checked;
 			if(selected < 0) return;
 
-			var selected:Int = spriteListRadioGroup.labels.length - selected - 1;
+			var selected:Int = stageSprites.length - selected - 1;
 			var spr = stageSprites[selected];
 			if(spr == null) return;
 
@@ -342,7 +350,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var selected:Int = spriteListRadioGroup.checked;
 			if(selected < 0) return;
 
-			var selected:Int = spriteListRadioGroup.labels.length - selected - 1;
+			var selected:Int = stageSprites.length - selected - 1;
 			var spr = stageSprites[selected];
 			if(spr == null) return;
 
@@ -366,7 +374,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var selected:Int = spriteListRadioGroup.checked;
 			if(selected < 0) return;
 
-			var selected:Int = spriteListRadioGroup.labels.length - selected - 1;
+			var selected:Int = stageSprites.length - selected - 1;
 			var spr = stageSprites[selected];
 			if(spr == null || StageData.reservedNames.contains(spr.type)) return;
 
@@ -447,7 +455,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var selected:Int = spriteListRadioGroup.checked;
 			if(selected < 0) return;
 
-			var selected:Int = spriteListRadioGroup.labels.length - selected - 1;
+			var selected:Int = stageSprites.length - selected - 1;
 			var spr = stageSprites[selected];
 			if(spr == null || StageData.reservedNames.contains(spr.type)) return;
 
@@ -846,7 +854,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		var selected:Int = spriteListRadioGroup.checked;
 		if(selected >= 0)
 		{
-			var spr = stageSprites[spriteListRadioGroup.labels.length - selected - 1];
+			var spr = stageSprites[stageSprites.length - selected - 1];
 			if(spr != null && (!blockReserved || !StageData.reservedNames.contains(spr.type)))
 				return spr;
 		}
@@ -908,6 +916,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 				for (basic in stageSprites)
 				{
+					if (basic == null) continue;
 					if (selected != basic && basic.name == changedName)
 					{
 						showOutput('Name "$changedName" is already in use!', true);
@@ -1485,7 +1494,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var selected:Int = spriteListRadioGroup.checked;
 			if(selected >= 0)
 			{
-				var spr = stageSprites[spriteListRadioGroup.labels.length - selected - 1];
+				var spr = stageSprites[stageSprites.length - selected - 1];
 				if(spr != null && StageData.reservedNames.contains(spr.type))
 				{
 					UI_box.selectedName = 'Data';
@@ -1503,7 +1512,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var selected:Int = spriteListRadioGroup.checked;
 			if(selected >= 0)
 			{
-				var spr = stageSprites[spriteListRadioGroup.labels.length - selected - 1];
+				var spr = stageSprites[stageSprites.length - selected - 1];
 				if(spr != null && StageData.reservedNames.contains(spr.type))
 					UI_box.getTab('Object').visible = false;
 				else
@@ -1678,7 +1687,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var selected:Int = spriteListRadioGroup.checked;
 			if(selected < 0) return;
 
-			var spr = stageSprites[spriteListRadioGroup.labels.length - selected - 1];
+			var spr = stageSprites[stageSprites.length - selected - 1];
 			if(spr != null)
 			{
 				var displayX:Float, displayY:Float;
@@ -1714,7 +1723,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	
 			if(showSelectionQuad && spriteListRadioGroup.checkedRadio != null)
 			{
-				var spr = stageSprites[spriteListRadioGroup.labels.length - spriteListRadioGroup.checked - 1];
+				var spr = stageSprites[stageSprites.length - spriteListRadioGroup.checked - 1];
 				if(spr != null) drawDebugOnCamera(spr.sprite);
 			}
 		}
@@ -1879,9 +1888,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		stageJson = cleanJson;
 	}
 
-	// 'lua' oppure 'hx', scelto dal prompt qui sotto prima di aprire la finestra di salvataggio
 	var scriptFormat:String = 'lua';
-
 	function askScriptFormat()
 	{
 		if(_file != null || _fileLua != null) return;
@@ -1963,33 +1970,33 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			switch(basic.type)
 			{
 				case 'sprite':
-					lua += "    makeLuaSprite('" + basic.name + "', '" + basic.image + "', " + basic.x + ", " + basic.y + ")\n";
+					lua += "makeLuaSprite('" + basic.name + "', '" + basic.image + "', " + basic.x + ", " + basic.y + ")\n";
 					
 					if (basic.blend != null && basic.blend.length > 0)
-						lua += "    setBlendMode('" + basic.name + "', '" + basic.blend + "')\n";
+						lua += "setBlendMode('" + basic.name + "', '" + basic.blend + "')\n";
 					
-					lua += "    setScrollFactor('" + basic.name + "', " + basic.scroll[0] + ", " + basic.scroll[1] + ")\n";
-					lua += "    scaleObject('" + basic.name + "', " + basic.scale[0] + ", " + basic.scale[1] + ")\n";
+					lua += "setScrollFactor('" + basic.name + "', " + basic.scroll[0] + ", " + basic.scroll[1] + ")\n";
+					lua += "scaleObject('" + basic.name + "', " + basic.scale[0] + ", " + basic.scale[1] + ")\n";
 					
 					if (basic.alpha != 1)
-						lua += "    setProperty('" + basic.name + ".alpha', " + basic.alpha + ")\n";
+						lua += "setProperty('" + basic.name + ".alpha', " + basic.alpha + ")\n";
 					
 					if (basic.angle != 0)
-						lua += "    setProperty('" + basic.name + ".angle', " + basic.angle + ")\n";
+						lua += "setProperty('" + basic.name + ".angle', " + basic.angle + ")\n";
 					
 					if (basic.color != 'FFFFFF')
 					{
 						var colorVal = Std.parseInt('0x' + basic.color);
-						lua += "    setProperty('" + basic.name + ".color', getColorFromHex('" + basic.color + "'))\n";
+						lua += "setProperty('" + basic.name + ".color', getColorFromHex('" + basic.color + "'))\n";
 					}
 					
 					if (basic.flipX)
-						lua += "    setProperty('" + basic.name + ".flipX', true)\n";
+						lua += "setProperty('" + basic.name + ".flipX', true)\n";
 					
 					if (basic.flipY)
-						lua += "    setProperty('" + basic.name + ".flipY', true)\n";
+						lua += "setProperty('" + basic.name + ".flipY', true)\n";
 					
-					lua += "    setProperty('" + basic.name + ".antialiasing', " + (basic.antialiasing ? 'true' : 'false') + ")\n";
+					lua += "setProperty('" + basic.name + ".antialiasing', " + (basic.antialiasing ? 'true' : 'false') + ")\n";
 					
 					var gfIndex:Int = -1;
 					var dadIndex:Int = -1;
@@ -2009,7 +2016,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 					if (highestCharIndex == -1) highestCharIndex = -1;
 					var isForeground:Bool = currentIndex > highestCharIndex;
 					
-					lua += "    addLuaSprite('" + basic.name + "', " + (isForeground ? 'true' : 'false') + ")\n\n";
+					lua += "addLuaSprite('" + basic.name + "', " + (isForeground ? 'true' : 'false') + ")\n\n";
 
 				case 'animatedSprite':
 					var animPrefix:String = 'idle';
@@ -2033,34 +2040,54 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 						}
 					}
 					
-					lua += "    makeAnimatedLuaSprite('" + basic.name + "', '" + basic.image + "', " + basic.x + ", " + basic.y + ")\n";
-					lua += "    addAnimationByPrefix('" + basic.name + "', 'idle', '" + animPrefix + "', " + basic.animFps + ", " + (basic.animLoop ? 'true' : 'false') + ")\n";
+					lua += "makeAnimatedLuaSprite('" + basic.name + "', '" + basic.image + "', " + basic.x + ", " + basic.y + ")\n";
+
+					if(basic.animations != null && basic.animations.length > 0)
+					{
+						for (anim in basic.animations)
+						{
+							if(anim == null || anim.anim == null) continue;
+
+							if(anim.indices != null && anim.indices.length > 0)
+								lua += "addAnimationByIndices('" + basic.name + "', '" + anim.anim + "', '" + anim.name + "', '" + anim.indices.join(',') + "', " + anim.fps + ", " + (anim.loop ? 'true' : 'false') + ")\n";
+							else
+								lua += "addAnimationByPrefix('" + basic.name + "', '" + anim.anim + "', '" + anim.name + "', " + anim.fps + ", " + (anim.loop ? 'true' : 'false') + ")\n";
+
+							if(anim.offsets != null && anim.offsets.length > 1 && (anim.offsets[0] != 0 || anim.offsets[1] != 0))
+								lua += "addOffset('" + basic.name + "', '" + anim.anim + "', " + anim.offsets[0] + ", " + anim.offsets[1] + ")\n";
+						}
+
+						var firstAnim:String = (basic.firstAnimation != null) ? basic.firstAnimation : basic.animations[0].anim;
+						lua += "playAnim('" + basic.name + "', '" + firstAnim + "', true)\n";
+					}
+					else
+						lua += "addAnimationByPrefix('" + basic.name + "', 'idle', '" + animPrefix + "', " + basic.animFps + ", " + (basic.animLoop ? 'true' : 'false') + ")\n";
 					
 					if (basic.blend != null && basic.blend.length > 0)
-						lua += "    setBlendMode('" + basic.name + "', '" + basic.blend + "')\n";
-					
-					lua += "    setScrollFactor('" + basic.name + "', " + basic.scroll[0] + ", " + basic.scroll[1] + ")\n";
-					lua += "    scaleObject('" + basic.name + "', " + basic.scale[0] + ", " + basic.scale[1] + ")\n";
+						lua += "setBlendMode('" + basic.name + "', '" + basic.blend + "')\n";
+
+					lua += "setScrollFactor('" + basic.name + "', " + basic.scroll[0] + ", " + basic.scroll[1] + ")\n";
+					lua += "scaleObject('" + basic.name + "', " + basic.scale[0] + ", " + basic.scale[1] + ")\n";
 
 					if (basic.alpha != 1)
-						lua += "    setProperty('" + basic.name + ".alpha', " + basic.alpha + ")\n";
+						lua += "setProperty('" + basic.name + ".alpha', " + basic.alpha + ")\n";
 					
 					if (basic.angle != 0)
-						lua += "    setProperty('" + basic.name + ".angle', " + basic.angle + ")\n";
+						lua += "setProperty('" + basic.name + ".angle', " + basic.angle + ")\n";
 					
 					if (basic.color != 'FFFFFF')
 					{
 						var colorVal = Std.parseInt('0x' + basic.color);
-						lua += "    setProperty('" + basic.name + ".color', getColorFromHex('" + basic.color + "'))\n";
+						lua += "setProperty('" + basic.name + ".color', getColorFromHex('" + basic.color + "'))\n";
 					}
 					
 					if (basic.flipX)
-						lua += "    setProperty('" + basic.name + ".flipX', true)\n";
+						lua += "setProperty('" + basic.name + ".flipX', true)\n";
 					
 					if (basic.flipY)
-						lua += "    setProperty('" + basic.name + ".flipY', true)\n";
+						lua += "setProperty('" + basic.name + ".flipY', true)\n";
 					
-					lua += "    setProperty('" + basic.name + ".antialiasing', " + (basic.antialiasing ? 'true' : 'false') + ")\n";
+					lua += "setProperty('" + basic.name + ".antialiasing', " + (basic.antialiasing ? 'true' : 'false') + ")\n";
 					
 					var gfIndex:Int = -1;
 					var dadIndex:Int = -1;
@@ -2080,22 +2107,22 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 					if (highestCharIndex == -1) highestCharIndex = -1;
 					var isForeground:Bool = currentIndex > highestCharIndex;
 					
-					lua += "    addLuaSprite('" + basic.name + "', " + (isForeground ? 'true' : 'false') + ")\n\n";
+					lua += "addLuaSprite('" + basic.name + "', " + (isForeground ? 'true' : 'false') + ")\n\n";
 
 				case 'square':
-					lua += "    makeLuaSprite('" + basic.name + "', nil, " + basic.x + ", " + basic.y + ")\n";
-					lua += "    makeGraphic('" + basic.name + "', " + Std.int(basic.scale[0]) + ", " + Std.int(basic.scale[1]) + ", '" + basic.color + "')\n";
+					lua += "makeLuaSprite('" + basic.name + "', nil, " + basic.x + ", " + basic.y + ")\n";
+					lua += "makeGraphic('" + basic.name + "', " + Std.int(basic.scale[0]) + ", " + Std.int(basic.scale[1]) + ", '" + basic.color + "')\n";
 					
 					if (basic.blend != null && basic.blend.length > 0)
-						lua += "    setBlendMode('" + basic.name + "', '" + basic.blend + "')\n";
+						lua += "setBlendMode('" + basic.name + "', '" + basic.blend + "')\n";
 					
-					lua += "    setScrollFactor('" + basic.name + "', " + basic.scroll[0] + ", " + basic.scroll[1] + ")\n";
+					lua += "setScrollFactor('" + basic.name + "', " + basic.scroll[0] + ", " + basic.scroll[1] + ")\n";
 					
 					if (basic.alpha != 1)
-						lua += "    setProperty('" + basic.name + ".alpha', " + basic.alpha + ")\n";
+						lua += "setProperty('" + basic.name + ".alpha', " + basic.alpha + ")\n";
 					
 					if (basic.angle != 0)
-						lua += "    setProperty('" + basic.name + ".angle', " + basic.angle + ")\n";
+						lua += "setProperty('" + basic.name + ".angle', " + basic.angle + ")\n";
 					
 					var gfIndex:Int = -1;
 					var dadIndex:Int = -1;
@@ -2115,25 +2142,23 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 					if (highestCharIndex == -1) highestCharIndex = -1;
 					var isForeground:Bool = currentIndex > highestCharIndex;
 					
-					lua += "    addLuaSprite('" + basic.name + "', " + (isForeground ? 'true' : 'false') + ")\n\n";
+					lua += "addLuaSprite('" + basic.name + "', " + (isForeground ? 'true' : 'false') + ")\n\n";
 			}
 		}
 
 		if (hideDadCheckbox.checked)
-			lua += "    setProperty('dad.alpha', 0)\n";
+			lua += "setProperty('dad.alpha', 0)\n";
 		
 		if (hideBoyfriendCheckbox.checked)
-			lua += "    setProperty('boyfriend.alpha', 0)\n";
+			lua += "setProperty('boyfriend.alpha', 0)\n";
 		
 		if (hideGirlfriendCheckbox.checked)
-			lua += "    setProperty('gf.alpha', 0)\n";
+			lua += "setProperty('gf.alpha', 0)\n";
 
 		lua += 'end';
 		return lua;
 	}
 
-	// I nomi delle sprite possono contenere '-' o iniziare con una cifra: legali come tag,
-	// illegali come nome di variabile Haxe. Il nome originale resta quello passato a setVar.
 	function hxVarName(name:String):String
 	{
 		var out:String = ~/[^a-zA-Z0-9_]/g.replace(name, '_');
@@ -2181,7 +2206,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			switch(basic.type)
 			{
 				case 'sprite':
-					hx += "\tvar " + v + " = new FlxSprite(" + basic.x + ", " + basic.y + ");\n";
+					hx += "\tvar " + v + " = new ModchartSprite(" + basic.x + ", " + basic.y + ");\n";
 					hx += "\t" + v + ".loadGraphic(Paths.image('" + basic.image + "'));\n";
 
 				case 'animatedSprite':
@@ -2206,13 +2231,30 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 						}
 					}
 
-					hx += "\tvar " + v + " = new FlxSprite(" + basic.x + ", " + basic.y + ");\n";
+					hx += "\tvar " + v + " = new ModchartSprite(" + basic.x + ", " + basic.y + ");\n";
 					hx += "\t" + v + ".frames = Paths.getSparrowAtlas('" + basic.image + "');\n";
-					hx += "\t" + v + ".animation.addByPrefix('idle', '" + animPrefix + "', " + basic.animFps + ", " + (basic.animLoop ? 'true' : 'false') + ");\n";
-					hx += "\t" + v + ".animation.play('idle');\n";
+
+					if(basic.animations != null && basic.animations.length > 0){
+						for(anim in basic.animations){
+							if(anim == null || anim.anim == null) continue;
+							if (anim.indices != null && anim.indices.length > 0)
+								hx += "\t" + v + ".animation.addByIndices('" + anim.anim + "', '" + anim.name + "', [" + anim.indices.join(', ') + "], '', " + anim.fps + ", " + (anim.loop ? 'true' : 'false') + ");\n";
+							else
+								hx += "\t" + v + ".animation.addByPrefix('" + anim.anim + "', '" + anim.name + "', " + anim.fps + ", " + (anim.loop ? 'true' : 'false') + ");\n";
+
+							if (anim.offsets != null && anim.offsets.length > 1 && (anim.offsets[0] != 0 || anim.offsets[1] != 0))
+								hx += "\t" + v + ".addOffset('" + anim.anim + "', " + anim.offsets[0] + ", " + anim.offsets[1] + ");\n";
+						}
+						var firstAnim:String = (basic.firstAnimation != null) ? basic.firstAnimation : basic.animations[0].anim;
+						hx += "\t" + v + ".playAnim('" + firstAnim + "', true);\n";
+					} 
+					else{
+						hx += "\t" + v + ".animation.addByPrefix('idle', '" + animPrefix + "', " + basic.animFps + ", " + (basic.animLoop ? 'true' : 'false') + ");\n";
+						hx += "\t" + v + ".playAnim('idle', true);\n";
+					}
 
 				case 'square':
-					hx += "\tvar " + v + " = new FlxSprite(" + basic.x + ", " + basic.y + ");\n";
+					hx += "\tvar " + v + " = new ModchartSprite(" + basic.x + ", " + basic.y + ");\n";
 					hx += "\t" + v + ".makeGraphic(" + Std.int(basic.scale[0]) + ", " + Std.int(basic.scale[1]) + ", 0xFF" + basic.color + ");\n";
 
 				default:
