@@ -509,19 +509,19 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 	function findUnoccupiedCopyName(baseName:String):String {
 		var clean:String = baseName;
-		var open:Int = clean.lastIndexOf(' (');
+		var under:Int = clean.lastIndexOf('_');
 
-		if (open > 0 && StringTools.endsWith(clean, ')')) {
-			var inner:String = clean.substring(open+2, clean.length-1);
-			if (inner.length>0 && ~/^[0-9]+$/.match(inner))
-				clean = clean.substring(0, open);
+		if (under > 0) {
+			var inner:String = clean.substring(under + 1);
+			if (inner.length > 0 && ~/^[0-9]+$/.match(inner))
+				clean = clean.substring(0, under);
 		}
 
 		var num:Int = 1;
-		var name:String = '$clean ($num)';
+		var name:String = '${clean}_$num';
 		while(nameExists(name)){
 			num++;
-			name = '$clean ($num)';
+			name = '${clean}_$num';
 		}
 
 		return name;
@@ -661,7 +661,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		var folderList:Array<String> = [''];
 
 		var saveButton:PsychUIButton = new PsychUIButton(UI_box.width - 90, UI_box.height - 50, 'Save', function() {
-			saveData();
+			askScriptFormat();
 		});
 		tab_group.add(saveButton);
 
@@ -1868,7 +1868,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		if(hideDadCheckbox.checked)
 			cleanJson.hide_opponent = true;
 		
-		if(stageJson.preload =! null)
+		if(stageJson.preload != null)
 			cleanJson.preload = stageJson.preload;
 
 		cleanJson.objects = objectsArray;
@@ -1877,6 +1877,43 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			cleanJson._editorMeta = stageJson._editorMeta;
 
 		stageJson = cleanJson;
+	}
+
+	// 'lua' oppure 'hx', scelto dal prompt qui sotto prima di aprire la finestra di salvataggio
+	var scriptFormat:String = 'lua';
+
+	function askScriptFormat()
+	{
+		if(_file != null || _fileLua != null) return;
+
+		openSubState(new BasePrompt(520, 200, 'What format would you like to save "$lastLoadedStage"?', function(state:BasePrompt)
+		{
+			var btnY:Int = 390;
+
+			var luaBtn:PsychUIButton = new PsychUIButton(0, btnY, 'Lua', function() {
+				scriptFormat = 'lua';
+				state.close();
+				saveData();
+			});
+			luaBtn.normalStyle.bgColor = FlxColor.BLUE;
+			luaBtn.normalStyle.textColor = FlxColor.WHITE;
+			luaBtn.screenCenter(X);
+			luaBtn.x -= 100;
+			luaBtn.cameras = state.cameras;
+			state.add(luaBtn);
+
+			var hxBtn:PsychUIButton = new PsychUIButton(0, btnY, 'HScript', function() {
+				scriptFormat = 'hx';
+				state.close();
+				saveData();
+			});
+			hxBtn.normalStyle.bgColor = FlxColor.BLUE;
+			hxBtn.normalStyle.textColor = FlxColor.WHITE;
+			hxBtn.screenCenter(X);
+			hxBtn.x += 100;
+			hxBtn.cameras = state.cameras;
+			state.add(hxBtn);
+		}));
 	}
 
 	function saveData()
@@ -1901,14 +1938,15 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	{
 		if(_fileLua != null) return;
 
-		var luaCode:String = generateLuaScript();
-		if (luaCode.length > 0)
+		var isHx:Bool = (scriptFormat == 'hx');
+		var scriptCode:String = isHx ? generateHScript() : generateLuaScript();
+		if (scriptCode.length > 0)
 		{
 			_fileLua = new FileReference();
 			_fileLua.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onSaveLuaComplete);
 			_fileLua.addEventListener(Event.CANCEL, onSaveLuaCancel);
 			_fileLua.addEventListener(IOErrorEvent.IO_ERROR, onSaveLuaError);
-			_fileLua.save(luaCode, '$lastLoadedStage.lua');
+			_fileLua.save(scriptCode, lastLoadedStage + (isHx ? '.hx' : '.lua'));
 		}
 	}
 
@@ -2094,6 +2132,157 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		return lua;
 	}
 
+	// I nomi delle sprite possono contenere '-' o iniziare con una cifra: legali come tag,
+	// illegali come nome di variabile Haxe. Il nome originale resta quello passato a setVar.
+	function hxVarName(name:String):String
+	{
+		var out:String = ~/[^a-zA-Z0-9_]/g.replace(name, '_');
+		if(out.length < 1) return 'obj';
+
+		var first:String = out.charAt(0);
+		if(first >= '0' && first <= '9') out = '_' + out;
+		return out;
+	}
+
+	function generateHScript():String
+	{
+		var usesBlend:Bool = false;
+		for (basic in stageSprites)
+		{
+			if(basic == null || StageData.reservedNames.contains(basic.type)) continue;
+			if(basic.blend != null && basic.blend.length > 0)
+			{
+				usesBlend = true;
+				break;
+			}
+		}
+
+		var hx:String = '';
+		if(usesBlend) hx += "import openfl.display.BlendMode;\n\n";
+		hx += "function onCreate()\n{\n";
+
+		var usedNames:Map<String, Bool> = new Map<String, Bool>();
+
+		for (basic in stageSprites)
+		{
+			if (basic == null) continue;
+
+			if (StageData.reservedNames.contains(basic.type)) continue;
+
+			var v:String = hxVarName(basic.name);
+			var dupe:Int = 1;
+			while(usedNames.exists(v))
+			{
+				v = hxVarName(basic.name) + '_' + dupe;
+				dupe++;
+			}
+			usedNames.set(v, true);
+
+			switch(basic.type)
+			{
+				case 'sprite':
+					hx += "\tvar " + v + " = new FlxSprite(" + basic.x + ", " + basic.y + ");\n";
+					hx += "\t" + v + ".loadGraphic(Paths.image('" + basic.image + "'));\n";
+
+				case 'animatedSprite':
+					var animPrefix:String = 'idle';
+					if(basic.sprite.animation.curAnim != null && basic.sprite.animation.curAnim.numFrames > 0)
+					{
+						var frameName = basic.sprite.animation.curAnim.name;
+						var detectedPrefix:String = '';
+
+						if(basic.sprite.frames != null && basic.sprite.frames.frames.length > 0)
+						{
+							frameName = basic.sprite.frames.frames[0].name;
+							for(i in 0...frameName.length)
+							{
+								var char = frameName.charAt(i);
+								if(char >= '0' && char <= '9')
+									break;
+								detectedPrefix += char;
+							}
+							if(detectedPrefix.length > 0)
+								animPrefix = detectedPrefix;
+						}
+					}
+
+					hx += "\tvar " + v + " = new FlxSprite(" + basic.x + ", " + basic.y + ");\n";
+					hx += "\t" + v + ".frames = Paths.getSparrowAtlas('" + basic.image + "');\n";
+					hx += "\t" + v + ".animation.addByPrefix('idle', '" + animPrefix + "', " + basic.animFps + ", " + (basic.animLoop ? 'true' : 'false') + ");\n";
+					hx += "\t" + v + ".animation.play('idle');\n";
+
+				case 'square':
+					hx += "\tvar " + v + " = new FlxSprite(" + basic.x + ", " + basic.y + ");\n";
+					hx += "\t" + v + ".makeGraphic(" + Std.int(basic.scale[0]) + ", " + Std.int(basic.scale[1]) + ", 0xFF" + basic.color + ");\n";
+
+				default:
+					continue;
+			}
+
+			if (basic.blend != null && basic.blend.length > 0)
+				hx += "\t" + v + ".blend = BlendMode." + basic.blend.toUpperCase() + ";\n";
+
+			hx += "\t" + v + ".scrollFactor.set(" + basic.scroll[0] + ", " + basic.scroll[1] + ");\n";
+
+			if (basic.type != 'square')
+			{
+				hx += "\t" + v + ".scale.set(" + basic.scale[0] + ", " + basic.scale[1] + ");\n";
+				hx += "\t" + v + ".updateHitbox();\n";
+			}
+
+			if (basic.alpha != 1)
+				hx += "\t" + v + ".alpha = " + basic.alpha + ";\n";
+
+			if (basic.angle != 0)
+				hx += "\t" + v + ".angle = " + basic.angle + ";\n";
+
+			if (basic.type != 'square' && basic.color != 'FFFFFF')
+				hx += "\t" + v + ".color = 0xFF" + basic.color + ";\n";
+
+			if (basic.flipX)
+				hx += "\t" + v + ".flipX = true;\n";
+
+			if (basic.flipY)
+				hx += "\t" + v + ".flipY = true;\n";
+
+			if (basic.type != 'square')
+				hx += "\t" + v + ".antialiasing = " + (basic.antialiasing ? 'true' : 'false') + ";\n";
+
+			var gfIndex:Int = -1;
+			var dadIndex:Int = -1;
+			var bfIndex:Int = -1;
+			var currentIndex:Int = -1;
+
+			for (i in 0...stageSprites.length)
+			{
+				var spr = stageSprites[i];
+				if (spr == basic) currentIndex = i;
+				if (spr.type == 'gf') gfIndex = i;
+				else if (spr.type == 'dad') dadIndex = i;
+				else if (spr.type == 'boyfriend') bfIndex = i;
+			}
+
+			var highestCharIndex:Int = Math.floor(Math.max(gfIndex, Math.max(dadIndex, bfIndex)));
+			if (highestCharIndex == -1) highestCharIndex = -1;
+			var isForeground:Bool = currentIndex > highestCharIndex;
+
+			hx += "\tgame." + (isForeground ? "add" : "addBehindGF") + "(" + v + ");\n";
+			hx += "\tsetVar('" + basic.name + "', " + v + ");\n\n";
+		}
+
+		if (hideDadCheckbox.checked)
+			hx += "\tif(game.dad != null) game.dad.alpha = 0;\n";
+
+		if (hideBoyfriendCheckbox.checked)
+			hx += "\tif(game.boyfriend != null) game.boyfriend.alpha = 0;\n";
+
+		if (hideGirlfriendCheckbox.checked)
+			hx += "\tif(game.gf != null) game.gf.alpha = 0;\n";
+
+		hx += "}";
+		return hx;
+	}
+
 	var _file:FileReference;
 	var _fileLua:FileReference;
 	function onSaveComplete(_):Void
@@ -2114,7 +2303,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		_fileLua.removeEventListener(Event.CANCEL, onSaveLuaCancel);
 		_fileLua.removeEventListener(IOErrorEvent.IO_ERROR, onSaveLuaError);
 		_fileLua = null;
-		FlxG.log.notice('Successfully saved Lua file.');
+		FlxG.log.notice('Successfully saved ' + (scriptFormat == 'hx' ? 'HScript' : 'Lua') + ' file.');
 	}
 
 	function onSaveLuaCancel(_):Void
@@ -2963,6 +3152,8 @@ class StageEditorAnimationSubstate extends MusicBeatSubstate {
 	public var target:StageEditorMetaSprite;
 	
 	var curAnim:Int = 0;
+	var outputTxt:FlxText;
+	var outputTime:Float = 0;
 	var animsTxtGroup:FlxTypedGroup<FlxText>;
 
 	var UI_animationbox:PsychUIBox;
@@ -2984,8 +3175,19 @@ class StageEditorAnimationSubstate extends MusicBeatSubstate {
 		add(UI_animationbox);
 		addAnimationsUI();
 
+		outputTxt = new FlxText(0, 0, 800, '', 24);
+		outputTxt.alignment = CENTER;
+		outputTxt.borderStyle = OUTLINE_FAST;
+		outputTxt.borderSize = 1;
+		outputTxt.cameras = [camHUD];
+		outputTxt.screenCenter();
+		outputTxt.alpha = 0;
+		add(outputTxt);
+
 		openCallback = function()
 		{
+			PsychUIInputText.focusOn = null;
+			PsychUIInputText.blockFocusOnClick = false;
 			curAnim = 0;
 			originalZoom = FlxG.camera.zoom;
 			originalCamPoint = FlxPoint.weak(FlxG.camera.scroll.x, FlxG.camera.scroll.y);
@@ -2994,6 +3196,7 @@ class StageEditorAnimationSubstate extends MusicBeatSubstate {
 			originalAlpha = target.alpha;
 			FlxG.camera.zoom = 0.5;
 			FlxG.camera.scroll.set(0, 0);
+			FlxG.camera.target = null;
 
 			target.alpha = 1;
 			target.sprite.screenCenter();
@@ -3004,6 +3207,8 @@ class StageEditorAnimationSubstate extends MusicBeatSubstate {
 
 		closeCallback = function()
 		{
+			PsychUIInputText.focusOn = null;
+			PsychUIInputText.blockFocusOnClick = false;
 			FlxG.camera.zoom = originalZoom;
 			FlxG.camera.scroll.set(originalCamPoint.x, originalCamPoint.y);
 			FlxG.camera.target = originalCamTarget;
@@ -3104,8 +3309,9 @@ class StageEditorAnimationSubstate extends MusicBeatSubstate {
 			if(addedAnim.indices != null && addedAnim.indices.length > 0)
 				target.sprite.animation.addByIndices(addedAnim.anim, addedAnim.name, addedAnim.indices, '', addedAnim.fps, addedAnim.loop);
 			else
+				target.sprite.animation.addByPrefix(addedAnim.anim, addedAnim.name, addedAnim.fps, addedAnim.loop);
 				if(!target.sprite.animation.exists(addedAnim.anim)){
-					cast (FlxG.state, StageEditorState).showOutput('No animation found with tag "${addedAnim.name}"', true);
+					showOutput('No animation found with tag "${addedAnim.name}"', true);
 					return;
 				}
 
@@ -3227,6 +3433,16 @@ class StageEditorAnimationSubstate extends MusicBeatSubstate {
 		}
 	}
 
+	public function showOutput(txt:String, isError:Bool = false)
+	{
+		outputTxt.color = isError ? FlxColor.RED : FlxColor.WHITE;
+		outputTxt.text = txt;
+		outputTime = 3;
+
+		if(isError) FlxG.sound.play(Paths.sound('cancelMenu'), 0.4);
+		else FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+	}
+
 	function playAnim(name:String, force:Bool = false)
 	{
 		var spr:ModchartSprite = cast (target.sprite, ModchartSprite);
@@ -3243,7 +3459,10 @@ class StageEditorAnimationSubstate extends MusicBeatSubstate {
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
-		
+
+		outputTime = Math.max(0, outputTime - elapsed);
+		outputTxt.alpha = outputTime;
+
 		if(PsychUIInputText.focusOn != null) return;
 
 		// ANIMATION SCROLLING
@@ -3344,23 +3563,30 @@ class StageEditorAnimationSubstate extends MusicBeatSubstate {
 		}
 
 		// CAMERA CONTROLS
+		var camMove:Float = 500 * elapsed / FlxG.camera.zoom;
 		var camX:Float = 0;
 		var camY:Float = 0;
-		var camMove:Float = elapsed * 500 * shiftMult * ctrlMult;
 		if (FlxG.keys.pressed.J) camX -= camMove;
 		if (FlxG.keys.pressed.K) camY += camMove;
 		if (FlxG.keys.pressed.L) camX += camMove;
 		if (FlxG.keys.pressed.I) camY -= camMove;
 
-		if(camX != 0 || camY != 0)
-		{
-			FlxG.camera.scroll.x += camX;
-			FlxG.camera.scroll.y += camY;
+		var isOverUI:Bool = FlxG.mouse.overlaps(UI_animationbox, camHUD);
+		if(!isOverUI && FlxG.mouse.pressed && !FlxG.mouse.pressedRight && (FlxG.mouse.deltaScreenX != 0 || FlxG.mouse.deltaScreenY != 0)) {
+			camX -= FlxG.mouse.deltaScreenX;
+			camY -= FlxG.mouse.deltaScreenY;
 		}
 
+		if(camX != 0 || camY != 0) 
+			FlxG.camera.scroll.add(camX, camY);
+		if(!isOverUI && FlxG.mouse.wheel != 0)
+			FlxG.camera.zoom = Math.max(minZoom, Math.min(maxZoom, FlxG.camera.zoom + (FlxG.mouse.wheel*0.1)));
+
 		var lastZoom = FlxG.camera.zoom;
-		if(FlxG.keys.justPressed.R && !FlxG.keys.pressed.CONTROL)
+		if(FlxG.keys.justPressed.R && !FlxG.keys.pressed.CONTROL){
 			FlxG.camera.zoom = 0.5;
+			FlxG.camera.scroll.set(0,0);
+		}
 		else if (FlxG.keys.pressed.E && FlxG.camera.zoom < maxZoom)
 			FlxG.camera.zoom = Math.min(maxZoom, FlxG.camera.zoom + elapsed * FlxG.camera.zoom * shiftMult * ctrlMult);
 		else if (FlxG.keys.pressed.Q && FlxG.camera.zoom > minZoom)
