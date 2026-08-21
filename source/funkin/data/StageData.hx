@@ -117,7 +117,7 @@ class StageData {
 	}
 
 	public static var reservedNames:Array<String> = ['gf', 'gfGroup', 'dad', 'dadGroup', 'boyfriend', 'boyfriendGroup']; //blocks these names from being used on stage editor's name input text
-	public static var codeOnlyStages:Array<String> = ['limo', 'phillyStreets', 'phillyBlazin', 'tank']; //stages whose sprites are created in Haxe, not in the .json
+	public static var editorHiddenStages:Array<String> = ['spooky', 'philly', 'limo', 'mall', 'mallEvil', 'school', 'schoolEvil', 'schoolPico', 'tank', 'phillyStreets', 'phillyBlazin']; //base game stages, hidden from the stage editor's list
 	public static function addObjectsToState(objectList:Array<Dynamic>, gf:FlxSprite, dad:FlxSprite, boyfriend:FlxSprite, ?group:Dynamic = null, ?ignoreFilters:Bool = false)
 	{
 		var addedObjects:Map<String, FlxSprite> = [];

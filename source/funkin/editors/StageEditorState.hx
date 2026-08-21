@@ -658,7 +658,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		addStageTab();
 	}
 
-	var directoryDropDown:PsychUIDropDownMenu;
+	var directoryTxt:FlxText;
 	var uiInputText:PsychUIInputText;
 	var hideGirlfriendCheckbox:PsychUICheckBox;
 	var hideBoyfriendCheckbox:PsychUICheckBox;
@@ -672,6 +672,14 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	var camBfStepperX:PsychUINumericStepper;
 	var camBfStepperY:PsychUINumericStepper;
 
+	function updateDirectoryTxt()
+	{
+		if(directoryTxt == null) return;
+
+		var dir:String = stageJson.directory;
+		directoryTxt.text = (dir != null && dir.length > 0) ? dir : 'shared';
+	}
+
 	function addDataTab()
 	{
 		var tab_group = UI_box.getTab('Data').menu;
@@ -680,20 +688,14 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		var objY = 20;
 		tab_group.add(new FlxText(objX, objY - 18, 150, 'Compiled Assets:'));
 
-		var folderList:Array<String> = [''];
-
 		var saveButton:PsychUIButton = new PsychUIButton(UI_box.width - 90, UI_box.height - 50, 'Save', function() {
 			askScriptFormat();
 		});
 		tab_group.add(saveButton);
 
-		directoryDropDown = new PsychUIDropDownMenu(objX, objY, folderList, function(sel:Int, selected:String) {
-			stageJson.directory = selected;
-			saveObjectsToJson();
-			FlxTransitionableState.skipNextTransIn = FlxTransitionableState.skipNextTransOut = true;
-			MusicBeatState.switchState(new StageEditorState(lastLoadedStage, stageJson));
-		});
-		directoryDropDown.selectedLabel = stageJson.directory;
+		directoryTxt = new FlxText(objX, objY, 150, '', 12);
+		directoryTxt.color = FlxColor.YELLOW;
+		updateDirectoryTxt();
 
 		objY += 50;
 		tab_group.add(new FlxText(objX, objY - 18, 100, 'UI Style:'));
@@ -831,7 +833,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		tab_group.add(cameraSpeedStepper);
 		
 		tab_group.add(uiInputText);
-		tab_group.add(directoryDropDown);
+		tab_group.add(directoryTxt);
 	}
 	
 	function _updateCamera()
@@ -947,6 +949,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 					}
 				}
 
+				pushPropertyAction('name');
 				selected.name = changedName;
 				spriteListRadioGroup.checkedRadio.label = selected.name;
 				outputTime = 0;
@@ -975,8 +978,10 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		colorInputText.onChange = function(old:String, cur:String) {
 			// change color
 			var selected = getSelected();
-			if(selected != null)
+			if(selected != null){
+				pushPropertyAction('color');
 				selected.color = colorInputText.text;
+			}
 		};
 		tab_group.add(colorInputText);
 
@@ -985,7 +990,10 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			// scale
 			var selected = getSelected();
 			if(selected != null)
+			{
+				pushPropertyAction('scale');
 				selected.setScale(scaleStepperX.value, scaleStepperY.value);
+			}
 		}
 		
 		objY += 50;
@@ -1000,8 +1008,10 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		{
 			// scroll factor
 			var selected = getSelected();
-			if(selected != null)
+			if(selected != null){
+				pushPropertyAction('scroll');
 				selected.setScrollFactor(scrollStepperX.value, scrollStepperY.value);
+			}
 		}
 
 		objY += 40;
@@ -1018,8 +1028,10 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		alphaStepper.onValueChange = function() {
 			// alpha/opacity
 			var selected = getSelected();
-			if(selected != null)
+			if(selected != null){
+				pushPropertyAction('alpha');
 				selected.alpha = alphaStepper.value;
+			}
 		};
 		tab_group.add(alphaStepper);
 
@@ -1030,6 +1042,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var selected = getSelected();
 			if(selected != null)
 			{
+				pushPropertyAction('antialiasing');
 				if(selected.type != 'square')
 					selected.antialiasing = antialiasingCheckbox.checked;
 				else
@@ -1047,8 +1060,10 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		angleStepper.onValueChange = function() {
 			// alpha/opacity
 			var selected = getSelected();
-			if(selected != null)
+			if(selected != null){
+				pushPropertyAction('angle');
 				selected.angle = angleStepper.value;
+			}
 		};
 		tab_group.add(angleStepper);
 
@@ -1058,6 +1073,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var selected = getSelected();
 			if(selected != null)
 			{
+				pushPropertyAction('flip');
 				if(selected.type != 'square')
 				{
 					selected.flipX = flipXCheckBox.checked;
@@ -1086,6 +1102,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var selected = getSelected();
 			if(selected != null)
 			{
+				pushPropertyAction('filters');
 				var filt = 0;
 				if(lowQualityCheckbox.checked) filt |= LOW_QUALITY;
 				if(highQualityCheckbox.checked) filt |= HIGH_QUALITY;
@@ -1103,8 +1120,8 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		var blendModes:Array<String> = ['', 'add', 'alpha', 'darken', 'difference', 'erase', 'hardlight', 'invert', 'layer', 'lighten', 'multiply', 'overlay', 'screen', 'shader', 'subtract'];
 		blendDropdown = new PsychUIDropDownMenu(objX + 100, colorInputText.y, blendModes, function(id:Int, name:String) {
 			var selected = getSelected();
-			if(selected != null)
-			{
+			if(selected != null){
+				pushPropertyAction('blend');
 				selected.blend = name;
 				applyBlendMode(selected);
 			}
@@ -1290,6 +1307,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	
 	function updateStageDataUI()
 	{
+		updateDirectoryTxt();
 		//input texts
 		uiInputText.text = (stageJson.stageUI != null ? stageJson.stageUI : '');
 		//checkboxes
@@ -1435,6 +1453,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				if(file.toLowerCase().endsWith('.json'))
 				{
 					var stageToCheck:String = file.substr(0, file.length - '.json'.length);
+					if(StageData.editorHiddenStages.contains(stageToCheck)) continue;
 					if(!stageList.contains(stageToCheck))
 						stageList.push(stageToCheck);
 				}
@@ -1442,7 +1461,6 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		if(stageList.length < 1) stageList.push('');
 		stageDropDown.list = stageList;
 		stageDropDown.selectedLabel = lastLoadedStage;
-		directoryDropDown.selectedLabel = stageJson.directory;
 	}
 
 	function deleteSelected()
@@ -1504,7 +1522,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		if(clipboardSprite == null) return;
 
 		var data:Dynamic = haxe.Json.parse(haxe.Json.stringify(clipboardSprite));
-		data.name = findUnoccupiedName(data.name + '_');
+		data.name = findUnoccupiedCopyName(data.name);
 
 		var list = StageData.addObjectsToState([data], gf, dad, boyfriend, null, true);
 		var spr = list.get(data.name);
@@ -1517,9 +1535,9 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		insertMeta(new StageEditorMetaSprite(data, spr), 1);
 	}
 
-	function checkPreviewSupport(){
-		if(StageData.codeOnlyStages.contains(lastLoadedStage))
-			showOutput('Sorry! Stage preview not available.', true);
+		function checkPreviewSupport(){
+		if(StageData.editorHiddenStages.contains(lastLoadedStage))
+			showOutput('Stage cannot be edited! Create a custom stage instead.', true);
 	}
 
 	function reloadStageFromDisk()
@@ -1544,6 +1562,22 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	var undoStack:Array<Dynamic> = [];
 	var redoStack:Array<Dynamic> = [];
 	static inline var MAX_UNDO:Int = 30;
+	var _lastPropAction:String = null;
+	var _lastPropTime:Float = 0;
+
+	function pushPropertyAction(id:String)
+	{
+		var key:String = '${getSelectedIndex()}:$id';
+		var now:Float = haxe.Timer.stamp();
+		if(_lastPropAction == key && now - _lastPropTime < 1)
+		{
+			_lastPropTime = now;
+			return;
+		}
+		pushAction();
+		_lastPropAction = key;
+		_lastPropTime = now;
+	}
 
 	function stageSnapshot():Dynamic
 	{
@@ -1565,6 +1599,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 	function pushAction()
 	{
+		_lastPropAction = null;
 		undoStack.push(stageSnapshot());
 		if(undoStack.length > MAX_UNDO) undoStack.shift();
 		redoStack = [];
@@ -1572,6 +1607,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 	function applySnapshot(snap:Dynamic)
 	{
+		_lastPropAction = null;
 		stageJson.objects = snap.objects;
 		stageJson.boyfriend = snap.boyfriend;
 		stageJson.girlfriend = snap.girlfriend;
@@ -2566,7 +2602,9 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				}
 				insertMeta(new StageEditorMetaSprite({type: _makeNewSprite, name: findUnoccupiedName()}, new ModchartSprite()));
 			}
+
 			var selected = getSelected();
+			if(_makeNewSprite == null) pushAction();
 			tryLoadImage(selected, imageToLoad);
 			
 			if(_makeNewSprite != null)

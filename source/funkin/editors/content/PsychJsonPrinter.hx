@@ -34,9 +34,9 @@ class PsychJsonPrinter extends JsonPrinter
 		var hasArrayInsideIt:Bool = false;
 		if(_singleLineCheckNext)
 		{
-			for (subv in Reflect.fields(v))
+			for (field in Reflect.fields(v))
 			{
-				switch(Type.typeof(subv))
+				switch(Type.typeof(Reflect.field(v, field)))
 				{
 					case TObject, TClass(Array):
 						hasArrayInsideIt = true;
