@@ -13,6 +13,20 @@
 	"camera_girlfriend": [0, 0],
 	"camera_speed": 1,
 
+	"objects": [
+		{ "type": "animatedSprite", "name": "halloweenBG", "image": "halloween_bg", "x": -200, "y": -100, "scale": [1, 1], "scroll": [1, 1], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 2, "antialiasing": true, "flipX": false, "flipY": false,
+			"firstAnimation": "halloweem bg0",
+			"animations": [
+				{ "anim": "halloweem bg0", "name": "halloweem bg0", "fps": 24, "loop": false, "indices": [], "offsets": [0, 0] },
+				{ "anim": "halloweem bg lightning strike", "name": "halloweem bg lightning strike", "fps": 24, "loop": false, "indices": [], "offsets": [0, 0] }
+			] },
+		{ "type": "sprite", "name": "halloweenBGLow", "image": "halloween_bg_low", "x": -200, "y": -100, "scale": [1, 1], "scroll": [1, 1], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 1, "antialiasing": true, "flipX": false, "flipY": false },
+
+		{ "type": "gf" },
+		{ "type": "dad" },
+		{ "type": "boyfriend" }
+	],
+
 	"preload": {
 		"images/halloween_bg": 2,
 		"images/halloween_bg_low": 1

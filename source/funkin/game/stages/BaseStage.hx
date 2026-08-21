@@ -113,6 +113,16 @@ class BaseStage extends FlxBasic
 	}
 	
 	public function addBehindGF(obj:FlxBasic) return insert(members.indexOf(game.gfGroup), obj);
+
+	public function insertBefore(objectName:String, obj:FlxBasic){
+		var ref = getStageObject(objectName);
+		return insert(ref != null ? members.indexOf(ref) : members.length, obj);
+	}
+	public function insertAfter(objectName:String, obj:FlxBasic){
+		var ref = getStageObject(objectName);
+		return insert(ref != null ? members.indexOf(ref) + 1 : members.length, obj);
+	}
+	
 	public function addBehindBF(obj:FlxBasic) return insert(members.indexOf(game.boyfriendGroup), obj);
 	public function addBehindDad(obj:FlxBasic) return insert(members.indexOf(game.dadGroup), obj);
 	public function setDefaultGF(name:String) //Fix for the Chart Editor on Base Game stages

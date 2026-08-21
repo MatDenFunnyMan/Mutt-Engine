@@ -13,6 +13,19 @@
 	"camera_girlfriend": [0, 0],
 	"camera_speed": 1,
 
+	"objects": [
+		{ "type": "animatedSprite", "name": "evilSchool", "image": "weeb/animatedEvilSchool", "x": -882.5, "y": -1080, "scale": [6, 6], "scroll": [0.8, 0.9], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 2, "antialiasing": false, "flipX": false, "flipY": false,
+			"firstAnimation": "background 2",
+			"animations": [
+				{ "anim": "background 2", "name": "background 2", "fps": 24, "loop": true, "indices": [], "offsets": [0, 0] }
+			] },
+		{ "type": "sprite", "name": "evilSchoolLow", "image": "weeb/animatedEvilSchool_low", "x": -882.5, "y": -1080, "scale": [6, 6], "scroll": [0.8, 0.9], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 1, "antialiasing": false, "flipX": false, "flipY": false },
+
+		{ "type": "gf" },
+		{ "type": "dad" },
+		{ "type": "boyfriend" }
+	],
+
 	"preload": {
 		"images/weeb/animatedEvilSchool_low": 1,
 		"images/weeb/animatedEvilSchool": 2,

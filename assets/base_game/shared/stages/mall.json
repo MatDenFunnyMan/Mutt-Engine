@@ -13,6 +13,17 @@
 	"camera_girlfriend": [0, 0],
 	"camera_speed": 1,
 
+	"objects": [
+		{ "type": "sprite", "name": "bgWalls", "image": "christmas/bgWalls", "x": -1000, "y": -500, "scale": [0.79984072, 0.79984072], "scroll": [0.2, 0.2], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "bgEscalator", "image": "christmas/bgEscalator", "x": -1100, "y": -600, "scale": [0.89977156, 0.89977156], "scroll": [0.3, 0.3], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 2, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "tree", "image": "christmas/christmasTree", "x": 370, "y": -250, "scale": [1, 1], "scroll": [0.4, 0.4], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "fgSnow", "image": "christmas/fgSnow", "x": -600, "y": 700, "scale": [1, 1], "scroll": [1, 1], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": true, "flipX": false, "flipY": false },
+
+		{ "type": "gf" },
+		{ "type": "dad" },
+		{ "type": "boyfriend" }
+	],
+
 	"preload": {
 		"images/christmas/bgWalls": 3,
 		"images/christmas/bottomBop": 3,

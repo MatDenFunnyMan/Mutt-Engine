@@ -16,18 +16,6 @@ class SchoolEvil extends BaseStage
 		if(_song.gameOverEnd == null || _song.gameOverEnd.trim().length < 1) GameOverSubstate.endSoundName = 'gameOverEnd-pixel';
 		if(_song.gameOverChar == null || _song.gameOverChar.trim().length < 1) GameOverSubstate.characterName = 'bf-pixel-dead';
 		
-		var posX = 400;
-		var posY = 200;
-
-		var bg:BGSprite;
-		if(!ClientPrefs.data.lowQuality)
-			bg = new BGSprite('weeb/animatedEvilSchool', posX, posY, 0.8, 0.9, ['background 2'], true);
-		else
-			bg = new BGSprite('weeb/animatedEvilSchool_low', posX, posY, 0.8, 0.9);
-
-		bg.scale.set(PlayState.daPixelZoom, PlayState.daPixelZoom);
-		bg.antialiasing = false;
-		add(bg);
 		setDefaultGF('gf-pixel');
 
 		FlxG.sound.playMusic(Paths.music('LunchboxScary'), 0);

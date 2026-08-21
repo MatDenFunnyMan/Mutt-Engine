@@ -2,17 +2,10 @@ package funkin.game.stages;
 
 class Spooky extends BaseStage
 {
-	var halloweenBG:BGSprite;
+	var halloweenBG:FlxSprite;
 	var halloweenWhite:BGSprite;
 	override function create()
 	{
-		if(!ClientPrefs.data.lowQuality) {
-			halloweenBG = new BGSprite('halloween_bg', -200, -100, ['halloweem bg0', 'halloweem bg lightning strike']);
-		} else {
-			halloweenBG = new BGSprite('halloween_bg_low', -200, -100);
-		}
-		add(halloweenBG);
-
 		//PRECACHE SOUNDS
 		Paths.sound('thunder_1');
 		Paths.sound('thunder_2');
@@ -29,6 +22,7 @@ class Spooky extends BaseStage
 	}
 	override function createPost()
 	{
+		halloweenBG = cast getStageObject(!ClientPrefs.data.lowQuality ? 'halloweenBG' : 'halloweenBGLow');
 		halloweenWhite = new BGSprite(null, -800, -400, 0, 0);
 		halloweenWhite.makeGraphic(Std.int(FlxG.width * 2), Std.int(FlxG.height * 2), FlxColor.WHITE);
 		halloweenWhite.alpha = 0;

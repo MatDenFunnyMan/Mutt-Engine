@@ -13,6 +13,16 @@
 	"camera_girlfriend": [0, 0],
 	"camera_speed": 1,
 
+	"objects": [
+		{ "type": "sprite", "name": "evilBG", "image": "christmas/evilBG", "x": -400, "y": -500, "scale": [0.8, 0.8], "scroll": [0.2, 0.2], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "evilTree", "image": "christmas/evilTree", "x": 300, "y": -300, "scale": [1, 1], "scroll": [0.2, 0.2], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "evilSnow", "image": "christmas/evilSnow", "x": -200, "y": 700, "scale": [1, 1], "scroll": [1, 1], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": true, "flipX": false, "flipY": false },
+
+		{ "type": "gf" },
+		{ "type": "dad" },
+		{ "type": "boyfriend" }
+	],
+
 	"preload": {
 		"images/christmas/evilBG": 3,
 		"images/christmas/evilSnow": 3,

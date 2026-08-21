@@ -13,6 +13,18 @@
 	"camera_girlfriend": [0, 0],
 	"camera_speed": 1,
 
+	"objects": [
+		{ "type": "sprite", "name": "sky", "image": "philly/sky", "x": -100, "y": 0, "scale": [1, 1], "scroll": [0.1, 0.1], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 2, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "city", "image": "philly/city", "x": -10, "y": 0, "scale": [0.84962406, 0.84962406], "scroll": [0.3, 0.3], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "phillyWindow", "image": "philly/window", "x": -10, "y": 0, "scale": [0.84962406, 0.84962406], "scroll": [0.3, 0.3], "alpha": 0, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "streetBehind", "image": "philly/behindTrain", "x": -40, "y": 50, "scale": [1, 1], "scroll": [1, 1], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 2, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "phillyStreet", "image": "philly/street", "x": -40, "y": 50, "scale": [1, 1], "scroll": [1, 1], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": true, "flipX": false, "flipY": false },
+
+		{ "type": "gf" },
+		{ "type": "dad" },
+		{ "type": "boyfriend" }
+	],
+
 	"preload": {
 		"images/philly/city": 3,
 		"images/philly/street": 3,

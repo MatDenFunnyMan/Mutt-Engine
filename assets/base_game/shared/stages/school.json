@@ -13,6 +13,27 @@
 	"camera_girlfriend": [0, 0],
 	"camera_speed": 1,
 
+	"objects": [
+		{ "type": "sprite", "name": "bgSky", "image": "weeb/weebSky", "x": 0, "y": 0, "scale": [6, 6], "scroll": [0.1, 0.1], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": false, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "bgSchool", "image": "weeb/weebSchool", "x": -200, "y": 0, "scale": [6, 6], "scroll": [0.6, 0.9], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": false, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "bgStreet", "image": "weeb/weebStreet", "x": -200, "y": 0, "scale": [6, 6], "scroll": [0.95, 0.95], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": false, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "fgTrees", "image": "weeb/weebTreesBack", "x": -30, "y": 130, "scale": [4.7974277, 4.7974277], "scroll": [0.9, 0.9], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 2, "antialiasing": false, "flipX": false, "flipY": false },
+		{ "type": "animatedSprite", "name": "bgTrees", "image": "weeb/weebTrees", "x": -580, "y": -800, "scale": [5.1015625, 5.1015625], "scroll": [0.85, 0.85], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": false, "flipX": false, "flipY": false,
+			"firstAnimation": "treeLoop",
+			"animations": [
+				{ "anim": "treeLoop", "name": "trees_", "fps": 12, "loop": true, "indices": [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18], "offsets": [0, 0] }
+			] },
+		{ "type": "animatedSprite", "name": "treeLeaves", "image": "weeb/petals", "x": -200, "y": -40, "scale": [6, 6], "scroll": [0.85, 0.85], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 2, "antialiasing": false, "flipX": false, "flipY": false,
+			"firstAnimation": "PETALS ALL",
+			"animations": [
+				{ "anim": "PETALS ALL", "name": "PETALS ALL", "fps": 24, "loop": true, "indices": [], "offsets": [0, 0] }
+			] },
+
+		{ "type": "gf" },
+		{ "type": "dad" },
+		{ "type": "boyfriend" }
+	],
+
 	"preload": {
 		"images/weeb/weebSky": 3,
 		"images/weeb/weebSchool": 3,

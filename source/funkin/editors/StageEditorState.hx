@@ -59,6 +59,9 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	var movedWithMouse:Bool = false;
 	public var skipMouseDelta:Bool = false;
 
+	var _preClickSelected:Int = -1;
+	var clipboardSprite:Dynamic = null;
+
 	var helpBg:FlxSprite;
 	var helpTexts:FlxSpriteGroup;
 	var posTxt:FlxText;
@@ -114,6 +117,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		
 		add(camFollow);
 		updateSpriteList();
+		checkPreviewSupport();
 
 		addHelpScreen();
 		FlxG.mouse.visible = true;
@@ -149,13 +153,16 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		var btn = 'F2';
 		#end
 
-		var str:Array<String> = ["E/Q - Camera Zoom In/Out",
+		var str:Array<String> = [
+			"E/Q - Camera Zoom In/Out",
 			"J/K/L/I - Move Camera",
 			"R - Reset Camera Zoom",
 			"Arrow Keys/Mouse & Right Click - Move Object",
 			"Enter - New Sprite (or Animations, if one is selected)",
 			"Delete - Remove selected Sprite",
 			"Ctrl + Z - Undo, Ctrl + Shift + Z - Redo",
+			"Ctrl + C - Copy, Ctrl + V - Paste, Ctrl + X - Cut",
+			"P - Reload Stage",
 			"",
 			'$btn - Toggle HUD',
 			"F12 - Toggle Selection Rectangle",
@@ -1219,33 +1226,24 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	}
 
 	var stageDropDown:PsychUIDropDownMenu;
+
+	function stageDummy(){
+		#if DISCORD_ALLOWED
+		DiscordClient.changePresence('Stage Editor', 'New Stage');
+		#end
+
+		stageJson = StageData.dummy();
+		updateSpriteList();
+		updateStageDataUI();
+		reloadCharacters();
+	}
+
 	function addStageTab()
 	{
 		var tab_group = UI_stagebox.getTab('Stage').menu;
-		var reloadStage:PsychUIButton = new PsychUIButton(140, 10, 'Reload', function()
-		{
-			#if DISCORD_ALLOWED
-			DiscordClient.changePresence('Stage Editor', 'Stage: ' + lastLoadedStage);
-			#end
+		var reloadStage:PsychUIButton = new PsychUIButton(140, 10, 'Reload', reloadStageFromDisk);
+		var dummyStage:PsychUIButton = new PsychUIButton(140, 40, 'Load Template', stageDummy);
 
-			stageJson = StageData.getStageFile(lastLoadedStage);
-			updateSpriteList();
-			updateStageDataUI();
-			reloadCharacters();
-			reloadStageDropDown();
-		});
-
-		var dummyStage:PsychUIButton = new PsychUIButton(140, 40, 'Load Template', function()
-		{
-			#if DISCORD_ALLOWED
-			DiscordClient.changePresence('Stage Editor', 'New Stage');
-			#end
-
-			stageJson = StageData.dummy();
-			updateSpriteList();
-			updateStageDataUI();
-			reloadCharacters();
-		});
 		dummyStage.normalStyle.bgColor = FlxColor.RED;
 		dummyStage.normalStyle.textColor = FlxColor.WHITE;
 
@@ -1274,6 +1272,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				updateStageDataUI();
 				reloadCharacters();
 				reloadStageDropDown();
+				checkPreviewSupport();
 			}
 			else
 			{
@@ -1446,7 +1445,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		directoryDropDown.selectedLabel = stageJson.directory;
 	}
 
-		function deleteSelected()
+	function deleteSelected()
 	{
 		var selected:Int = getSelectedIndex();
 		if(selected < 0) return;
@@ -1481,6 +1480,65 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		animationEditor.target = selected;
 		unsavedProgress = true;
 		openSubState(animationEditor);
+	}
+
+		function copySelected()
+	{
+		var sel = getSelected();
+		if(sel == null) return;
+
+		clipboardSprite = haxe.Json.parse(haxe.Json.stringify(sel.formatToJson(false)));
+		showOutput('Copied "${sel.name}"');
+	}
+
+	function cutSelected()
+	{
+		if(getSelected() == null) return;
+
+		copySelected();
+		deleteSelected();
+	}
+
+	function pasteSprite()
+	{
+		if(clipboardSprite == null) return;
+
+		var data:Dynamic = haxe.Json.parse(haxe.Json.stringify(clipboardSprite));
+		data.name = findUnoccupiedName(data.name + '_');
+
+		var list = StageData.addObjectsToState([data], gf, dad, boyfriend, null, true);
+		var spr = list.get(data.name);
+		if(spr == null)
+		{
+			showOutput('Couldn\'t paste sprite.', true);
+			return;
+		}
+
+		insertMeta(new StageEditorMetaSprite(data, spr), 1);
+	}
+
+	function checkPreviewSupport(){
+		if(StageData.codeOnlyStages.contains(lastLoadedStage))
+			showOutput('Sorry! Stage preview not available.', true);
+	}
+
+	function reloadStageFromDisk()
+	{
+		#if DISCORD_ALLOWED
+		DiscordClient.changePresence('Stage Editor', 'Stage: ' + lastLoadedStage);
+		#end
+
+		stageJson = StageData.getStageFile(lastLoadedStage);
+		updateSpriteList();
+		updateStageDataUI();
+		reloadCharacters();
+		reloadStageDropDown();
+
+		undoStack = [];
+		redoStack = [];
+		unsavedProgress = false;
+		showOutput('Stage reloaded.');
+		checkPreviewSupport();
 	}
 
 	var undoStack:Array<Dynamic> = [];
@@ -1593,8 +1651,16 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		switch(id)
 		{
 			case PsychUIRadioGroup.CLICK_EVENT, PsychUIBox.CLICK_EVENT:
-				if(sender == spriteListRadioGroup || sender == UI_box)
+				if(sender == spriteListRadioGroup)
+				{
+					if(_preClickSelected >= 0 && getSelectedIndex() == _preClickSelected)
+						spriteListRadioGroup.checked = -1;
+
+					_preClickSelected = -1;
 					checkUIOnObject();
+					updateSelectedUI();
+				}
+				else if(sender == UI_box) checkUIOnObject();
 				
 			case PsychUICheckBox.CLICK_EVENT:
 				unsavedProgress = true;
@@ -1611,8 +1677,10 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	}
 	override function update(elapsed:Float)
 	{
-		if(FlxG.mouse.justPressed || FlxG.mouse.justPressedRight)
+		if(FlxG.mouse.justPressed || FlxG.mouse.justPressedRight){
+			_preClickSelected = getSelectedIndex();
 			FlxG.sound.play(Paths.sound('chartingSounds/ClickDown'), 0.75);
+		}
 
 		if(FlxG.mouse.justReleased || FlxG.mouse.justReleasedRight)
 			FlxG.sound.play(Paths.sound('chartingSounds/ClickUp'), 0.75);
@@ -1632,8 +1700,17 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 		if(FlxG.keys.justPressed.ESCAPE)
 		{
-			if(!unsavedProgress)
-			{
+			if(createPopup.visible){
+				createPopup.visible = createPopup.active = false;
+				return;
+			}
+
+			if(helpBg.visible){
+				helpBg.visible = helpTexts.visible = false;
+				return;
+			}
+
+			if(!unsavedProgress){
 				FlxG.sound.playMusic(Paths.music('freakyMenu'));
 				funkin.editors.EditorHelper.returnToPreviousState();
 			}
@@ -1641,23 +1718,20 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			return;
 		}
 
-		if(FlxG.keys.justPressed.W)
-		{
+		if(FlxG.keys.justPressed.W){
 			spriteListRadioGroup.checked = FlxMath.wrap(spriteListRadioGroup.checked - 1, 0, spriteListRadioGroup.labels.length-1);
 			trace(spriteListRadioGroup.checked);
 			checkUIOnObject();
 			updateSelectedUI();
 		}
-		else if(FlxG.keys.justPressed.S)
-		{
+		else if(FlxG.keys.justPressed.S){
 			spriteListRadioGroup.checked = FlxMath.wrap(spriteListRadioGroup.checked + 1, 0, spriteListRadioGroup.labels.length-1);
 			trace(spriteListRadioGroup.checked);
 			checkUIOnObject();
 			updateSelectedUI();
 		}
 
-		if(FlxG.keys.justPressed.SPACE)
-		{
+		if(FlxG.keys.justPressed.SPACE){
 			var selected = getSelected();
 			if(selected != null && selected.type == 'animatedSprite' && selected.sprite.animation.curAnim != null)
 			{
@@ -1665,20 +1739,26 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			}
 		}
 
-		if(FlxG.keys.justPressed.F1 || (helpBg.visible && FlxG.keys.justPressed.ESCAPE))
-		{
+		if(FlxG.keys.justPressed.F1 || (helpBg.visible && FlxG.keys.justPressed.ESCAPE)){
 			helpBg.visible = !helpBg.visible;
 			helpTexts.visible = helpBg.visible;
 		}
 
-		if(!createPopup.visible && !helpBg.visible)
-		{
+		if(!createPopup.visible && !helpBg.visible){
 			if(FlxG.keys.justPressed.DELETE) deleteSelected();
 
 			if(FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.Z)
 			{
 				if(FlxG.keys.pressed.SHIFT) redo();
 				else undo();
+			}
+
+			if(FlxG.keys.justPressed.P) reloadStageFromDisk();
+
+			if(FlxG.keys.pressed.CONTROL){
+				if(FlxG.keys.justPressed.C) copySelected();
+				else if(FlxG.keys.justPressed.X) cutSelected();
+				else if(FlxG.keys.justPressed.V) pasteSprite();
 			}
 
 			if(FlxG.keys.justPressed.ENTER)
