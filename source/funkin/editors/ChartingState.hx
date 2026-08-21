@@ -229,6 +229,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	
 	var vocals:FlxSound = new FlxSound();
 	var opponentVocals:FlxSound = new FlxSound();
+	var editorLoop:FlxSound = new FlxSound();
+	var editorLoopTimer:FlxTimer;
 
 	var timeLine:FlxSprite;
 	var infoText:FlxText;
@@ -299,6 +301,12 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		vocals.looped = true;
 		opponentVocals.autoDestroy = false;
 		opponentVocals.looped = true;
+
+		FlxG.sound.list.add(editorLoop);
+		editorLoop.loadEmbedded(Paths.music('chartEditorLoop'), true, false);
+		editorLoop.autoDestroy = false;
+		editorLoop.volume = 0;
+		scheduleEditorLoop(10);
 
 		initPsychCamera();
 		camUI = new FlxCamera();
@@ -958,6 +966,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var selectAllPressCount:Int = 0;
 	var selectAllLastPressTicks:Int = 0;
 	var ignoreClickForThisFrame:Bool = false;
+	var _leftClickedOffGrid:Bool = false;
+	var _rightClickedOffGrid:Bool = false;
 	var outputAlpha:Float = 0;
 	var songFinished:Bool = false;
 
@@ -969,6 +979,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var backupLimit:Int = 10;
 
 	var lastBeatHit:Int = 0;
+
+	function mouseOverGrid():Bool{
+		if(gridBg == null) return false;
+
+		return FlxG.mouse.x >= gridBg.x && FlxG.mouse.x < gridBg.x + gridBg.width &&
+			FlxG.mouse.y >= gridBg.y && FlxG.mouse.y < gridBg.y + gridBg.height;
+	}
+
 	override function update(elapsed:Float)
 	{
 		if(!fileDialog.completed)
@@ -1545,13 +1563,27 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			updateSelectionBox();
 		}
 		
-		if(FlxG.mouse.justPressed)
-		{
-			FlxG.sound.play(Paths.sound('chartingSounds/noteLay'));
+		if(FlxG.mouse.justPressed){
+			_leftClickedOffGrid = !mouseOverGrid();
+			if(_leftClickedOffGrid) FlxG.sound.play(Paths.sound('chartingSounds/ClickDown'), 0.75);
+		}
+
+		if(FlxG.mouse.justReleased){
+			if(_leftClickedOffGrid) FlxG.sound.play(Paths.sound('chartingSounds/ClickUp'), 0.75);
+			_leftClickedOffGrid = false;
+		}
+
+		if(FlxG.mouse.justPressedRight){
+			_rightClickedOffGrid = !mouseOverGrid();
+			if(_rightClickedOffGrid) FlxG.sound.play(Paths.sound('chartingSounds/ClickDown'), 0.75);
+		}
+
+		if(FlxG.mouse.justReleasedRight){
+			if(_rightClickedOffGrid) FlxG.sound.play(Paths.sound('chartingSounds/ClickUp'), 0.75);
+			_rightClickedOffGrid = false;
 		}
 		
-		if((FlxG.mouse.justPressed || FlxG.mouse.justPressedRight) && (FlxG.mouse.overlaps(mainBox.bg) || FlxG.mouse.overlaps(infoBox.bg)))
-		{
+		if((FlxG.mouse.justPressed || FlxG.mouse.justPressedRight) && (FlxG.mouse.overlaps(mainBox.bg) || FlxG.mouse.overlaps(infoBox.bg))){
 			ignoreClickForThisFrame = true;
 		}
 		
@@ -2212,9 +2244,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		var isOverGrid:Bool = false;
 		var isOverMiniChart:Bool = FlxG.mouse.overlaps(miniChartBg);
 		
-		if(FlxG.mouse.x >= gridBg.x && FlxG.mouse.x < gridBg.x + gridBg.width && 
-		   FlxG.mouse.y >= gridBg.y && FlxG.mouse.y < gridBg.y + gridBg.height)
-		{
+		if(mouseOverGrid()){
 			isOverGrid = true;
 			showCustomCursor = true;
 		}
@@ -2798,44 +2828,65 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		opponentVocals.pitch = value;
 		#end
 	}
+	
+	function scheduleEditorLoop(delay:Float){
+		stopEditorLoopFade();
+		editorLoopTimer = new FlxTimer().start(delay, function(_) {
+			editorLoopTimer = null;
+			editorLoop.fadeIn(1.5, 0, 0.75);
+		});
+	}
 
-	function setSongPlaying(doPlay:Bool)
-	{
+	function stopEditorLoopFade(){
+		if(editorLoopTimer != null){
+			editorLoopTimer.cancel();
+			editorLoopTimer = null;
+		}
+
+		if(editorLoop.fadeTween != null){
+			editorLoop.fadeTween.cancel();
+			editorLoop.fadeTween = null;
+		}
+	}
+
+	function muteEditorLoop(){
+		stopEditorLoopFade();
+		editorLoop.volume = 0;
+	}
+
+	function setSongPlaying(doPlay:Bool){
 		if(FlxG.sound.music == null) return;
+
+		var wasPlaying:Bool = FlxG.sound.music.playing;
 
 		vocals.time = FlxG.sound.music.time;
 		opponentVocals.time = FlxG.sound.music.time;
 
-		if(doPlay)
-		{
+		if(doPlay){
 			FlxG.sound.music.play();
 			if(FlxG.sound.music.time < vocals.length) vocals.play(true, FlxG.sound.music.time);
 			if(FlxG.sound.music.time < opponentVocals.length) opponentVocals.play(true, FlxG.sound.music.time);
 			updateAudioVolume();
+			muteEditorLoop();
 		}
-		else
-		{
+		else{
 			FlxG.sound.music.pause();
 			vocals.pause();
 			opponentVocals.pause();
+			if(wasPlaying) scheduleEditorLoop(3.5);
 		}
 
-		for (note in strumLineNotes)
-		{
+		for (note in strumLineNotes){
 			note.alpha = doPlay ? 1 : 0.4;
-			if(!doPlay)
-			{
+			if(!doPlay){
 				note.playAnim('static');
 				note.resetAnim = 0;
 			}
 		}
 
-		if(!doPlay)
-		{
-			for(icon in icons)
-			{
-				if(icon != null)
-				{
+		if(!doPlay){
+			for(icon in icons){
+				if(icon != null){
 					icon.scale.set(0.3, 0.3);
 					icon.updateHitbox();
 				}
