@@ -13,6 +13,18 @@
 	"camera_girlfriend": [0, 0],
 	"camera_speed": 1,
 
+	"objects": [
+		{ "type": "sprite", "name": "stageback", "image": "stageback", "x": -600, "y": -200, "scale": [1, 1], "scroll": [0.9, 0.9], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "stagefront", "image": "stagefront", "x": -650, "y": 600, "scale": [1.1, 1.1], "scroll": [0.9, 0.9], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 3, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "stageLight", "image": "stage_light", "x": -125, "y": -100, "scale": [1.1, 1.1], "scroll": [0.9, 0.9], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 2, "antialiasing": true, "flipX": false, "flipY": false },
+		{ "type": "sprite", "name": "stageLight2", "image": "stage_light", "x": 1225, "y": -100, "scale": [1.1, 1.1], "scroll": [0.9, 0.9], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 2, "antialiasing": true, "flipX": true, "flipY": false },
+		{ "type": "sprite", "name": "stagecurtains", "image": "stagecurtains", "x": -500, "y": -300, "scale": [0.9, 0.9], "scroll": [1.3, 1.3], "alpha": 1, "angle": 0, "color": "FFFFFF", "filters": 2, "antialiasing": true, "flipX": false, "flipY": false },
+
+		{ "type": "gf" },
+		{ "type": "dad" },
+		{ "type": "boyfriend" }
+	],
+
 	"preload": {
 		"images/stageback": 3,
 		"images/stagefront": 3,
