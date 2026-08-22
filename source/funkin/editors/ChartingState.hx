@@ -216,9 +216,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var strumLineNotes:FlxTypedGroup<StrumNote> = new FlxTypedGroup<StrumNote>();
 	var dummyArrow:FlxSprite;
 	var isMovingNotes:Bool = false;
+	var stretchingNote:MetaNote = null;
+	var stretchSoundFlip:Bool = false;
 	var movingNotesLastData:Int = 0;
 	var movingNotesLastY:Float = 0;
-	var toysEnabled:Bool = false;
+	var toyEnabled:Array<Bool> = [false, false, false]; // 0 = bf, 1 = gf, 2 = opponent
+	var toysEnabled(get, never):Bool;
+	function get_toysEnabled():Bool return toyEnabled[0] || toyEnabled[1] || toyEnabled[2];
 	
 	public static var instance:ChartingState;
 	
@@ -328,7 +332,17 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		if(chartEditorSave.data.autoSave != null) autoSaveCap = chartEditorSave.data.autoSave;
 		if(chartEditorSave.data.backupLimit != null) backupLimit = chartEditorSave.data.backupLimit;
 		if(chartEditorSave.data.vortex != null) vortexEnabled = chartEditorSave.data.vortex;
-		if(chartEditorSave.data.toys != null) toysEnabled = chartEditorSave.data.toys;
+		if(chartEditorSave.data.toyEnabled != null)
+		{
+			var saved:Array<Dynamic> = chartEditorSave.data.toyEnabled;
+			for (i in 0...3)
+				if(saved != null && i < saved.length) toyEnabled[i] = (saved[i] == true);
+		}
+		else
+		{
+			var old:Bool = (chartEditorSave.data.toys == true);
+			toyEnabled = [old, old, old];
+		}
 
 		if(chartEditorSave.data.customBgColor == null) chartEditorSave.data.customBgColor = '303030';
 		if(chartEditorSave.data.customGridColors == null || chartEditorSave.data.customGridColors.length < 2)
@@ -625,7 +639,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		
 		toyGroup = new FlxTypedGroup<Toy>();
 		toyGroup.cameras = [camUI];
-		createToys();
+		if(toysEnabled) createToys();
 		add(toyGroup);
 		
 		fullTipText = new FlxText(0, 0, FlxG.width - 200);
@@ -727,15 +741,16 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	function createToys()
 	{
-		var centerX:Float = gridBg.x * 0.5;
-		var baseY:Float = FlxG.height - 200;
-		
-		var gfX:Float = centerX - 200;
-		var gfY:Float = baseY;
-		var bfX:Float = centerX - 80;
-		var bfY:Float = baseY;
-		var frankX:Float = centerX - 350;
+		if(bfToy != null) return;
+		var slot:Float = gridBg.x / 3;
+		var baseY:Float = FlxG.height - Toy.TOY_HEIGHT - 20;
+
+		var frankX:Float = 10;
 		var frankY:Float = baseY;
+		var gfX:Float = slot + 10;
+		var gfY:Float = baseY;
+		var bfX:Float = slot * 2 + 10;
+		var bfY:Float = baseY;
 		
 		if(chartEditorSave.data.toyPositions != null)
 		{
@@ -764,8 +779,107 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		toyGroup.add(gfToy);
 		toyGroup.add(bfToy);
 		toyGroup.add(bfPixelToy);
-		
-		toyGroup.visible = toysEnabled;
+		if(chartEditorSave.data.toySizes != null)
+		{
+			var sizes:Dynamic = chartEditorSave.data.toySizes;
+			for (toy in toyGroup)
+				if(toy != null && Reflect.hasField(sizes, toy.toyName))
+					toy.setToySize(Reflect.field(sizes, toy.toyName));
+		}
+
+		clampToysToScreen();
+		updateToyCharacters();
+
+		setToysAnimated(FlxG.sound.music != null && FlxG.sound.music.playing);
+		applyToyVisibility();
+	}
+
+	function applyToyVisibility()
+	{
+		if(bfToy == null) return;
+
+		bfToy.visible = toyEnabled[0];
+		gfToy.visible = toyEnabled[1];
+		bfPixelToy.visible = toyEnabled[2];
+	}
+
+	var _lastToyRaw:Array<String> = [null, null, null];
+
+	function toyCharacterFor(name:String, fallback:String):String
+	{
+		if(name == null || name.length < 1) return fallback;
+
+		var data:CharacterFile = loadCharacterFile(name);
+		if(data == null || data.image == null) return fallback;
+		if(!Paths.fileExists('images/${data.image}.png', IMAGE)) return fallback;
+
+		return name;
+	}
+
+	function clampToysToScreen()
+	{
+		for (toy in toyGroup)
+		{
+			if(toy == null) continue;
+
+			toy.baseX = FlxMath.bound(toy.baseX, 0, FlxG.width - toy.width);
+			toy.baseY = FlxMath.bound(toy.baseY, 0, FlxG.height - toy.height);
+			toy.x = toy.baseX;
+			toy.y = toy.baseY;
+		}
+	}
+
+	function updateToyCharacters(?overrideP1:String, ?overrideP2:String)
+	{
+		if(bfToy == null) return;
+
+		var raw:Array<String> = [
+			overrideP1 != null ? overrideP1 : PlayState.SONG.player1,
+			PlayState.SONG.gfVersion,
+			overrideP2 != null ? overrideP2 : PlayState.SONG.player2
+		];
+		var toys:Array<Toy> = [bfToy, gfToy, bfPixelToy];
+		var fallbacks:Array<String> = ['bfSigma', 'gfSigma', 'frank'];
+
+		for (i in 0...3)
+		{
+			if(_lastToyRaw[i] == raw[i]) continue;
+
+			_lastToyRaw[i] = raw[i];
+			toys[i].changeToyCharacter(toyCharacterFor(raw[i], fallbacks[i]));
+		}
+	}
+
+	function resizeHoveredToy(wheel:Int):Bool
+	{
+		if(!toysEnabled || bfToy == null) return false;
+
+		for (toy in toyGroup)
+		{
+			if(toy == null || !toy.visible) continue;
+			if(!FlxG.mouse.overlaps(toy)) continue;
+
+			toy.changeToySize(wheel * 0.1);
+			return true;
+		}
+		return false;
+	}
+
+	function setToysAnimated(v:Bool)
+	{
+		if(bfToy == null) return;
+
+		for (toy in toyGroup)
+			if(toy != null) toy.setAnimated(v);
+	}
+
+	var _lastToySec:Int = -1;
+	function danceToys()
+	{
+		if(bfToy == null) return;
+
+		for (toy in toyGroup)
+			if(toy != null) toy.dance();
 	}
 
 	var gridColors:Array<FlxColor>;
@@ -1257,12 +1371,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					else loadSection(0);
 					Conductor.songPosition = FlxG.sound.music.time = vocals.time = opponentVocals.time = timeToGoBack;
 				}
-				if(FlxG.keys.pressed.CONTROL && FlxG.mouse.wheel != 0)
+				var toyWheel:Bool = (FlxG.mouse.wheel != 0 && resizeHoveredToy(FlxG.mouse.wheel));
+
+				if(FlxG.keys.pressed.CONTROL && FlxG.mouse.wheel != 0 && !toyWheel)
 				{
 					gridTargetX += FlxG.mouse.wheel * GRID_SIZE * 3;
 				}
 				else
-				if(FlxG.keys.pressed.W != FlxG.keys.pressed.S || (FlxG.mouse.wheel != 0 && !FlxG.keys.pressed.CONTROL))
+				if(FlxG.keys.pressed.W != FlxG.keys.pressed.S || (FlxG.mouse.wheel != 0 && !FlxG.keys.pressed.CONTROL && !toyWheel))
 				{
 					if(FlxG.sound.music.playing)
 						setSongPlaying(false);
@@ -1592,7 +1708,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			for(toy in toyGroup)
 			{
-				if(toy != null && FlxG.mouse.overlaps(toy))
+				if(toy != null && toy.visible && FlxG.mouse.overlaps(toy))
 				{
 					isOverToy = true;
 					if(FlxG.mouse.justPressed)
@@ -1712,6 +1828,40 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		if(isMovingNotes && FlxG.mouse.justReleased)
 			stopMovingNotes();
+
+		if(stretchingNote != null){
+			if(FlxG.mouse.pressed)
+			{
+				var stretchY:Float = FlxG.mouse.y - gridBg.y;
+				if(!FlxG.keys.pressed.CONTROL)
+					stretchY -= stretchY % (GRID_SIZE / (curQuant/16));
+
+				var stretchTime:Float = (stretchY / GRID_SIZE * Conductor.stepCrochet / curZoom) + cachedSectionTimes[curSec];
+
+				var noteSec:Int = 0;
+				while(cachedSectionTimes.length > noteSec + 1 && cachedSectionTimes[noteSec + 1] <= stretchingNote.strumTime)
+					noteSec++;
+
+				var oldSus:Float = stretchingNote.sustainLength;
+				stretchingNote.setSustainLength(Math.max(0, stretchTime - stretchingNote.strumTime), cachedSectionCrochets[noteSec] / 4, curZoom);
+
+				if(stretchingNote.sustainLength != oldSus)
+				{
+					susLengthLastVal = susLengthStepper.value = stretchingNote.sustainLength;
+					updateSustainHighlights(stretchingNote);
+
+					stretchSoundFlip = !stretchSoundFlip;
+					FlxG.sound.play(Paths.sound('chartingSounds/stretch${stretchSoundFlip ? 1 : 2}_UI'), 0.4);
+				}
+			}
+			else
+			{
+				if(stretchingNote.sustainLength > 0)
+					FlxG.sound.play(Paths.sound('chartingSounds/stretchSNAP_UI'), 0.6);
+
+				stretchingNote = null;
+			}
+		}
 
 		isHoveringNote = false;
 		
@@ -2003,6 +2153,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 							addUndoAction(ADD_NOTE, {notes: [noteAdded]});
 							onSelectNote();
 							softReloadNotes();
+							stretchingNote = noteAdded;
 						}
 						else if(!lockedEvents)
 						{
@@ -2070,6 +2221,12 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					updateEventDescriptionHeight();
 				}
 			}
+		}
+
+		if(curSec != _lastToySec){
+			_lastToySec = curSec;
+			if(toysEnabled && FlxG.sound.music != null && FlxG.sound.music.playing)
+				danceToys();
 		}
 
 		if(Conductor.songPosition != lastTime || forceDataUpdate)
@@ -2256,7 +2413,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}
 		
 		var isOverClickable:Bool = isHoveringNote || FlxG.mouse.overlaps(mainBox.bg) || FlxG.mouse.overlaps(infoBox.bg) || 
-									isOverToy || isOverMiniChart;
+		isOverToy || isOverMiniChart;
 		
 		if(showCustomCursor || isOverClickable)
 		{
@@ -2868,12 +3025,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			if(FlxG.sound.music.time < opponentVocals.length) opponentVocals.play(true, FlxG.sound.music.time);
 			updateAudioVolume();
 			muteEditorLoop();
+			setToysAnimated(true);
 		}
 		else{
 			FlxG.sound.music.pause();
 			vocals.pause();
 			opponentVocals.pause();
 			if(wasPlaying) scheduleEditorLoop(3.5);
+			setToysAnimated(false);
 		}
 
 		for (note in strumLineNotes){
@@ -3359,6 +3518,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			icon.changeIcon(iconName);
 		}
 
+		if(toysEnabled) updateToyCharacters(overrideP1, overrideP2);
 		var mustHitSection:Bool = (curSecData != null && curSecData.mustHitSection == true);
 		var mustHitTarget:String = (curSecData != null && curSecData.mustHitTarget != null) ? curSecData.mustHitTarget : '';
 		if(icons.length > 1)
@@ -6098,7 +6258,6 @@ end
 	var showNextGridButton:PsychUIButton;
 	var noteTypeLabelsButton:PsychUIButton;
 	var vortexEditorButton:PsychUIButton;
-	var toysButton:PsychUIButton;
 	function addViewTab()
 	{
 		var tab = upperBox.getTab('View');
@@ -6160,16 +6319,26 @@ end
 		vortexEditorButton.text.alignment = LEFT;
 		tab_group.add(vortexEditorButton);
 		
-		btnY += 20;
-		toysButton = new PsychUIButton(btnX, btnY, toysEnabled ? '  Toys ON' : '  Toys OFF', function()
+		var toyLabels:Array<String> = ['Boyfriend', 'Girlfriend', 'Opponent'];
+		for (i in 0...3)
 		{
-			toysEnabled = !toysEnabled;
-			chartEditorSave.data.toys = toysEnabled;
-			toyGroup.visible = toysEnabled;
-			toysButton.text.text = toysEnabled ? '  Toys ON' : '  Toys OFF';
-		}, btnWid);
-		toysButton.text.alignment = LEFT;
-		tab_group.add(toysButton);
+			var idx:Int = i;
+			var btn:PsychUIButton = null;
+
+			btnY += 20;
+			btn = new PsychUIButton(btnX, btnY, '  ${toyLabels[idx]} Toy: ${toyEnabled[idx] ? "ON" : "OFF"}', function()
+			{
+				toyEnabled[idx] = !toyEnabled[idx];
+				chartEditorSave.data.toyEnabled = toyEnabled;
+
+				if(toysEnabled) createToys();
+				applyToyVisibility();
+
+				btn.text.text = '  ${toyLabels[idx]} Toy: ${toyEnabled[idx] ? "ON" : "OFF"}';
+			}, btnWid);
+			btn.text.alignment = LEFT;
+			tab_group.add(btn);
+		}
 		
 		btnY++;
 		btnY += 20;
@@ -6987,6 +7156,15 @@ end
 			chartEditorSave.data.toyPositions = {};
 		
 		Reflect.setField(chartEditorSave.data.toyPositions, toyName, {x: x, y: y});
+		chartEditorSave.flush();
+	}
+
+	public function saveToySize(toyName:String, mult:Float)
+	{
+		if(chartEditorSave.data.toySizes == null)
+			chartEditorSave.data.toySizes = {};
+
+		Reflect.setField(chartEditorSave.data.toySizes, toyName, mult);
 		chartEditorSave.flush();
 	}
 	
