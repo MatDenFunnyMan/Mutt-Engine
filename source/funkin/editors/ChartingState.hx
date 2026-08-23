@@ -650,32 +650,28 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		fullTipText.text = [
 			"W/S/Mouse Wheel - Move Conductor's Time",
 			"A/D - Change Sections",
-			"Q/E - Decrease/Increase Note Sustain Length",
+			"P - Start of Song / L - End of Song",
 			"Hold Shift/Alt to Increase/Decrease move by 4x",
 			"",
-			"F12 - Preview Chart",
-			"Enter - Playtest Chart",
+			"Enter - Playtest Chart / Shift + Enter - Playtest from Cur Position",
+			"Ctrl + Enter - Playtest Chart (Minimal Mode)",
 			"Space - Stop/Resume song",
 			"",
+			"Left Click - Place Note (hold and drag for hold notes)",
+			"Right Click - Erase Note",
+			"Q/E - Decrease/Increase Note Sustain Length",
 			"Alt + Click - Select Note(s)",
 			"Shift + Click - Select/Unselect Note(s)",
-			"Right Click - Selection Box",
+			"Right Click + Drag - Selection Box",
+			"Delete/Backspace - Delete Selected / Escape - Cancel Move",
 			"",
-			"R - Reset Section",
-			"Shift + R - Go Back to the Start of the Song",
 			"Z/X - Zoom in/out",
 			"Left/Right - Change Snap",
-			#if FLX_PITCH
-			"Left Bracket / Right Bracket - Change Song Playback Rate",
-			"ALT + Left Bracket / Right Bracket - Reset Song Playback Rate",
-			#end
 			"",
-			"Ctrl + Z - Undo",
-			"Ctrl + Y - Redo",
-			"Ctrl + X - Cut Selected Notes",
-			"Ctrl + C - Copy Selected Notes",
-			"Ctrl + V - Paste Copied Notes",
+			"Ctrl + Z - Undo / Ctrl + Y - Redo",
+			"Ctrl + C - Copy Selected Notes / Ctrl + X = Cut / Ctrl + V = Paste",
 			"Ctrl + A - Select all in current Section",
+			"Ctrl + Shift + A - Select all Notes in the Song",
 			"Ctrl + S - Quicksave",
 		].join('\n');
 		fullTipText.screenCenter();
@@ -1077,8 +1073,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	
 	var noteSelectionSine:Float = 0;
 	var selectedNotes:Array<MetaNote> = [];
-	var selectAllPressCount:Int = 0;
-	var selectAllLastPressTicks:Int = 0;
 	var ignoreClickForThisFrame:Bool = false;
 	var _leftClickedOffGrid:Bool = false;
 	var _rightClickedOffGrid:Bool = false;
@@ -1198,51 +1192,23 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			if(PsychUIInputText.focusOn == null && lastFocus == null) //If not typing anything
 			{
-				if(FlxG.keys.justPressed.F12)
+				if(FlxG.keys.justPressed.ENTER)
 				{
-					super.update(elapsed);
-					openEditorPlayState();
-					lastFocus = PsychUIInputText.focusOn;
-					return;
-				}
-				else if(FlxG.keys.justPressed.ENTER)
-				{
-					var ctrl:Bool = FlxG.keys.pressed.CONTROL;
-					var shift:Bool = FlxG.keys.pressed.SHIFT;
-					
-					if(ctrl && shift)
-						goToPlayState(true, true);
-					else if(ctrl)
-						goToPlayState(false, true);
-					else if(shift)
-						goToPlayState(true);
-					else
-						goToPlayState();
+					if(FlxG.keys.pressed.CONTROL)
+					{
+						super.update(elapsed);
+						openEditorPlayState();
+						lastFocus = PsychUIInputText.focusOn;
+						return;
+					}
+
+					goToPlayState(FlxG.keys.pressed.SHIFT);
 					return;
 				}
 				else if(FlxG.keys.justPressed.F1)
 				{
 					var vis:Bool = !fullTipText.visible;
 					tipBg.visible = tipBg.active = fullTipText.visible = fullTipText.active = vis;
-				}
-
-				var goingBack:Bool = false;
-				if(FlxG.keys.pressed.RBRACKET || (FlxG.keys.pressed.LBRACKET && (goingBack = true)))
-				{
-					if(holdingAlt)
-					{
-						if(playbackRate != 1)
-						{
-							playbackRate = 1;
-							setPitch();
-						}
-					}
-					else
-					{
-						playbackRate = FlxMath.bound(playbackRate + elapsed * (!goingBack ? 1 : -1), playbackSlider.min, playbackSlider.max);
-						setPitch();
-					}
-					playbackSlider.value = playbackRate;
 				}
 
 				if(vortexEnabled && _keysPressedBuffer.contains(true))
@@ -1352,25 +1318,19 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 						}
 					}
 				}
-				else if(FlxG.keys.justPressed.HOME)
+				else if(FlxG.keys.justPressed.P)
 				{
 					setSongPlaying(false);
 					Conductor.songPosition = FlxG.sound.music.time = 0;
 					loadSection(0);
 				}
-				else if(FlxG.keys.justPressed.END)
+				else if(FlxG.keys.justPressed.L)
 				{
 					setSongPlaying(false);
 					Conductor.songPosition = FlxG.sound.music.time = FlxG.sound.music.length - 1;
 					loadSection(PlayState.SONG.notes.length - 1);
 				}
-				else if(FlxG.keys.justPressed.R)
-				{
-					var timeToGoBack:Float = 0;
-					if(!FlxG.keys.pressed.SHIFT) timeToGoBack = cachedSectionTimes[curSec] + (curSec > 0 ? 0.000001 : 0);
-					else loadSection(0);
-					Conductor.songPosition = FlxG.sound.music.time = vocals.time = opponentVocals.time = timeToGoBack;
-				}
+
 				var toyWheel:Bool = (FlxG.mouse.wheel != 0 && resizeHoveredToy(FlxG.mouse.wheel));
 
 				if(FlxG.keys.pressed.CONTROL && FlxG.mouse.wheel != 0 && !toyWheel)
@@ -1438,7 +1398,16 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			var doCut:Bool = false;
 			var canContinue:Bool = true;
-			if(FlxG.keys.justPressed.ENTER)
+			if(FlxG.keys.justPressed.ESCAPE && !isMovingNotes)
+			{
+				if(fullTipText.visible)
+					tipBg.visible = tipBg.active = fullTipText.visible = fullTipText.active = false;
+				else
+					exitEditor();
+
+				return;
+			}
+			else if(FlxG.keys.justPressed.ENTER)
 			{
 				goToPlayState();
 				return;
@@ -1516,24 +1485,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 						moveSelectedNotes(Std.int(minNoteData), selectedNotes[0].y);
 					}
 				}
-				else if(FlxG.keys.justPressed.A) // Select All (Ctrl + A)
+				else if(FlxG.keys.justPressed.A)
 				{
-					var nowTicks:Int = FlxG.game.ticks;
-					if (nowTicks - selectAllLastPressTicks > 600)
-						selectAllPressCount = 0;
-					selectAllPressCount++;
-					selectAllLastPressTicks = nowTicks;
-
 					var sel = selectedNotes;
-					if (selectAllPressCount >= 3)
-					{
+					if(FlxG.keys.pressed.SHIFT)
 						selectedNotes = notes.copy().concat(cast events);
-						selectAllPressCount = 0;
-					}
 					else
-					{
 						selectedNotes = curRenderedNotes.members.copy();
-					}
+
 					addUndoAction(SELECT_NOTE, {old: sel, current: selectedNotes.copy()});
 					onSelectNote();
 					trace('Notes selected: ' + selectedNotes.length);
@@ -5952,9 +5911,7 @@ end
 		btnY += 20;
 		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Exit', function()
 		{
-			PlayState.chartingMode = false;
-			FlxG.mouse.visible = false;
-			funkin.editors.EditorHelper.returnToPreviousState();
+			exitEditor();
 		}, btnWid);
 		btn.text.alignment = LEFT;
 		tab_group.add(btn);
@@ -6660,21 +6617,13 @@ end
 		tab_group.add(btn);
 
 		btnY += 20;
-		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Playtest as Opponent (CTRL+ENTER)', function()
+		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Preview Chart (CTRL+ENTER)', function()
 		{
-			goToPlayState(false, true);
+			openEditorPlayState();
 		}, btnWid);
 		btn.text.alignment = LEFT;
 		tab_group.add(btn);
-
-		btnY += 20;
-		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Playtest as Opponent Here (CTRL+SHIFT+ENTER)', function()
-		{
-			goToPlayState(true, true);
-		}, btnWid);
-		btn.text.alignment = LEFT;
-		tab_group.add(btn);
-		}
+	}
 
 	function updateChartData()
 	{
@@ -7098,7 +7047,20 @@ end
 		upperBox.visible = mainBox.visible = infoBox.visible = false;
 	}
 
-	function goToPlayState(?startFromHere:Bool = false, ?asOpponent:Bool = false)
+	function exitEditor()
+	{
+		var func:Void->Void = function()
+		{
+			PlayState.chartingMode = false;
+			FlxG.mouse.visible = false;
+			funkin.editors.EditorHelper.returnToPreviousState();
+		};
+
+		if(!ignoreProgressCheckBox.checked) openSubState(new Prompt('Warning: Any unsaved progress will be lost', func));
+		else func();
+	}
+
+	function goToPlayState(?startFromHere:Bool = false)
 	{
 		persistentUpdate = false;
 		FlxG.mouse.visible = false;
@@ -7107,29 +7069,9 @@ end
 		setSongPlaying(false);
 		updateChartData();
 		StageData.loadDirectory(PlayState.SONG);
-		
-		if(startFromHere)
-		{
-			PlayState.startOnTime = Conductor.songPosition;
-		}
-		else
-		{
-			PlayState.startOnTime = 0;
-		}
-		
-		if(asOpponent)
-		{
-			var scriptPath:String = Paths.modFolders('scripts/playOpponent.lua');
-			if(!FileSystem.exists(scriptPath))
-				scriptPath = Paths.getSharedPath('scripts/playOpponent.lua');
-			
-			if(FileSystem.exists(scriptPath))
-			{
-				PlayState.SONG.player1 = PlayState.SONG.player2;
-				PlayState.SONG.player2 = playerDropDown.selectedLabel;
-			}
-		}
-		
+
+		PlayState.startOnTime = startFromHere ? Conductor.songPosition : 0;
+
 		LoadingState.loadAndSwitchState(new PlayState());
 		ClientPrefs.toggleVolumeKeys(true);
 	}

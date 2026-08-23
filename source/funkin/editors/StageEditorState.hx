@@ -658,8 +658,9 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		addStageTab();
 	}
 
-	var directoryTxt:FlxText;
+	var directoryDropDown:PsychUIDropDownMenu;
 	var uiInputText:PsychUIInputText;
+	var pixelStageCheckbox:PsychUICheckBox;
 	var hideGirlfriendCheckbox:PsychUICheckBox;
 	var hideBoyfriendCheckbox:PsychUICheckBox;
 	var hideDadCheckbox:PsychUICheckBox;
@@ -672,12 +673,65 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	var camBfStepperX:PsychUINumericStepper;
 	var camBfStepperY:PsychUINumericStepper;
 
-	function updateDirectoryTxt()
+	function findAssetFolders():Array<String>
 	{
-		if(directoryTxt == null) return;
-
+		var folders:Array<String> = ['week1', 'week6'];
 		var dir:String = stageJson.directory;
-		directoryTxt.text = (dir != null && dir.length > 0) ? dir : 'shared';
+		if(dir != null && dir.length > 0 && !folders.contains(dir)) folders.push(dir);
+		return folders;
+	}
+
+	function reloadSpriteImages()
+	{
+		for (spr in stageSprites)
+		{
+			if(spr == null || spr.type == 'square') continue;
+			if(StageData.reservedNames.contains(spr.type)) continue;
+
+			var img:String = spr.image;
+			spr.image = img;
+		}
+	}
+
+	function forceAntialiasing(value:Bool)
+	{
+		for (spr in stageSprites)
+		{
+			if(spr == null || spr.type == 'square') continue;
+			if(StageData.reservedNames.contains(spr.type)) continue;
+			spr.antialiasing = value;
+		}
+	}
+
+	function loadStageTemplate(pixel:Bool)
+	{
+		var templateName:String = pixel ? 'school' : 'stage';
+		stageJson = StageData.getStageFile(templateName);
+		stageJson.stageUI = pixel ? 'pixel' : '';
+		stageJson.isPixelStage = null;
+
+		loadJsonAssetDirectory();
+
+		var oldStage:String = lastLoadedStage;
+		lastLoadedStage = templateName;
+		updateSpriteList();
+		lastLoadedStage = oldStage;
+
+		forceAntialiasing(!pixel);
+		updateStageDataUI();
+		reloadCharacters();
+
+		undoStack = [];
+		redoStack = [];
+		unsavedProgress = false;
+		showOutput(pixel ? 'Pixel stage template loaded.' : 'Normal stage template loaded.');
+	}
+
+	function isPixelUI(ui:String):Bool
+	{
+		if(ui == null) return false;
+		ui = ui.trim();
+		return ui == 'pixel' || ui.endsWith('-pixel');
 	}
 
 	function addDataTab()
@@ -693,14 +747,66 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		});
 		tab_group.add(saveButton);
 
-		directoryTxt = new FlxText(objX, objY, 150, '', 12);
-		directoryTxt.color = FlxColor.YELLOW;
-		updateDirectoryTxt();
+		directoryDropDown = new PsychUIDropDownMenu(objX, objY, findAssetFolders(), function(sel:Int, selected:String) {
+			stageJson.directory = selected;
+			loadJsonAssetDirectory();
+			reloadSpriteImages();
+		});
+		directoryDropDown.selectedLabel = (stageJson.directory != null) ? stageJson.directory : '';
 
 		objY += 50;
 		tab_group.add(new FlxText(objX, objY - 18, 100, 'UI Style:'));
 		uiInputText = new PsychUIInputText(objX, objY, 100, stageJson.stageUI != null ? stageJson.stageUI : '', 8);
-		uiInputText.onChange = function(old:String, cur:String) stageJson.stageUI = uiInputText.text;
+		uiInputText.onChange = function(old:String, cur:String)
+		{
+			stageJson.stageUI = uiInputText.text;
+			stageJson.isPixelStage = null;
+			pixelStageCheckbox.checked = isPixelUI(stageJson.stageUI);
+		};
+
+		objY += 30;
+		pixelStageCheckbox = new PsychUICheckBox(objX, objY, 'Pixel Stage?', 100);
+		pixelStageCheckbox.onClick = function()
+		{
+			var wanted:Bool = pixelStageCheckbox.checked;
+			pixelStageCheckbox.checked = !wanted;
+
+			var action:String = wanted ? 'Checking' : 'Unchecking';
+			var msg:String = 'Warning!\n$action the option will REMOVE all current loaded sprites.\nAre you sure?';
+
+			openSubState(new BasePrompt(560, 200, msg, function(state:BasePrompt)
+			{
+				state.titleText.fieldWidth = 520;
+				state.titleText.screenCenter(X);
+
+				var btnY:Int = 390;
+
+				var yesBtn:PsychUIButton = new PsychUIButton(0, btnY, 'Yes', function() {
+					state.close();
+					pixelStageCheckbox.checked = wanted;
+					loadStageTemplate(wanted);
+				});
+				yesBtn.normalStyle.bgColor = FlxColor.RED;
+				yesBtn.normalStyle.textColor = FlxColor.WHITE;
+				yesBtn.screenCenter(X);
+				yesBtn.x -= 100;
+				yesBtn.cameras = state.cameras;
+				state.add(yesBtn);
+
+				var noBtn:PsychUIButton = new PsychUIButton(0, btnY, 'No', state.close);
+				noBtn.screenCenter(X);
+				noBtn.x += 100;
+				noBtn.cameras = state.cameras;
+				state.add(noBtn);
+			}));
+		};
+		pixelStageCheckbox.checked = isPixelUI(stageJson.stageUI) || stageJson.isPixelStage == true;
+		if(pixelStageCheckbox.checked && !isPixelUI(stageJson.stageUI))
+		{
+			stageJson.stageUI = 'pixel';
+			stageJson.isPixelStage = null;
+			uiInputText.text = 'pixel';
+		}
 
 		objY += 30;
 		hideGirlfriendCheckbox = new PsychUICheckBox(objX, objY, 'Hide Girlfriend?', 100);
@@ -833,7 +939,8 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		tab_group.add(cameraSpeedStepper);
 		
 		tab_group.add(uiInputText);
-		tab_group.add(directoryTxt);
+		tab_group.add(pixelStageCheckbox);
+		tab_group.add(directoryDropDown);
 	}
 	
 	function _updateCamera()
@@ -1307,9 +1414,11 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	
 	function updateStageDataUI()
 	{
-		updateDirectoryTxt();
+		directoryDropDown.list = findAssetFolders();
+		directoryDropDown.selectedLabel = (stageJson.directory != null) ? stageJson.directory : '';
 		//input texts
 		uiInputText.text = (stageJson.stageUI != null ? stageJson.stageUI : '');
+		pixelStageCheckbox.checked = isPixelUI(stageJson.stageUI) || stageJson.isPixelStage == true;
 		//checkboxes
 		hideGirlfriendCheckbox.checked = (stageJson.hide_girlfriend);
 		gf.alpha = hideGirlfriendCheckbox.checked ? 0 : 1;
@@ -2600,7 +2709,9 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 					_file = null;
 					return;
 				}
-				insertMeta(new StageEditorMetaSprite({type: _makeNewSprite, name: findUnoccupiedName()}, new ModchartSprite()));
+				var newMeta:StageEditorMetaSprite = new StageEditorMetaSprite({type: _makeNewSprite, name: findUnoccupiedName()}, new ModchartSprite());
+				if(isPixelUI(stageJson.stageUI)) newMeta.antialiasing = false;
+				insertMeta(newMeta);
 			}
 
 			var selected = getSelected();
