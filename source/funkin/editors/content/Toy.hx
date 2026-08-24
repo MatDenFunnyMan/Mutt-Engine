@@ -10,6 +10,9 @@ class Toy extends Character
 
 	var singAnimations:Array<String> = ['singLEFT', 'singDOWN', 'singUP', 'singRIGHT'];
 	public var isDragging:Bool = false;
+	public var grabAllowed:Bool = false;
+	public var hitboxX:Float = 0;
+	public var hitboxY:Float = 0;
 	private var dragOffsetX:Float = 0;
 	private var dragOffsetY:Float = 0;
 	public var baseX:Float = 0;
@@ -63,6 +66,27 @@ class Toy extends Character
 
 		offset.set(frameWidth * (1 - toyScale) * 0.5 + ox * toyScale,
 		frameHeight * (1 - toyScale) * 0.5 + oy * toyScale);
+
+		hitboxX = x - ox * toyScale;
+		hitboxY = y - oy * toyScale;
+	}
+
+	override public function overlapsPoint(point:FlxPoint, InScreenSpace:Bool = false, ?Camera:FlxCamera):Bool
+	{
+		if(!InScreenSpace)
+		{
+			var result:Bool = (point.x >= hitboxX) && (point.x < hitboxX + width) && (point.y >= hitboxY) && (point.y < hitboxY + height);
+			point.putWeak();
+			return result;
+		}
+
+		if(Camera == null) Camera = FlxG.camera;
+
+		var xPos:Float = point.x - Camera.scroll.x;
+		var yPos:Float = point.y - Camera.scroll.y;
+		point.putWeak();
+
+		return (xPos >= hitboxX) && (xPos < hitboxX + width) && (yPos >= hitboxY) && (yPos < hitboxY + height);
 	}
 
 	override public function playAnim(AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0):Void
@@ -165,9 +189,7 @@ class Toy extends Character
 			}
 		}
 
-		var mouseOverlap:Bool = FlxG.mouse.overlaps(this);
-
-		if(mouseOverlap && FlxG.mouse.justPressed && !isDragging)
+		if(grabAllowed && FlxG.mouse.justPressed && !isDragging)
 		{
 			isDragging = true;
 			dragOffsetX = FlxG.mouse.screenX - baseX;

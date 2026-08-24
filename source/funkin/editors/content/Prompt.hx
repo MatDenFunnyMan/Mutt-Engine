@@ -37,6 +37,7 @@ class Prompt extends BasePrompt
 	{
 		var btnY = 390;
 		var btn:PsychUIButton = new PsychUIButton(0, btnY, _yesTxt, function() {
+			noFunction = null;
 			yesFunction();
 			close();
 		});

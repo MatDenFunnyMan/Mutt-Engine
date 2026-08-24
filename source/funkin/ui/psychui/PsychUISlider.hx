@@ -24,7 +24,7 @@ class PsychUISlider extends FlxSpriteGroup
 		this.onChange = callback;
 		
 		bar = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
-		bar.scale.set(wid, 5);
+		bar.scale.set(wid, 7);
 		bar.updateHitbox();
 		bar.color = mainColor;
 		add(bar);
@@ -49,7 +49,7 @@ class PsychUISlider extends FlxSpriteGroup
 		add(labelText);
 
 		handle = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
-		handle.scale.set(5, 15);
+		handle.scale.set(7, 19);
 		handle.updateHitbox();
 		handle.color = handleColor;
 		add(handle);
@@ -98,9 +98,9 @@ class PsychUISlider extends FlxSpriteGroup
 		valueText.x = bar.x + bar.width/2 - valueText.width/2;
 
 		labelText.x = bar.x + bar.width/2 - labelText.width/2;
-		if(label.length > 0) bar.y = labelText.y + 24;
+		if(label.length > 0) bar.y = labelText.y + 25;
 		
-		minText.y = maxText.y = valueText.y = bar.y + 12;
+		minText.y = maxText.y = valueText.y = bar.y + 14;
 
 		_updateHandleX();
 		handle.y = bar.y + bar.height/2 - handle.height/2;

@@ -199,7 +199,7 @@ class PsychUIBox extends FlxSpriteGroup
 		else if(selectedTab != null && !isMinimized)
 			selectedTab.updateMenu(this, elapsed);
 
-		if(minimizeOnFocusLost && FlxG.mouse.justPressed && !isMinimized && !FlxG.mouse.overlaps(bg, camera))
+		if(minimizeOnFocusLost && FlxG.mouse.justPressed && !isMinimized && !FlxG.mouse.overlaps(bg, camera) && (selectedTab == null || selectedTab.menu == null || !FlxG.mouse.overlaps(selectedTab.menu, camera)))
 		{
 			isMinimized = true;
 			if(broadcastBoxEvents)
