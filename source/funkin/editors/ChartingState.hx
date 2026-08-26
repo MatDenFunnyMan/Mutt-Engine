@@ -26,6 +26,7 @@ import funkin.editors.content.VSlice.VSliceChart;
 import funkin.editors.content.VSlice.VSliceMetadata;
 import funkin.editors.content.VSlice.PsychPackage;
 import funkin.editors.content.Prompt;
+import funkin.editors.content.NewChartPrompt;
 import funkin.editors.content.*;
 import funkin.editors.content.CreateStrumlinePrompt.StrumlineConfigData;
 
@@ -840,26 +841,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			forceDataUpdate = true;
 		}
 
-		if(_showStartup)
-		{
-			startupPrompt = new ChartStartupPrompt();
-			startupPrompt.onBrowse = function() openChartDialog(true, closeStartupPrompt);
-			startupPrompt.onImportVSlice = function() importVSliceChart(closeStartupPrompt);
-			startupPrompt.onImportCodename = function() importCodenameChart(closeStartupPrompt);
-			startupPrompt.onCreateNew = function()
-			{
-				openNewChart();
-				reloadNotesDropdowns();
-				prepareReload();
-				closeStartupPrompt();
-			}
-			startupPrompt.onOpenRecent = openRecentChart;
-			startupPrompt.difficultiesOf = difficultiesForSong;
-			startupPrompt.onCreateFromSong = openGameSong;
-			refreshStartupRecents();
-			startupPrompt.setSongs(gameSongList());
-			openSubState(startupPrompt);
-		}
+		if(_showStartup) openStartupPrompt();
 	}
 
 	function createToys()
@@ -1484,6 +1466,44 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	}
 
 	var startupPrompt:ChartStartupPrompt;
+	function openStartupPrompt()
+	{
+		startupPrompt = new ChartStartupPrompt();
+		startupPrompt.onBrowse = function() openChartDialog(true, closeStartupPrompt);
+		startupPrompt.onImportVSlice = function() importVSliceChart(closeStartupPrompt);
+		startupPrompt.onImportCodename = function() importCodenameChart(closeStartupPrompt);
+		startupPrompt.onCreateNew = openNewChartWizard;
+		startupPrompt.onCreateNewTest = function()
+		{
+			openNewChart();
+			reloadNotesDropdowns();
+			prepareReload();
+			closeStartupPrompt();
+		}
+		startupPrompt.onOpenRecent = openRecentChart;
+		startupPrompt.difficultiesOf = difficultiesForSong;
+		startupPrompt.onCreateFromSong = openGameSong;
+		refreshStartupRecents();
+		startupPrompt.setSongs(gameSongList());
+		openSubState(startupPrompt);
+	}
+
+	function openNewChartWizard()
+	{
+		closeStartupPrompt();
+
+		var wizard:NewChartPrompt = new NewChartPrompt(stageDropDown.list, characterList);
+		wizard.onAccept = function(song:SwagSong)
+		{
+			Song.chartPath = null;
+			loadChart(song);
+			reloadNotesDropdowns();
+			prepareReload();
+			applyNewChartCredits(wizard.outArtist, wizard.outComposer, wizard.outCharter, wizard.outCoder);
+		}
+		wizard.onCancel = openStartupPrompt;
+		openSubState(wizard);
+	}
 	function closeStartupPrompt()
 	{
 		if(startupPrompt == null) return;
@@ -1621,6 +1641,17 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	function loadMetaDataCredits()
 	{
 		var loadedMeta:funkin.data.MetaData.SongMeta = funkin.data.MetaData.parse(Paths.formatToSongPath(PlayState.SONG.song));
+
+		metaDataCreditsA = [];
+		metaDataCreditsCO = [];
+		metaDataCreditsCH = [];
+		metaDataCreditsCOD = [];
+		artistInputText.text = '';
+		composerInputText.text = '';
+		charterInputText.text = '';
+		coderInputText.text = '';
+		pauseDisplayNameInputText.text = (loadedMeta.pauseDisplayName != null) ? loadedMeta.pauseDisplayName : '';
+		showAllCreditsCheckBox.checked = loadedMeta.showAllCredits;
 		
 		for(credit in loadedMeta.credits)
 		{
@@ -1648,6 +1679,25 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				}
 			}
 		}
+	}
+
+	function applyNewChartCredits(artist:String, composer:String, charter:String, coder:String)
+	{
+		metaDataCreditsA = splitCredits(artist);
+		metaDataCreditsCO = splitCredits(composer);
+		metaDataCreditsCH = splitCredits(charter);
+		metaDataCreditsCOD = splitCredits(coder);
+
+		artistInputText.text = metaDataCreditsA.join(', ');
+		composerInputText.text = metaDataCreditsCO.join(', ');
+		charterInputText.text = metaDataCreditsCH.join(', ');
+		coderInputText.text = metaDataCreditsCOD.join(', ');
+	}
+
+	function splitCredits(raw:String):Array<String>
+	{
+		if(raw == null) return [];
+		return raw.split(',').map(function(s:String) return s.trim()).filter(function(s:String) return s.length > 0);
 	}
 	
 	var noteSelectionSine:Float = 0;

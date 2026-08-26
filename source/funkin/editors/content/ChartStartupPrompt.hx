@@ -5,6 +5,7 @@ class ChartStartupPrompt extends BasePrompt
 {
 	public var onBrowse:Void->Void;
 	public var onCreateNew:Void->Void;
+	public var onCreateNewTest:Void->Void;
 	public var onImportVSlice:Void->Void;
 	public var onImportCodename:Void->Void;
 	public var onFromSong:Void->Void;
@@ -71,6 +72,8 @@ class ChartStartupPrompt extends BasePrompt
 
 		addHeader(colX[1], topY, 'Create New');
 		addButton(colX[1], topY + 34, 'New Chart', onCreateNew);
+		addButton(colX[1], topY + 64, 'New Chart (Test)', onCreateNewTest);
+		
 
 		addHeader(colX[1], topY + 190, 'Import Chart');
 		addButton(colX[1], topY + 224, 'From V-Slice', onImportVSlice);
