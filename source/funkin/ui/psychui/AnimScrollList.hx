@@ -44,14 +44,11 @@ class AnimScrollList extends FlxSpriteGroup
 		_titleBg = new FlxSprite();
 		add(_titleBg);
 
-		_titleTxt = new FlxText(0, 3, listWidth, 'Animations');
-		_titleTxt.setFormat(null, 12,
-			FlxColor.WHITE,
-			CENTER,
-			OUTLINE_FAST,
-			FlxColor.BLACK);
+		_titleTxt = new FlxText(0, 0, listWidth, 'Animations');
+		_titleTxt.setFormat(Paths.font('vcr.ttf'), 15, FlxColor.WHITE, CENTER, OUTLINE_FAST, FlxColor.BLACK);
 		_titleTxt.borderSize = 1;
 		_titleTxt.antialiasing = true;
+		_titleTxt.y = Math.max(0, (TITLE_H - _titleTxt.height) * 0.5);
 		add(_titleTxt);
 
 		var innerW:Int = listWidth - SBAR_W - 1;
