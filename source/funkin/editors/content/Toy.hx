@@ -19,10 +19,15 @@ class Toy extends Character
 	public var baseY:Float = 0;
 	public var toyScale:Float = 1;
 	public var toySizeMult:Float = 1;
+	private var idleOffX:Float = 0;
+	private var idleOffY:Float = 0;
 	private var animHoldTimer:Float = 0;
 	private var currentAnim:String = '';
+	private var atlasMeasured:Bool = false;
 	public var toyName:String = '';
 	public var canAnimate:Bool = false;
+	private var finishingAnim:Bool = false;
+	private var finishTimer:Float = 0;
 
 	public function new(x:Float, y:Float, character:String, isPlayer:Bool = false, name:String = '')
 	{
@@ -36,8 +41,34 @@ class Toy extends Character
 		applyToyScale();
 	}
 
+	function cacheIdleOffset()
+	{
+		idleOffX = 0;
+		idleOffY = 0;
+
+		for (name in ['idle', 'danceLeft', 'danceRight'])
+		{
+			var off = animOffsets.get(name);
+			if(off != null && off.length > 1)
+			{
+				idleOffX = off[0];
+				idleOffY = off[1];
+				return;
+			}
+		}
+	}
+
 	function applyToyScale()
 	{
+		cacheIdleOffset();
+		if(isAnimateAtlas)
+		{
+			atlasMeasured = false;
+			toyScale = 1;
+			scale.set(1, 1);
+			scrollFactor.set();
+			return;
+		}
 		var h:Float = measuredHeight();
 		toyScale = (h > 0) ? (TOY_HEIGHT * toySizeMult) / h : 1;
 
@@ -56,6 +87,21 @@ class Toy extends Character
 
 	function applyToyOffset()
 	{
+		if(isAnimateAtlas)
+		{
+			var offScale:Float = (jsonScale > 0) ? toyScale / jsonScale : toyScale;
+			var off = animOffsets.get(getAnimationName());
+			var ox:Float = (off != null && off.length > 1) ? (off[0] - idleOffX) * offScale : 0;
+			var oy:Float = (off != null && off.length > 1) ? (off[1] - idleOffY) * offScale : 0;
+
+			offset.set(ox, oy);
+			hitboxX = x + atlas.relativeX;
+			hitboxY = y + atlas.relativeY;
+			width = atlas.width;
+			height = atlas.height;
+			return;
+		}
+
 		width = frameWidth * toyScale;
 		height = frameHeight * toyScale;
 		centerOrigin();
@@ -64,11 +110,15 @@ class Toy extends Character
 		var ox:Float = (off != null && off.length > 1) ? off[0] : 0;
 		var oy:Float = (off != null && off.length > 1) ? off[1] : 0;
 
-		offset.set(frameWidth * (1 - toyScale) * 0.5 + ox * toyScale,
-		frameHeight * (1 - toyScale) * 0.5 + oy * toyScale);
+		var offScale:Float = (jsonScale > 0) ? toyScale / jsonScale : toyScale;
+		ox = (ox - idleOffX) * offScale;
+		oy = (oy - idleOffY) * offScale;
 
-		hitboxX = x - ox * toyScale;
-		hitboxY = y - oy * toyScale;
+		offset.set(frameWidth * (1 - toyScale) * 0.5 + ox,
+		frameHeight * (1 - toyScale) * 0.5 + oy);
+
+		hitboxX = x - ox;
+		hitboxY = y - oy;
 	}
 
 	override public function overlapsPoint(point:FlxPoint, InScreenSpace:Bool = false, ?Camera:FlxCamera):Bool
@@ -124,11 +174,25 @@ class Toy extends Character
 		if(canAnimate == v) return;
 
 		canAnimate = v;
-		if(!v) resetToIdle();
+		if(v)
+		{
+			finishingAnim = false;
+			return;
+		}
+
+		if(animation.curAnim != null && !animation.curAnim.finished)
+		{
+			finishingAnim = true;
+			finishTimer = 2;
+			return;
+		}
+
+		resetToIdle();
 	}
 
 	public function resetToIdle()
 	{
+		finishingAnim = false;
 		animHoldTimer = 0;
 		currentAnim = '';
 		color = FlxColor.WHITE;
@@ -175,7 +239,22 @@ class Toy extends Character
 	override public function update(elapsed:Float):Void
 	{
 		if(!visible) return;
-		if(animHoldTimer > 0)
+		if(isAnimateAtlas)
+		{
+			atlas.update(elapsed);
+
+			if(!atlasMeasured && atlas.height > 0)
+			{
+				var nativeH:Float = atlas.height / Math.max(scale.y, 0.001);
+				if(nativeH > 0)
+				{
+					atlasMeasured = true;
+					toyScale = (TOY_HEIGHT * toySizeMult) / nativeH;
+					scale.set(toyScale, toyScale);
+				}
+			}
+		}
+		if(animHoldTimer > 0 && (canAnimate || finishingAnim))
 		{
 			animHoldTimer -= elapsed;
 			if(animHoldTimer <= 0)
@@ -215,15 +294,22 @@ class Toy extends Character
 			}
 		}
 
-		if(canAnimate && animation.curAnim != null)
+		if((canAnimate || finishingAnim) && animation.curAnim != null)
 			animation.curAnim.update(elapsed);
+
+		if(finishingAnim)
+		{
+			finishTimer -= elapsed;
+			if(finishTimer <= 0 || isAnimationNull() || isAnimationFinished())
+				resetToIdle();
+		}
 
 		applyToyOffset();
 	}
 
 	override public function dance():Void
 	{
-		if(isDragging || animHoldTimer > 0) return;
+		if(isDragging || animHoldTimer > 0 || finishingAnim) return;
 		if(!canAnimate || isIdlePlaying()) return;
 
 		super.dance();

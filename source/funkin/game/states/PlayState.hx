@@ -2647,6 +2647,7 @@ class PlayState extends MusicBeatState
 		#end
 		#end
 
+		ChartingState.skipStartupMenu = true;
 		MusicBeatState.switchState(new ChartingState());
 	}
 
@@ -2679,6 +2680,7 @@ class PlayState extends MusicBeatState
 		#end
 
 		EditorHelper.returnToState = previousState;
+		ChartingState.skipStartupMenu = true;
 		MusicBeatState.switchState(new ChartingState(false, timeToPass));
 	}
 

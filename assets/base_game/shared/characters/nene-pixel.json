@@ -43,7 +43,7 @@
 	],
 	"vocals_file": "",
 	"no_antialiasing": true,
-	"image": "characters/nenePixel/nenePixel",
+	"image": "characters_pixel/nenePixel/nenePixel",
 	"position": [-15, 200],
 	"healthicon": "face",
 	"flip_x": false,

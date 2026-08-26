@@ -98,7 +98,7 @@
 		}
 	],
 	"no_antialiasing": true,
-	"image": "characters/picoPixel/picoPixel",
+	"image": "characters_pixel/picoPixel/picoPixel",
 	"position": [0, 350],
 	"healthicon": "pico-pixel",
 	"flip_x": true,

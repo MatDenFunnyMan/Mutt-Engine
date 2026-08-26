@@ -1954,12 +1954,12 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		               (spriteList_box.visible && FlxG.mouse.overlaps(spriteList_box, camHUD)) ||
 		               (createPopup.visible && FlxG.mouse.overlaps(createPopup, camHUD));
 		
-		var mouseDX:Int = 0;
-		var mouseDY:Int = 0;
-		if (skipMouseDelta) skipMouseDelta = false;
-		else {
-			mouseDX = FlxG.mouse.deltaScreenX;
-			mouseDY = FlxG.mouse.deltaScreenY;
+		var mouseDX:Int = FlxG.mouse.deltaScreenX;
+		var mouseDY:Int = FlxG.mouse.deltaScreenY;
+		if (skipMouseDelta) {
+			if (mouseDX != 0 || mouseDY != 0) skipMouseDelta = false;
+			mouseDX = 0;
+			mouseDY = 0;
 		}
 
 		if(FlxG.mouse.justPressed && !FlxG.mouse.pressedRight) camDragging = !isOverUI;

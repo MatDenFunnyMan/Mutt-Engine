@@ -23,4 +23,4 @@ tankman
 pico-speaker
 bf-holding-gf
 pico-player
-tankman-player
+tankman-playable

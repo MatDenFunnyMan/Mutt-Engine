@@ -7,6 +7,7 @@ class AnimScrollList extends FlxSpriteGroup
 	public static final SELECT_EVENT:String = 'animlist_select';
 
 	public var onSelect:Int->Void;
+	public var labelOf:Dynamic->String;
 
 	public var listWidth(default, null):Int;
 	public var listHeight(default, null):Int;
@@ -90,6 +91,11 @@ class AnimScrollList extends FlxSpriteGroup
 		_redrawBg();
 		_redrawTitleBg();
 		_refresh();
+	}
+
+	public function setTitle(text:String)
+	{
+		_titleTxt.text = text;
 	}
 
 	override function update(elapsed:Float)
@@ -191,7 +197,7 @@ class AnimScrollList extends FlxSpriteGroup
 			{
 				_rowBgs[i].alpha = 0;
 				_rowTxts[i].color = sel ? FlxColor.LIME : (i == _hoverRow ? FlxColor.YELLOW : FlxColor.WHITE);
-				_rowTxts[i].text = anim.anim + ': ' + anim.offsets;
+				_rowTxts[i].text = (labelOf != null) ? labelOf(anim) : anim.anim + ': ' + anim.offsets;
 			}
 			else
 			{
