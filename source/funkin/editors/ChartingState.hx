@@ -27,11 +27,15 @@ import funkin.editors.content.VSlice.VSliceMetadata;
 import funkin.editors.content.VSlice.PsychPackage;
 import funkin.editors.content.Prompt;
 import funkin.editors.content.NewChartPrompt;
+import funkin.editors.content.SongAudioPrompt;
+import flash.net.FileFilter;
 import funkin.editors.content.*;
 import funkin.editors.content.CreateStrumlinePrompt.StrumlineConfigData;
+import funkin.editors.content.Prompt.BasePrompt;
 
 import funkin.data.Song;
 import funkin.data.WeekData;
+import funkin.data.WeekData.WeekFile;
 import funkin.data.StageData;
 import funkin.save.Highscore;
 import funkin.data.Difficulty;
@@ -723,40 +727,64 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		fullTipText.visible = fullTipText.active = false;
 		tipPages = [
 			[
-				"W/S/Mouse Wheel - Move Conductor's Time",
-				"A/D - Change Sections",
-				"P - Start of Song / L - End of Song",
-				"Hold Shift/Alt to Increase/Decrease move by 4x",
-				"",
-				"Enter - Playtest Chart / Shift + Enter - Playtest from Cur Position",
-				"Ctrl + Enter - Playtest Chart (Minimal Mode)",
-				"Space - Stop/Resume song",
-				"",
-				"Z/X - Zoom in/out",
+				"- NAVIGATION -",
+				"W/S or Mouse Wheel - Move Conductor's Time",
+				"Hold Shift - 4x Faster / Hold Alt - 4x Slower",
+				"A/D - Previous / Next Section",
+				"P - Go to Start of Song / L - Go to End of Song",
+				"Space - Play / Pause Song",
+				"Ctrl + Mouse Wheel - Scroll the Grid Sideways",
+				"Z/X - Zoom Out / Zoom In",
 				"Left/Right - Change Snap",
+				"Click or Drag on the Mini Chart - Jump to that Position",
 				"",
-				"F1 - Toggle this Help",
+				"- PLAYTEST -",
+				"Enter - Playtest Chart",
+				"Shift + Enter - Playtest from Current Position",
+				"Ctrl + Enter - Preview Chart (Minimal Mode)",
+				"",
+				"F1 - Toggle this Help / Left-Right - Change Page",
 				"Escape - Exit Editor",
 			].join('\n'),
 			[
-				"Left Click - Place Note (hold and drag for hold notes)",
-				"Right Click - Erase Note",
-				"Q/E - Decrease/Increase Note Sustain Length",
-				"Alt + Click - Select Note(s)",
-				"Shift + Click - Select/Unselect Note(s)",
-				"Right Click + Drag - Selection Box",
-				"Delete/Backspace - Delete Selected / Escape - Cancel Move",
+				"- NOTES -",
+				"Left Click on an empty Cell - Place Note",
+				"Hold and Drag right after placing - Set Hold Length",
+				"Right Click on a Note - Erase it",
+				"Q/E - Decrease/Increase Sustain of the Selected Note",
+				"Hold Ctrl - Ignore Snapping while placing or stretching",
+				"Vortex Mode (Edit menu) - place Notes with your gameplay keys",
 				"",
-				"Ctrl + Z - Undo / Ctrl + Y - Redo",
-				"Ctrl + C/X/V - Copy / Cut / Paste Selected Notes",
-				"Ctrl + A - Select all in current Section",
+				"- SELECTION -",
+				"Left Click on a Note - Select it, Click again to Unselect",
+				"Left Click + Drag - Move the Selected Notes",
+				"(dragging a Note that wasn't selected moves only that one)",
+				"Shift + Drag - Duplicate the Selection and move the copies",
+				"Right Click + Drag on empty Grid - Selection Box",
+				"Right Click on empty Grid - Unselect All",
+				"Hold Alt while releasing the Box - Remove from Selection",
+				"Ctrl + A - Select all in the current Section",
 				"Ctrl + Shift + A - Select all Notes in the Song",
+				"Delete/Backspace - Delete Selected",
+				"Escape or Right Click while moving - Cancel the Move",
+			].join('\n'),
+			[
+				"- EDITING -",
+				"Ctrl + Z - Undo",
+				"Ctrl + Shift + Z - Redo",
+				"Ctrl + C / X / V - Copy / Cut / Paste Selected",
 				"Ctrl + S - Quicksave",
+				"R - Reload Chart from Disk",
 				"",
-				"TOYS - enable them in the View menu",
-				"Drag with Left Click - Move a Toy",
+				"- TOYS -",
+				"Enable them in the View menu",
+				"Left Click + Drag - Move a Toy",
 				"Mouse Wheel over a Toy - Resize it",
 				"H - Show/Hide Toy Hitboxes",
+				"",
+				"- INTERFACE -",
+				"Drag a Box by its Tab Strip - Move it",
+				"View menu, Reset UI Boxes - put them back in place",
 			].join('\n'),
 		];
 		add(fullTipText);
@@ -1210,6 +1238,249 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		return list;
 	}
 
+	function defaultDifficultyIndex(diffs:Array<String>):Int
+	{
+		var def:String = Paths.formatToSongPath(Difficulty.getDefault());
+		for (i in 0...diffs.length)
+			if(Paths.formatToSongPath(diffs[i]) == def) return i;
+		return 0;
+	}
+
+	function currentDifficultyIndex(diffs:Array<String>):Int
+	{
+		if(Song.chartPath == null) return defaultDifficultyIndex(diffs);
+
+		var file:String = Song.chartPath.replace('\\', '/');
+		file = file.substring(file.lastIndexOf('/') + 1);
+		if(file.toLowerCase().endsWith('.json')) file = file.substr(0, file.length - 5);
+		file = Paths.formatToSongPath(file);
+
+		var songKey:String = Paths.formatToSongPath(PlayState.SONG.song);
+		for (i in 0...diffs.length)
+			if(file == songKey + Difficulty.getFilePath(i)) return i;
+
+		return defaultDifficultyIndex(diffs);
+	}
+
+	function refreshDifficultyDropDown()
+	{
+		if(difficultyDropDown == null || PlayState.SONG == null) return;
+
+		var diffs:Array<String> = difficultiesForSong(PlayState.SONG.song);
+		if(diffs.length < 1) diffs = ['Normal'];
+
+		difficultyDropDown.list = diffs;
+		difficultyDropDown.list = diffs.concat([NEW_DIFF_LABEL]);
+		curDifficultyIndex = currentDifficultyIndex(diffs);
+		difficultyDropDown.selectedIndex = curDifficultyIndex;
+	}
+
+	function switchDifficulty(index:Int)
+	{
+		if(PlayState.SONG == null || difficultyDropDown == null) return;
+		if(index == curDifficultyIndex) return;
+
+		var diffs:Array<String> = difficultiesForSong(PlayState.SONG.song);
+		var cancel:Void->Void = function() difficultyDropDown.selectedIndex = curDifficultyIndex;
+
+		if(index == diffs.length)
+		{
+			openNewDifficultyPrompt();
+			return;
+		}
+
+		if(index < 0 || index >= diffs.length)
+		{
+			cancel();
+			return;
+		}
+
+		var songName:String = PlayState.SONG.song;
+		var diffName:String = diffs[index];
+		var chartFile:String = Paths.formatToSongPath(songName) + Difficulty.getFilePath(index);
+
+		var alreadyThere:Bool = false;
+		try { alreadyThere = (Song.getChart(chartFile, songName) != null); }
+		catch(e:Exception) { alreadyThere = false; }
+
+		if(alreadyThere)
+		{
+			var load:Void->Void = function()
+			{
+				try
+				{
+					Song.loadFromJson(chartFile, songName);
+					Song.chartPath = Song.chartPath.replace('\\', '/');
+					loadChart(PlayState.SONG);
+					pushRecentChart(Song.chartPath);
+					reloadNotesDropdowns();
+					prepareReload();
+					showOutput('Switched to "$diffName".');
+				}
+				catch(e:Exception)
+				{
+					showOutput('Error: ${e.message}', true);
+					cancel();
+				}
+			}
+			openSubState(new Prompt('Switch to "$diffName"?\nAny unsaved progress will be lost.', load, cancel));
+		}
+		else
+		{
+			var create:Void->Void = function()
+			{
+				var dir:String = songDataFolder(songName);
+				try
+				{
+					if(!FileSystem.exists(dir)) FileSystem.createDirectory(dir);
+
+					Song.chartPath = dir + chartFile + '.json';
+					saveChart();
+
+					curDifficultyIndex = index;
+					difficultyDropDown.selectedIndex = index;
+					pushRecentChart(Song.chartPath);
+					showOutput('Created "$diffName" as a copy of the current chart.');
+				}
+				catch(e:Exception)
+				{
+					showOutput('Error: ${e.message}', true);
+					cancel();
+				}
+			}
+			openSubState(new Prompt('"$diffName" doesn\'t exist yet.\nCreate it as a copy of the current chart?', create, cancel));
+		}
+	}
+
+	function openNewDifficultyPrompt()
+	{
+		var input:PsychUIInputText = null;
+		var warn:FlxText = null;
+
+		var prompt:BasePrompt = new BasePrompt(520, 260, 'New Difficulty', function(state:BasePrompt)
+		{
+			var cams = state.cameras;
+
+			var label:FlxText = new FlxText(state.bg.x + 20, state.bg.y + 80, 480, 'Name of new difficulty:', 14);
+			label.setFormat(Paths.font('vcr.ttf'), 14, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+			label.borderSize = 1;
+			label.cameras = cams;
+			state.add(label);
+
+			warn = new FlxText(state.bg.x + 20, state.bg.y + 145, 480, '', 12);
+			warn.setFormat(Paths.font('vcr.ttf'), 12, 0xFFFF5555, CENTER, OUTLINE, FlxColor.BLACK);
+			warn.borderSize = 1;
+			warn.visible = false;
+			warn.cameras = cams;
+			state.add(warn);
+
+			var okBtn:PsychUIButton = new PsychUIButton(state.bg.x + 100, state.bg.y + 205, 'Create', function()
+			{
+				var error:String = createNewDifficulty(input.text);
+				if(error != null)
+				{
+					warn.text = error;
+					warn.visible = true;
+					return;
+				}
+				PsychUIInputText.focusOn = null;
+				state.close();
+			}, 150, 24);
+			var cancelBtn:PsychUIButton = new PsychUIButton(state.bg.x + 270, state.bg.y + 205, 'Cancel', function()
+			{
+				PsychUIInputText.focusOn = null;
+				state.close();
+			}, 150, 24);
+			okBtn.cameras = cancelBtn.cameras = cams;
+			state.add(okBtn);
+			state.add(cancelBtn);
+
+			input = new PsychUIInputText(state.bg.x + 160, state.bg.y + 108, 200, '', 8);
+			input.cameras = cams;
+			state.add(input);
+		});
+
+		prompt.closeCallback = function()
+		{
+			PsychUIInputText.focusOn = null;
+			refreshDifficultyDropDown();
+		}
+		openSubState(prompt);
+	}
+
+	function createNewDifficulty(rawName:String):String
+	{
+		if(PlayState.SONG == null) return 'No chart loaded.';
+
+		var name:String = (rawName != null) ? rawName.trim() : '';
+		if(name.length < 1) return 'Type a name first.';
+		if(~/[\\\/:*?"<>|]/.match(name)) return 'Name cannot contain used characters.';
+
+		var songName:String = PlayState.SONG.song;
+		var diffs:Array<String> = difficultiesForSong(songName);
+		for (diff in diffs)
+			if(Paths.formatToSongPath(diff) == Paths.formatToSongPath(name))
+				return '"$name" already exists for this song.';
+
+		var weekName:String = weekOfSong(songName);
+		var week:WeekData = (weekName != null) ? WeekData.weeksLoaded.get(weekName) : null;
+		if(week == null) return 'Song not present in any week, cannot create difficulty.\nAdd the song to a week!';
+
+		var chartFile:String = Paths.formatToSongPath(songName) + Paths.formatToSongPath('-' + name);
+		var dir:String = songDataFolder(songName);
+		try
+		{
+			if(!FileSystem.exists(dir)) FileSystem.createDirectory(dir);
+			Song.chartPath = dir + chartFile + '.json';
+			saveChart();
+			pushRecentChart(Song.chartPath);
+		}
+		catch(e:Exception) { return 'Could not save chart: ${e.message}'; }
+
+		var weekError:String = addDifficultyToWeek(week, name);
+		if(weekError != null) return weekError;
+
+		showOutput('Created "$name", added to week "$weekName".');
+		return null;
+	}
+
+	function addDifficultyToWeek(week:WeekData, name:String):String
+	{
+		var current:String = (week.difficulties != null) ? week.difficulties.trim() : '';
+		var updated:String = (current.length > 0) ? '$current, $name' : 'Easy, Normal, Hard, $name';
+
+		var weekFile:WeekFile = {
+			songs: week.songs,
+			weekCharacters: week.weekCharacters,
+			weekBackground: week.weekBackground,
+			weekBefore: week.weekBefore,
+			storyName: week.storyName,
+			weekName: week.weekName,
+			startUnlocked: week.startUnlocked,
+			hiddenUntilUnlocked: week.hiddenUntilUnlocked,
+			hideStoryMode: week.hideStoryMode,
+			hideFreeplay: week.hideFreeplay,
+			difficulties: updated
+		};
+
+		var folder:String = Paths.getSharedPath('weeks/');
+		#if MODS_ALLOWED
+		if(week.folder != null && week.folder.length > 0) folder = Paths.mods(week.folder + '/weeks/');
+		#end
+		var path:String = folder + week.fileName + '.json';
+
+		try
+		{
+			if(!FileSystem.exists(folder)) FileSystem.createDirectory(folder);
+			File.saveContent(path, haxe.Json.stringify(weekFile, "\t"));
+			week.difficulties = updated;
+		}
+		catch(e:Exception) { return 'Could not save the week: ${e.message}'; }
+
+		trace('Week saved to: ${readablePath(path)}');
+		return null;
+	}
+
 	function openGameSong(songName:String, diffIndex:Int)
 	{
 		difficultiesForSong(songName);
@@ -1411,9 +1682,37 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		});
 	}
 
+	function weekOfSong(songName:String):String
+	{
+		if(songName == null) return null;
+
+		var cached:String = startupSongWeek.get(songName);
+		if(cached != null) return cached;
+
+		if(WeekData.weeksList.length < 1) WeekData.reloadWeekFiles(false);
+
+		var formatted:String = Paths.formatToSongPath(songName);
+		for (weekName in WeekData.weeksList)
+		{
+			var week:WeekData = WeekData.weeksLoaded.get(weekName);
+			if(week == null || week.songs == null) continue;
+
+			for (song in week.songs)
+			{
+				if(song[0] == null) continue;
+				if(Paths.formatToSongPath(song[0]) == formatted)
+				{
+					startupSongWeek.set(songName, weekName);
+					return weekName;
+				}
+			}
+		}
+		return null;
+	}
+
 	function difficultiesForSong(songName:String):Array<String>
 	{
-		var weekName:String = startupSongWeek.get(songName);
+		var weekName:String = weekOfSong(songName);
 		var week:WeekData = (weekName != null) ? WeekData.weeksLoaded.get(weekName) : null;
 
 		if(week != null) Difficulty.loadFromWeek(week);
@@ -1495,15 +1794,119 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		var wizard:NewChartPrompt = new NewChartPrompt(stageDropDown.list, characterList);
 		wizard.onAccept = function(song:SwagSong)
 		{
-			Song.chartPath = null;
-			loadChart(song);
-			reloadNotesDropdowns();
-			prepareReload();
-			applyNewChartCredits(wizard.outArtist, wizard.outComposer, wizard.outCharter, wizard.outCoder);
+			openSongAudioPrompt(song, wizard.outArtist, wizard.outComposer, wizard.outCharter, wizard.outCoder);
 		}
 		wizard.onCancel = openStartupPrompt;
 		openSubState(wizard);
 	}
+
+	function songAudioFolder(songName:String):String
+	{
+		var folder:String = Paths.formatToSongPath(songName);
+
+		#if MODS_ALLOWED
+		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
+			return Paths.mods(Mods.currentModDirectory + '/songs/$folder/');
+		#end
+
+		return 'assets/songs/$folder/';
+	}
+
+	function songDataFolder(songName:String):String
+	{
+		var folder:String = Paths.formatToSongPath(songName);
+
+		#if MODS_ALLOWED
+		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
+			return Paths.mods(Mods.currentModDirectory + '/data/$folder/');
+		#end
+
+		return Paths.getSharedPath('data/$folder/');
+	}
+
+	function readablePath(path:String):String
+	{
+		try { return FileSystem.absolutePath(path).replace('\\', '/'); }
+		catch(e:Exception) { return path; }
+	}
+
+	function defaultChartPath(songName:String):String
+	{
+		var folder:String = Paths.formatToSongPath(songName);
+		return songDataFolder(songName) + '$folder.json';
+	}
+
+	function importSongAudio(sourcePath:String, songName:String, targetName:String):String
+	{
+		if(sourcePath == null || sourcePath.length < 1) return 'No file selected.';
+
+		var src:String = sourcePath.replace('\\', '/');
+		if(!src.toLowerCase().endsWith('.${Paths.SOUND_EXT}'))
+			return 'Only .${Paths.SOUND_EXT} files are supported.';
+
+		if(!FileSystem.exists(src)) return 'File not found: $src';
+
+		var dir:String = songAudioFolder(songName);
+		var dest:String = dir + targetName + '.${Paths.SOUND_EXT}';
+
+		try
+		{
+			if(!FileSystem.exists(dir)) FileSystem.createDirectory(dir);
+			if(FileSystem.exists(dest) && FileSystem.absolutePath(src) == FileSystem.absolutePath(dest))
+				return null;
+
+			File.copy(src, dest);
+		}
+		catch(e:Exception)
+		{
+			return 'Could not copy: ${e.message}';
+		}
+		return null;
+	}
+		function openSongAudioPrompt(song:SwagSong, artist:String, composer:String, charter:String, coder:String)
+	{
+		var dir:String = songAudioFolder(song.song);
+		var prompt:SongAudioPrompt = new SongAudioPrompt(dir, readablePath(dir));
+		prompt.onBrowse = function(target:String) browseSongAudio(prompt, song.song, target);
+		prompt.onDone = function() finishNewChart(song, artist, composer, charter, coder);
+		openSubState(prompt);
+	}
+
+	function browseSongAudio(prompt:SongAudioPrompt, songName:String, target:String)
+	{
+		if(!fileDialog.completed) return;
+
+		fileDialog.open(null, 'Select the "$target" file', [new FileFilter('OGG', 'ogg')],
+			function()
+			{
+				var error:String = importSongAudio(fileDialog.path, songName, target);
+				if(error != null) prompt.setStatus(target, error, false);
+				else prompt.setStatus(target, 'copied', true);
+			},
+			function() {},
+			function() prompt.setStatus(target, 'error opening the file', false));
+	}
+
+	function finishNewChart(song:SwagSong, artist:String, composer:String, charter:String, coder:String)
+	{
+		var dataDir:String = songDataFolder(song.song);
+		try
+		{
+			if(!FileSystem.exists(dataDir)) FileSystem.createDirectory(dataDir);
+			Song.chartPath = defaultChartPath(song.song);
+		}
+		catch(e:Exception)
+		{
+			Song.chartPath = null;
+		}
+
+		song.needsVoices = FileSystem.exists(songAudioFolder(song.song) + 'Voices.${Paths.SOUND_EXT}') || FileSystem.exists(songAudioFolder(song.song) + 'Voices-Player.${Paths.SOUND_EXT}');
+		loadChart(song);
+		reloadNotesDropdowns();
+		prepareReload();
+		applyNewChartCredits(artist, composer, charter, coder);
+	}
+
 	function closeStartupPrompt()
 	{
 		if(startupPrompt == null) return;
@@ -1636,6 +2039,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		updateJsonData();
 
 		loadMetaDataCredits();
+		refreshDifficultyDropDown();
 	}
 
 	function loadMetaDataCredits()
@@ -1702,6 +2106,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	
 	var noteSelectionSine:Float = 0;
 	var selectedNotes:Array<MetaNote> = [];
+
+	var pendingNote:MetaNote = null;
+	var pendingWasSelected:Bool = false;
+	var pendingDuplicate:Bool = false;
+	var pendingMouseX:Float = 0;
+	var pendingMouseY:Float = 0;
+	static inline final DRAG_THRESHOLD:Float = 4;
+
 	var ignoreClickForThisFrame:Bool = false;
 	var _leftClickedOffGrid:Bool = false;
 	var _rightClickedOffGrid:Bool = false;
@@ -2087,17 +2499,16 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				goToPlayState();
 				return;
 			}
-			else if(FlxG.keys.pressed.CONTROL && !isMovingNotes && (FlxG.keys.justPressed.Z || FlxG.keys.justPressed.Y || FlxG.keys.justPressed.X ||
+			else if(FlxG.keys.pressed.CONTROL && !isMovingNotes && (FlxG.keys.justPressed.Z || FlxG.keys.justPressed.X ||
 				FlxG.keys.justPressed.C || FlxG.keys.justPressed.V || FlxG.keys.justPressed.A || FlxG.keys.justPressed.S))
 			{
 				canContinue = false;
 				if(FlxG.keys.justPressed.Z)
 				{
-					undo();
+					if(FlxG.keys.pressed.SHIFT) redo();
+					else undo();
 					return;
 				}
-				else if(FlxG.keys.justPressed.Y)
-					redo();
 				else if((doCut = FlxG.keys.justPressed.X) || FlxG.keys.justPressed.C) // Cut (Ctrl + X) and Copy (Ctrl + C)
 				{
 					if(selectedNotes.length > 0)
@@ -2258,9 +2669,11 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					if(selectedNotes.length > 0)
 						onSelectNote();
 				}
-				else if(FlxG.keys.justPressed.H)
-				{
+				else if(FlxG.keys.justPressed.H){
 					toggleToyHitboxes();
+				}
+				else if(FlxG.keys.justPressed.R){
+					reloadChartFromDisk();
 				}
 			}
 		}
@@ -2443,6 +2856,12 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		if(isMovingNotes && FlxG.mouse.justReleased)
 			stopMovingNotes();
 
+		if(pendingNote != null && (!FlxG.mouse.pressed || !pendingNote.exists))
+		{
+			if(pendingWasSelected && pendingNote.exists) deselectNote(pendingNote);
+			pendingNote = null;
+		}
+
 		if(stretchingNote != null){
 			if(FlxG.mouse.pressed)
 			{
@@ -2508,6 +2927,22 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				noteData--;
 
 			dummyArrow.y = gridBg.y + diffY;
+			if(pendingNote != null && FlxG.mouse.pressed &&
+				(Math.abs(FlxG.mouse.x - pendingMouseX) >= DRAG_THRESHOLD || Math.abs(FlxG.mouse.y - pendingMouseY) >= DRAG_THRESHOLD))
+			{
+				if(!pendingWasSelected && !pendingDuplicate && selectedNotes.length > 1)
+				{
+					var sel = selectedNotes.copy();
+					resetSelectedNotes();
+					selectedNotes.push(pendingNote);
+					addUndoAction(SELECT_NOTE, {old: sel, current: selectedNotes.copy()});
+					onSelectNote();
+				}
+
+				if(pendingDuplicate) duplicateSelectedNotes();
+				moveSelectedNotes(noteData, dummyArrow.y);
+				pendingNote = null;
+			}
 
 			if(isMovingNotes)
 			{
@@ -2662,74 +3097,23 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 						forceDataUpdate = true;
 						softReloadNotes();
 					}
-						else
+						else if(FlxG.mouse.justPressed)
 						{
-							if(FlxG.keys.pressed.SHIFT && !holdingAlt)
-							{
-								if(!selectedNotes.contains(closest))
-								{
-									var sel = selectedNotes.copy();
-									selectedNotes.push(closest);
-									addUndoAction(SELECT_NOTE, {old: sel, current: selectedNotes.copy()});
-								}
-								else
-								{
-									var duplicatedNotes:Array<MetaNote> = [];
-									var duplicatedEvents:Array<EventMetaNote> = [];
-									for (note in selectedNotes)
-									{
-										if(note == null) continue;
-										
-										if(!note.isEvent)
-										{
-											var noteCopy:Array<Dynamic> = makeNoteDataCopy(note.songData, false);
-											var newNote:MetaNote = createNote(noteCopy, curSec);
-											notes.push(newNote);
-											duplicatedNotes.push(newNote);
-										}
-										else
-										{
-											var eventCopy:Array<Dynamic> = makeNoteDataCopy(note.songData, true);
-											var newEvent:EventMetaNote = createEvent(eventCopy);
-											events.push(newEvent);
-											duplicatedEvents.push(newEvent);
-										}
-									}
-									notes.sort(PlayState.sortByTime);
-									events.sort(PlayState.sortByTime);
-									resetSelectedNotes();
-									selectedNotes = duplicatedNotes.concat(cast duplicatedEvents);
-									addUndoAction(ADD_NOTE, {notes: duplicatedNotes, events: duplicatedEvents});
-									moveSelectedNotes(noteData, dummyArrow.y);
-								}
-							}
-							else if(holdingAlt)
+							pendingNote = closest;
+							pendingWasSelected = selectedNotes.contains(closest);
+							pendingDuplicate = FlxG.keys.pressed.SHIFT;
+							pendingMouseX = FlxG.mouse.x;
+							pendingMouseY = FlxG.mouse.y;
+							
+							if(!pendingWasSelected)
 							{
 								var sel = selectedNotes.copy();
-								if(!selectedNotes.contains(closest))
-								{
-									selectedNotes.push(closest);
-									addUndoAction(SELECT_NOTE, {old: sel, current: selectedNotes.copy()});
-								}
-								else if(!holdingAlt)
-								{
-									resetSelectedNotes();
-									selectedNotes.remove(closest);
-									addUndoAction(SELECT_NOTE, {old: sel, current: selectedNotes.copy()});
-								}
-								trace('Notes selected: ' + selectedNotes.length);
+								selectedNotes.push(closest);
+								addUndoAction(SELECT_NOTE, {old: sel, current: selectedNotes.copy()});
+								onSelectNote();
 							}
-							else
-							{
-								if(!selectedNotes.contains(closest))
-								{
-									resetSelectedNotes();
-									selectedNotes.push(closest);
-								}
-								moveSelectedNotes(noteData, dummyArrow.y);
-							}
-							if(selectedNotes.length == 1) onSelectNote();
 							forceDataUpdate = true;
+							trace('Notes selected: ' + selectedNotes.length);
 						}
 					}
 					else if(!holdingAlt && FlxG.mouse.justPressed && FlxG.mouse.y >= gridBg.y && FlxG.mouse.y < gridBg.y + gridBg.height)
@@ -3275,6 +3659,50 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
 			outputTxt.color = FlxColor.WHITE;
 		}
+	}
+
+	function deselectNote(note:MetaNote)
+	{
+		if(note == null || !selectedNotes.contains(note)) return;
+
+		var sel = selectedNotes.copy();
+		note.colorTransform.redMultiplier = note.colorTransform.greenMultiplier = note.colorTransform.blueMultiplier = 1;
+		if(note.animation.curAnim != null) note.animation.curAnim.curFrame = 0;
+
+		selectedNotes.remove(note);
+		onSelectNote();
+		addUndoAction(SELECT_NOTE, {old: sel, current: selectedNotes.copy()});
+		forceDataUpdate = true;
+	}
+
+	function duplicateSelectedNotes()
+	{
+		var duplicatedNotes:Array<MetaNote> = [];
+		var duplicatedEvents:Array<EventMetaNote> = [];
+		for (note in selectedNotes)
+		{
+			if(note == null) continue;
+
+			if(!note.isEvent)
+			{
+				var noteCopy:Array<Dynamic> = makeNoteDataCopy(note.songData, false);
+				var newNote:MetaNote = createNote(noteCopy, curSec);
+				notes.push(newNote);
+				duplicatedNotes.push(newNote);
+			}
+			else
+			{
+				var eventCopy:Array<Dynamic> = makeNoteDataCopy(note.songData, true);
+				var newEvent:EventMetaNote = createEvent(eventCopy);
+				events.push(newEvent);
+				duplicatedEvents.push(newEvent);
+			}
+		}
+		notes.sort(PlayState.sortByTime);
+		events.sort(PlayState.sortByTime);
+		resetSelectedNotes();
+		selectedNotes = duplicatedNotes.concat(cast duplicatedEvents);
+		addUndoAction(ADD_NOTE, {notes: duplicatedNotes, events: duplicatedEvents});
 	}
 
 	function resetSelectedNotes()
@@ -4222,20 +4650,27 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var opponentVolumeSlider:PsychUISlider;
 	var opponentMuteCheckBox:PsychUICheckBox;
 
+	var difficultyDropDown:PsychUIDropDownMenu;
+	var curDifficultyIndex:Int = 0;
+	static inline final NEW_DIFF_LABEL:String = 'New Difficulty...';
+
 	function addChartingTab()
 	{
 		var tab_group = mainBox.getTab('Chart').menu;
 		var objX = 10;
 		var objY = 10;
 
-		var txt = new FlxText(objX, objY, 280, "Any options here won't actually affect gameplay!");
+		var diffLabel = new FlxText(objX, objY, 200, 'Difficulty:');
+		difficultyDropDown = new PsychUIDropDownMenu(objX, objY + 18, ['Normal'], function(id:Int, diff:String) switchDifficulty(id));
+
+		objY += 55;
+		var txt = new FlxText(objX, objY, 280, "The options below won't affect gameplay!");
 		txt.alignment = CENTER;
-		tab_group.add(txt);
 
 		objY += 25;
 		playbackSlider = new PsychUISlider(50, objY, function(v:Float) setPitch(playbackRate = v), 1, 0.1, 5.0, 200);
 		playbackSlider.label = 'Playback Rate';
-		
+
 		objY += 60;
 		mouseSnapCheckBox = new PsychUICheckBox(objX, objY, 'Mouse Scroll Snap', 100, function() chartEditorSave.data.mouseScrollSnap = mouseSnapCheckBox.checked);
 		mouseSnapCheckBox.checked = chartEditorSave.data.mouseScrollSnap;
@@ -4243,9 +4678,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		ignoreProgressCheckBox = new PsychUICheckBox(objX + 150, objY, 'Ignore Progress Warnings', 100, function() chartEditorSave.data.ignoreProgressWarns = ignoreProgressCheckBox.checked);
 		ignoreProgressCheckBox.checked = chartEditorSave.data.ignoreProgressWarns;
 
+		tab_group.add(txt);
 		tab_group.add(playbackSlider);
 		tab_group.add(mouseSnapCheckBox);
 		tab_group.add(ignoreProgressCheckBox);
+		tab_group.add(diffLabel);
+		tab_group.add(difficultyDropDown);
+
+		difficultyDropDown.autoSort = false;
 	}
 
 	var artistInputText:PsychUIInputText;
@@ -6518,38 +6958,7 @@ end
 
 		btnY++;
 		btnY += 20;
-		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Reload Chart', function()
-		{
-			var func:Void->Void = function()
-			{
-				if(Song.chartPath == null)
-				{
-					showOutput('You must save/load a Chart first to Reload it!', true);
-					return;
-				}
-	
-				if(FileSystem.exists(Song.chartPath))
-				{
-					try
-					{
-						var reloadedChart:SwagSong = Song.parseJSON(File.getContent(Song.chartPath), getSongFolderFromPath(Song.chartPath));
-						loadChart(reloadedChart);
-						reloadNotesDropdowns();
-						prepareReload();
-						showOutput('Chart reloaded successfully!');
-					}
-					catch(e:Exception)
-					{
-						showOutput('Error: ${e.message}', true);
-						trace(e.stack);
-					}
-				}
-				else showOutput('You must save/load a Chart first to Reload it!', true);
-			}
-
-			if(!ignoreProgressCheckBox.checked) openSubState(new Prompt('Warning: Any unsaved progress will be lost', func));
-			else func();
-		}, btnWid);
+		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Reload Chart', reloadChartFromDisk, btnWid);
 		btn.text.alignment = LEFT;
 		tab_group.add(btn);
 		
@@ -7330,45 +7739,49 @@ end
 	{
 		var tab = upperBox.getTab('Audio');
 		var tab_group = tab.menu;
-		var objX = 45;
-		var objY = 12;
-		var sliderWid = 140;
-		var muteX = 230;
-		var rowStep = 55;
+		var labelX:Int = 8;
+		var sliderX:Int = 105;
+		var sliderWid:Int = 125;
+		var muteX:Int = 235;
+		var objY:Int = 18;
+		var rowStep:Int = 36;
 
-		var panel:FlxSprite = new FlxSprite().makeGraphic(300, 415, FlxColor.BLACK, true);
+		var panel:FlxSprite = new FlxSprite().makeGraphic(300, 270, FlxColor.BLACK, true);
 		panel.alpha = 0.8;
 		tab_group.add(panel);
 
-		instVolumeSlider = new PsychUISlider(objX, objY, null, 60, 0, 100, sliderWid);
-		instVolumeSlider.label = 'Inst. Volume';
-		instMuteCheckBox = new PsychUICheckBox(muteX, objY + 22, 'Mute', 60, updateAudioVolume);
+		var rowLabels:Array<FlxText> = [];
+
+		instVolumeSlider = new PsychUISlider(sliderX, objY, null, 60, 0, 100, sliderWid);
+		instMuteCheckBox = new PsychUICheckBox(muteX, objY - 6, 'Mute', 60, updateAudioVolume);
+		rowLabels.push(new FlxText(labelX, objY - 2, 95, 'Inst.', 8));
 
 		objY += rowStep;
-		playerVolumeSlider = new PsychUISlider(objX, objY, null, 100, 0, 100, sliderWid);
-		playerVolumeSlider.label = 'Main Vocals';
-		playerMuteCheckBox = new PsychUICheckBox(muteX, objY + 22, 'Mute', 60, updateAudioVolume);
+		playerVolumeSlider = new PsychUISlider(sliderX, objY, null, 100, 0, 100, sliderWid);
+		playerMuteCheckBox = new PsychUICheckBox(muteX, objY - 6, 'Mute', 60, updateAudioVolume);
+		rowLabels.push(new FlxText(labelX, objY - 2, 95, 'Main Vocals', 8));
 
 		objY += rowStep;
-		opponentVolumeSlider = new PsychUISlider(objX, objY, null, 100, 0, 100, sliderWid);
-		opponentVolumeSlider.label = 'Opp. Vocals';
-		opponentMuteCheckBox = new PsychUICheckBox(muteX, objY + 22, 'Mute', 60, updateAudioVolume);
+		opponentVolumeSlider = new PsychUISlider(sliderX, objY, null, 100, 0, 100, sliderWid);
+		opponentMuteCheckBox = new PsychUICheckBox(muteX, objY - 6, 'Mute', 60, updateAudioVolume);
+		rowLabels.push(new FlxText(labelX, objY - 2, 95, 'Opp. Vocals', 8));
 
 		objY += rowStep;
-		hitsoundPlayerSlider = new PsychUISlider(objX, objY, null, 0, 0, 100, sliderWid);
-		hitsoundPlayerSlider.label = 'Hitsound (Player)';
+		hitsoundPlayerSlider = new PsychUISlider(sliderX, objY, null, 0, 0, 100, sliderWid);
+		rowLabels.push(new FlxText(labelX, objY - 2, 95, 'Hitsound (P)', 8));
 
 		objY += rowStep;
-		hitsoundOpponentSlider = new PsychUISlider(objX, objY, null, 0, 0, 100, sliderWid);
-		hitsoundOpponentSlider.label = 'Hitsound (Opponent)';
+		hitsoundOpponentSlider = new PsychUISlider(sliderX, objY, null, 0, 0, 100, sliderWid);
+		rowLabels.push(new FlxText(labelX, objY - 2, 95, 'Hitsound (O)', 8));
 
 		objY += rowStep;
-		metronomeSlider = new PsychUISlider(objX, objY, null, 0, 0, 100, sliderWid);
-		metronomeSlider.label = 'Metronome';
+		metronomeSlider = new PsychUISlider(sliderX, objY, null, 0, 0, 100, sliderWid);
+		rowLabels.push(new FlxText(labelX, objY - 2, 95, 'Metronome', 8));
 
 		for (slider in [instVolumeSlider, playerVolumeSlider, opponentVolumeSlider, hitsoundPlayerSlider, hitsoundOpponentSlider, metronomeSlider])
 		{
 			slider.decimals = 0;
+			slider.minText.visible = slider.maxText.visible = false;
 			tab_group.add(slider);
 		}
 
@@ -7380,8 +7793,10 @@ end
 		tab_group.add(playerMuteCheckBox);
 		tab_group.add(opponentMuteCheckBox);
 
-		objY += rowStep + 25;
-		editorMusicCheckBox = new PsychUICheckBox(objX - 35, objY, 'Mute Editor Music', 150);
+		for (txt in rowLabels) tab_group.add(txt);
+
+		objY += rowStep + 6;
+		editorMusicCheckBox = new PsychUICheckBox(labelX + 2, objY, 'Mute Editor Music', 150);
 		editorMusicCheckBox.checked = editorMusicMuted;
 		editorMusicCheckBox.onClick = function()
 		{
@@ -7917,6 +8332,35 @@ end
 		tipPageTxt.text = '< ${curTipPage + 1} / ${tipPages.length} >';
 	}
 
+	function reloadChartFromDisk()
+	{
+		var func:Void->Void = function()
+		{
+			if(Song.chartPath == null || !FileSystem.exists(Song.chartPath))
+			{
+				showOutput('You must save/load a Chart first to Reload it!', true);
+				return;
+			}
+
+			try
+			{
+				var reloadedChart:SwagSong = Song.parseJSON(File.getContent(Song.chartPath), getSongFolderFromPath(Song.chartPath));
+				loadChart(reloadedChart);
+				reloadNotesDropdowns();
+				prepareReload();
+				showOutput('Chart reloaded successfully!');
+			}
+			catch(e:Exception)
+			{
+				showOutput('Error: ${e.message}', true);
+				trace(e.stack);
+			}
+		}
+
+		if(!ignoreProgressCheckBox.checked) openSubState(new Prompt('Warning!\nAny unsaved progress will be lost', func));
+		else func();
+	}
+	
 	function exitEditor()
 	{
 		var func:Void->Void = function()
@@ -7926,7 +8370,7 @@ end
 			funkin.editors.EditorHelper.returnToPreviousState();
 		};
 
-		if(!ignoreProgressCheckBox.checked) openSubState(new Prompt('Warning: Any unsaved progress will be lost', func));
+		if(!ignoreProgressCheckBox.checked) openSubState(new Prompt('Warning!\nAny unsaved progress will be lost', func));
 		else func();
 	}
 
