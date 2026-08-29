@@ -117,7 +117,7 @@ class Character extends FlxSprite
 		if (!Assets.exists(path))
 		#end
 		{
-			path = Paths.getSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
+			path = Paths.getRoutedSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
 			missingCharacter = true;
 			missingText = new FlxText(0, 0, 300, 'ERROR:\n$character.json', 16);
 			missingText.alignment = CENTER;

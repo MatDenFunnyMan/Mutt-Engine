@@ -39,15 +39,15 @@
 	<define name="CRASH_HANDLER" if="desktop " />
 
 	<assets path="assets/fonts" />
-	<assets path="assets/shared" exclude="*.ogg" if="web"/>
-	<assets path="assets/shared" exclude="*.mp3" unless="web"/>
+	<assets path="assets/content" exclude="*.ogg" if="web"/>
+	<assets path="assets/content" exclude="*.mp3" unless="web"/>
+	<assets path="assets/data" exclude="*.ogg" if="web"/>
+	<assets path="assets/data" exclude="*.mp3" unless="web"/>
 	<assets path="assets/embed" exclude="*.ogg" if="web" embed="true"/>
 	<assets path="assets/embed" exclude="*.mp3" unless="web" embed="true"/>
 	<assets path="assets/videos" if="VIDEOS_ALLOWED"/>
 	<assets path="assets/songs" exclude="*.ogg" if="web"/>
 	<assets path="assets/songs" exclude="*.mp3" unless="web"/>
-	<assets path="assets/week_assets" rename="assets" exclude="*.ogg" if="web"/>
-	<assets path="assets/week_assets" rename="assets" exclude="*.mp3" unless="web"/>
 
 	<section if="MODS_ALLOWED">
 		<assets path='loaded-mods' rename='mods' embed='false' unless="mac"/>
@@ -63,8 +63,8 @@
 	</section>
 
 	<section if="TRANSLATIONS_ALLOWED">
-		<assets path="assets/translations" rename="assets" exclude="*.ogg" if="web"/>
-		<assets path="assets/translations" rename="assets" exclude="*.mp3" unless="web"/>
+		<assets path="assets/translations" rename="assets/content/translations" exclude="*.ogg" if="web"/>
+		<assets path="assets/translations" rename="assets/content/translations" exclude="*.mp3" unless="web"/>
 	</section>
 
 	<define name="CHECK_FOR_UPDATES" if="desktop officialBuild"/>

@@ -181,6 +181,22 @@ class Song
 		var formattedSong:String = Paths.formatToSongPath(jsonInput);
 		
 		#if MODS_ALLOWED
+		var newPath0:String = Paths.json('songs/$formattedFolder/charts/$formattedSong');
+		if(FileSystem.exists(newPath0))
+		{
+			_lastPath = newPath0;
+			rawData = File.getContent(_lastPath);
+			return rawData != null ? parseJSON(rawData, jsonInput) : null;
+		}
+		
+		var newPathRoot:String = Paths.json('songs/$formattedFolder/$formattedSong');
+		if(FileSystem.exists(newPathRoot))
+		{
+			_lastPath = newPathRoot;
+			rawData = File.getContent(_lastPath);
+			return rawData != null ? parseJSON(rawData, jsonInput) : null;
+		}
+		
 		var newPath1:String = Paths.json('$formattedFolder/charts/$formattedSong');
 		if(FileSystem.exists(newPath1))
 		{

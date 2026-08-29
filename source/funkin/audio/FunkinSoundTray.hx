@@ -24,15 +24,9 @@ class FunkinSoundTray extends FlxSoundTray
 	function _getImageData(file:String):BitmapData
 	{
 		#if MODS_ALLOWED
-		var modPath:String = Paths.mods(Mods.currentModDirectory + '/images/soundtray/' + file + '.png');
+		var modPath:String = Paths.modFolders('images/soundtray/' + file + '.png');
 		if (sys.FileSystem.exists(modPath))
 			return BitmapData.fromFile(modPath);
-		for (mod in Mods.getGlobalMods())
-		{
-			var globalPath:String = Paths.mods(mod + '/images/soundtray/' + file + '.png');
-			if (sys.FileSystem.exists(globalPath))
-				return BitmapData.fromFile(globalPath);
-		}
 		#end
 		return Assets.getBitmapData(Paths.getPath('images/soundtray/' + file + '.png', IMAGE));
 	}
@@ -40,15 +34,9 @@ class FunkinSoundTray extends FlxSoundTray
 	function _getSoundPath(file:String):String
 	{
 		#if MODS_ALLOWED
-		var modPath:String = Paths.mods(Mods.currentModDirectory + '/sounds/soundtray/' + file + '.ogg');
+		var modPath:String = Paths.modFolders('sounds/soundtray/' + file + '.ogg');
 		if (sys.FileSystem.exists(modPath))
 			return modPath;
-		for (mod in Mods.getGlobalMods())
-		{
-			var globalPath:String = Paths.mods(mod + '/sounds/soundtray/' + file + '.ogg');
-			if (sys.FileSystem.exists(globalPath))
-				return globalPath;
-		}
 		#end
 		return Paths.getPath('sounds/soundtray/' + file + '.ogg', SOUND);
 	}

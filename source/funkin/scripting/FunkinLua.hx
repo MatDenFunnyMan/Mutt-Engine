@@ -1667,14 +1667,21 @@ class FunkinLua {
 			}
 		}
 
-		var foldersToCheck:Array<String> = [Paths.getSharedPath('shaders/')];
+		var foldersToCheck:Array<String> = [Paths.getRoutedSharedPath('shaders/')];
 		#if MODS_ALLOWED
 		foldersToCheck.push(Paths.mods('shaders/'));
+		foldersToCheck.push(Paths.mods('content/shaders/'));
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
+		{
 			foldersToCheck.insert(0, Paths.mods(Mods.currentModDirectory + '/shaders/'));
+			foldersToCheck.insert(0, Paths.mods(Mods.currentModDirectory + '/content/shaders/'));
+		}
 
 		for(mod in Mods.getGlobalMods())
+		{
 			foldersToCheck.insert(0, Paths.mods(mod + '/shaders/'));
+			foldersToCheck.insert(0, Paths.mods(mod + '/content/shaders/'));
+		}
 		#end
 
 		for (folder in foldersToCheck)

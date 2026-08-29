@@ -97,11 +97,20 @@ class Mods
 	inline public static function directoriesWithFile(path:String, fileToFind:String, mods:Bool = true)
 	{
 		var foldersToCheck:Array<String> = [];
+		var routed:String = Paths.routeKey(fileToFind);
+
+		if(routed != null && FileSystem.exists('assets/$routed'))
+			foldersToCheck.push('assets/$routed');
+
 		if(FileSystem.exists(path + fileToFind))
 			foldersToCheck.push(path + fileToFind);
 
 		if(Paths.currentLevel != null && Paths.currentLevel != path)
 		{
+			var newPth:String = 'assets/' + Paths.routeLevelKey(fileToFind, Paths.currentLevel);
+			if(!foldersToCheck.contains(newPth) && FileSystem.exists(newPth))
+				foldersToCheck.push(newPth);
+
 			var pth:String = Paths.getFolderPath(fileToFind, Paths.currentLevel);
 			if(!foldersToCheck.contains(pth) && FileSystem.exists(pth))
 				foldersToCheck.push(pth);
@@ -112,15 +121,33 @@ class Mods
 		{
 			for(mod in Mods.getGlobalMods())
 			{
+				if(routed != null)
+				{
+					var newFolder:String = Paths.mods(mod + '/' + routed);
+					if(FileSystem.exists(newFolder) && !foldersToCheck.contains(newFolder)) foldersToCheck.push(newFolder);
+				}
+
 				var folder:String = Paths.mods(mod + '/' + fileToFind);
 				if(FileSystem.exists(folder) && !foldersToCheck.contains(folder)) foldersToCheck.push(folder);
 			}
 
+			if(routed != null)
+			{
+				var newFolder:String = Paths.mods(routed);
+				if(FileSystem.exists(newFolder) && !foldersToCheck.contains(newFolder)) foldersToCheck.push(newFolder);
+			}
+
 			var folder:String = Paths.mods(fileToFind);
-			if(FileSystem.exists(folder) && !foldersToCheck.contains(folder)) foldersToCheck.push(Paths.mods(fileToFind));
+			if(FileSystem.exists(folder) && !foldersToCheck.contains(folder)) foldersToCheck.push(folder);
 
 			if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
 			{
+				if(routed != null)
+				{
+					var newFolder:String = Paths.mods(Mods.currentModDirectory + '/' + routed);
+					if(FileSystem.exists(newFolder) && !foldersToCheck.contains(newFolder)) foldersToCheck.push(newFolder);
+				}
+
 				var folder:String = Paths.mods(Mods.currentModDirectory + '/' + fileToFind);
 				if(FileSystem.exists(folder) && !foldersToCheck.contains(folder)) foldersToCheck.push(folder);
 			}

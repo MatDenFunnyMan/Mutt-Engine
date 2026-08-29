@@ -388,7 +388,10 @@ class ModSelectorSubstate extends MusicBeatSubstate
 		} catch(e:Dynamic) {}
 
 		try {
-			Paths.dumpExclusions = ['assets/shared/music/freakyMenu.${Paths.SOUND_EXT}'];
+			Paths.dumpExclusions = [
+				'assets/content/audio/music/freakyMenu.${Paths.SOUND_EXT}',
+				'assets/shared/music/freakyMenu.${Paths.SOUND_EXT}'
+			];
 			Paths.localTrackedAssets = [];
 			Paths.currentTrackedSounds.clear();
 			Paths.currentTrackedAssets.clear();

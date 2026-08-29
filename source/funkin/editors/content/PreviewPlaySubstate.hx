@@ -685,14 +685,14 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 	{
 		#if MODS_ALLOWED
 		var path = Paths.modFolders(luaFile);
-		if (!FileSystem.exists(path)) path = Paths.getSharedPath(luaFile);
+		if (!FileSystem.exists(path)) path = Paths.getRoutedSharedPath(luaFile);
 		if (FileSystem.exists(path))
 		{
 			for (s in luaArray) if (s.scriptName == path) return;
 			new FunkinLua(path);
 		}
 		#elseif sys
-		var path = Paths.getSharedPath(luaFile);
+		var path = Paths.getRoutedSharedPath(luaFile);
 		if (FileSystem.exists(path))
 		{
 			for (s in luaArray) if (s.scriptName == path) return;
@@ -707,9 +707,9 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 	{
 		#if MODS_ALLOWED
 		var path = Paths.modFolders(scriptFile);
-		if (!FileSystem.exists(path)) path = Paths.getSharedPath(scriptFile);
+		if (!FileSystem.exists(path)) path = Paths.getRoutedSharedPath(scriptFile);
 		#else
-		var path = Paths.getSharedPath(scriptFile);
+		var path = Paths.getRoutedSharedPath(scriptFile);
 		#end
 		if (!FileSystem.exists(path)) return;
 		if (Iris.instances.exists(path))  return;

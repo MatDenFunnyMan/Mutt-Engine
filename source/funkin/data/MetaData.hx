@@ -18,7 +18,9 @@ class MetaData
 {
     public static function parse(song:String):SongMeta
     {
-        var path = "data/" + song + "/metadata.json";
+        var path = "data/songs/" + song + "/metadata.json";
+        if (!Paths.fileExists(path, TEXT))
+            path = "data/" + song + "/metadata.json";
         if (!Paths.fileExists(path, TEXT))
             path = "data/" + song + "/charts/metadata.json";
 

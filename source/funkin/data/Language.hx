@@ -11,8 +11,9 @@ class Language
 	{
 		#if TRANSLATIONS_ALLOWED
 		var langFile:String = ClientPrefs.data.language;
-		var loadedText:Array<String> = Mods.mergeAllTextsNamed('data/$langFile.lang');
-		//trace(loadedText);
+		var loadedText:Array<String> = Mods.mergeAllTextsNamed('translations/$langFile/data/$langFile.lang');
+		if(loadedText == null || loadedText.length < 1)
+			loadedText = Mods.mergeAllTextsNamed('data/$langFile.lang');
 
 		phrases.clear();
 		var hasPhrases:Bool = false;
@@ -45,7 +46,6 @@ class Language
 		if(!hasPhrases) ClientPrefs.data.language = ClientPrefs.defaultData.language;
 		
 		var alphaPath:String = getFileTranslation('images/alphabet');
-		if(alphaPath.startsWith('images/')) alphaPath = alphaPath.substr('images/'.length);
 		var pngPos:Int = alphaPath.indexOf('.png');
 		if(pngPos > -1) alphaPath = alphaPath.substring(0, pngPos);
 		AlphaCharacter.loadAlphabetData(alphaPath);

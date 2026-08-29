@@ -1329,7 +1329,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			var create:Void->Void = function()
 			{
-				var dir:String = songDataFolder(songName);
+				var dir:String = songChartFolder(songName);
 				try
 				{
 					if(!FileSystem.exists(dir)) FileSystem.createDirectory(dir);
@@ -1427,7 +1427,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		if(week == null) return 'Song not present in any week, cannot create difficulty.\nAdd the song to a week!';
 
 		var chartFile:String = Paths.formatToSongPath(songName) + Paths.formatToSongPath('-' + name);
-		var dir:String = songDataFolder(songName);
+		var dir:String = songChartFolder(songName);
 		try
 		{
 			if(!FileSystem.exists(dir)) FileSystem.createDirectory(dir);
@@ -1463,7 +1463,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			difficulties: updated
 		};
 
-		var folder:String = Paths.getSharedPath('weeks/');
+		var folder:String = Paths.getRoutedSharedPath('weeks/');
 		#if MODS_ALLOWED
 		if(week.folder != null && week.folder.length > 0) folder = Paths.mods(week.folder + '/weeks/');
 		#end
@@ -1806,10 +1806,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		#if MODS_ALLOWED
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
-			return Paths.mods(Mods.currentModDirectory + '/songs/$folder/');
+			return Paths.mods(Mods.currentModDirectory + '/data/songs/$folder/song/');
 		#end
 
-		return 'assets/songs/$folder/';
+		return 'assets/data/songs/$folder/song/';
 	}
 
 	function songDataFolder(songName:String):String
@@ -1818,11 +1818,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		#if MODS_ALLOWED
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
-			return Paths.mods(Mods.currentModDirectory + '/data/$folder/');
+			return Paths.mods(Mods.currentModDirectory + '/data/songs/$folder/');
 		#end
 
-		return Paths.getSharedPath('data/$folder/');
+		return 'assets/data/songs/$folder/';
 	}
+
+	function songChartFolder(songName:String):String
+		return songDataFolder(songName) + 'charts/';
 
 	function readablePath(path:String):String
 	{
@@ -1833,7 +1836,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	function defaultChartPath(songName:String):String
 	{
 		var folder:String = Paths.formatToSongPath(songName);
-		return songDataFolder(songName) + '$folder.json';
+		return songChartFolder(songName) + '$folder.json';
 	}
 
 	function importSongAudio(sourcePath:String, songName:String, targetName:String):String
@@ -6360,6 +6363,12 @@ end
 				var parentFolder:String = Song.chartPath.replace('\\', '/');
 				parentFolder = parentFolder.substr(0, parentFolder.lastIndexOf('/') + 1);
 				var notetypeFile:Array<String> = CoolUtil.coolTextFile(parentFolder + 'notetypes.txt');
+				if(notetypeFile.length < 1)
+				{
+					var upFolder:String = parentFolder.substr(0, parentFolder.length - 1);
+					upFolder = upFolder.substr(0, upFolder.lastIndexOf('/') + 1);
+					notetypeFile = CoolUtil.coolTextFile(upFolder + 'notetypes.txt');
+				}
 				if(notetypeFile.length > 0)
 				{
 					for (ntTyp in notetypeFile)

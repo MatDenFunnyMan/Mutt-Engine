@@ -1127,12 +1127,19 @@ class LuaState extends MusicBeatState
 				if(shaderData != null && (shaderData[0] != null || shaderData[1] != null))
 					return true;
 			}
-			var foldersToCheck:Array<String> = [Paths.getSharedPath('shaders/')];
+			var foldersToCheck:Array<String> = [Paths.getRoutedSharedPath('shaders/')];
 			foldersToCheck.push(Paths.mods('shaders/'));
+			foldersToCheck.push(Paths.mods('content/shaders/'));
 			if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
+			{
 				foldersToCheck.insert(0, Paths.mods(Mods.currentModDirectory + '/shaders/'));
+				foldersToCheck.insert(0, Paths.mods(Mods.currentModDirectory + '/content/shaders/'));
+			}
 			for(mod in Mods.getGlobalMods())
+			{
 				foldersToCheck.insert(0, Paths.mods(mod + '/shaders/'));
+				foldersToCheck.insert(0, Paths.mods(mod + '/content/shaders/'));
+			}
 			for(folder in foldersToCheck) {
 				if(FileSystem.exists(folder)) {
 					var frag:String = folder + name + '.frag';

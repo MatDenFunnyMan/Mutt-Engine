@@ -999,12 +999,12 @@ class PlayState extends MusicBeatState
 		}
 		else
 		{
-			luaFile = Paths.getSharedPath(luaFile);
+			luaFile = Paths.getRoutedSharedPath(luaFile);
 			if(FileSystem.exists(luaFile))
 				doPush = true;
 		}
 		#else
-		luaFile = Paths.getSharedPath(luaFile);
+		luaFile = Paths.getRoutedSharedPath(luaFile);
 		if(Assets.exists(luaFile)) doPush = true;
 		#end
 
@@ -1036,7 +1036,7 @@ class PlayState extends MusicBeatState
 		else
 		#end
 		{
-			scriptFile = Paths.getSharedPath(scriptFile);
+			scriptFile = Paths.getRoutedSharedPath(scriptFile);
 			if(FileSystem.exists(scriptFile))
 				doPush = true;
 		}
@@ -6331,11 +6331,11 @@ class PlayState extends MusicBeatState
 		#if MODS_ALLOWED
 		var luaToLoad:String = Paths.modFolders(luaFile);
 		if(!FileSystem.exists(luaToLoad))
-			luaToLoad = Paths.getSharedPath(luaFile);
+			luaToLoad = Paths.getRoutedSharedPath(luaFile);
 
 		if(FileSystem.exists(luaToLoad))
 		#elseif sys
-		var luaToLoad:String = Paths.getSharedPath(luaFile);
+		var luaToLoad:String = Paths.getRoutedSharedPath(luaFile);
 		if(OpenFlAssets.exists(luaToLoad))
 		#end
 		{
@@ -6353,11 +6353,11 @@ class PlayState extends MusicBeatState
 		#if MODS_ALLOWED
 		var luaToLoad:String = Paths.modFolders(luaFile);
 		if(!FileSystem.exists(luaToLoad))
-			luaToLoad = Paths.getSharedPath(luaFile);
+			luaToLoad = Paths.getRoutedSharedPath(luaFile);
 
 		if(FileSystem.exists(luaToLoad))
 		#elseif sys
-		var luaToLoad:String = Paths.getSharedPath(luaFile);
+		var luaToLoad:String = Paths.getRoutedSharedPath(luaFile);
 		if(OpenFlAssets.exists(luaToLoad))
 		#end
 		{
@@ -6380,9 +6380,9 @@ class PlayState extends MusicBeatState
 		#if MODS_ALLOWED
 		var scriptToLoad:String = Paths.modFolders(scriptFile);
 		if(!FileSystem.exists(scriptToLoad))
-			scriptToLoad = Paths.getSharedPath(scriptFile);
+			scriptToLoad = Paths.getRoutedSharedPath(scriptFile);
 		#else
-		var scriptToLoad:String = Paths.getSharedPath(scriptFile);
+		var scriptToLoad:String = Paths.getRoutedSharedPath(scriptFile);
 		#end
 
 		if(FileSystem.exists(scriptToLoad))
@@ -6420,9 +6420,9 @@ class PlayState extends MusicBeatState
 		#if MODS_ALLOWED
 		var scriptToLoad:String = Paths.modFolders(scriptFile);
 		if(!FileSystem.exists(scriptToLoad))
-			scriptToLoad = Paths.getSharedPath(scriptFile);
+			scriptToLoad = Paths.getRoutedSharedPath(scriptFile);
 		#else
-		var scriptToLoad:String = Paths.getSharedPath(scriptFile);
+		var scriptToLoad:String = Paths.getRoutedSharedPath(scriptFile);
 		#end
 
 		if(FileSystem.exists(scriptToLoad))

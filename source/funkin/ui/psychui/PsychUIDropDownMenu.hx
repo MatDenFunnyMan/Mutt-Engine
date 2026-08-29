@@ -191,9 +191,9 @@ class PsychUIDropDownMenu extends PsychUIInputText
 			var txtY:Float = behindText.y + behindText.height + 1;
 			for (num => item in _items)
 			{
-				if(!item.visible) continue;
 				item.x = behindText.x;
 				item.y = txtY;
+				if(!item.visible) continue;
 				txtY += item.height;
 				item.forceNextUpdate = true;
 			}
@@ -204,7 +204,10 @@ class PsychUIDropDownMenu extends PsychUIInputText
 		else
 		{
 			for (item in _items)
+			{
 				item.active = item.visible = false;
+				item.setPosition(behindText.x, behindText.y);
+			}
 
 			bg.scale.y = 20;
 			bg.updateHitbox();
@@ -234,6 +237,7 @@ class PsychUIDropDownMenu extends PsychUIInputText
 		item.forceNextUpdate = true;
 		_items.push(item);
 		insert(1, item);
+		item.setPosition(behindText.x, behindText.y);
 	}
 
 	function set_list(v:Array<String>)

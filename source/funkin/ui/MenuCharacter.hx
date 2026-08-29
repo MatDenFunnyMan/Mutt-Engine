@@ -55,7 +55,7 @@ class MenuCharacter extends FlxSprite
 				if (!Assets.exists(path))
 				#end
 				{
-					path = Paths.getSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
+					path = Paths.getRoutedSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
 					color = FlxColor.BLACK;
 					alpha = 0.6;
 				}

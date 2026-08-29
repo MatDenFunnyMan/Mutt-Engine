@@ -570,10 +570,14 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 	{
 		var skins:Array<String> = [];
 		#if sys
-		var foldersToCheck:Array<String> = [Paths.getSharedPath() + 'images/noteSkins/'];
+		var foldersToCheck:Array<String> = [Paths.getRoutedSharedPath('images/noteSkins/')];
 		for (modFolder in Mods.getModDirectories())
+		{
 			foldersToCheck.push(Paths.mods(modFolder + '/images/noteSkins/'));
+			foldersToCheck.push(Paths.mods(modFolder + '/content/images/notes/'));
+		}
 		foldersToCheck.push(Paths.mods('images/noteSkins/'));
+		foldersToCheck.push(Paths.mods('content/images/notes/'));
 		
 		for (folder in foldersToCheck)
 		{
@@ -601,10 +605,14 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 	{
 		var splashes:Array<String> = [];
 		#if sys
-		var foldersToCheck:Array<String> = [Paths.getSharedPath() + 'images/noteSplashes/'];
+		var foldersToCheck:Array<String> = [Paths.getRoutedSharedPath('images/noteSplashes/')];
 		for (modFolder in Mods.getModDirectories())
+		{
 			foldersToCheck.push(Paths.mods(modFolder + '/images/noteSplashes/'));
+			foldersToCheck.push(Paths.mods(modFolder + '/content/images/notes/splashes/'));
+		}
 		foldersToCheck.push(Paths.mods('images/noteSplashes/'));
+		foldersToCheck.push(Paths.mods('content/images/notes/splashes/'));
 		
 		for (folder in foldersToCheck)
 		{

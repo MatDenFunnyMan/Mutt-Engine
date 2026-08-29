@@ -34,7 +34,10 @@ class Paths
 			dumpExclusions.push(key);
 	}
 
-	public static var dumpExclusions:Array<String> = ['assets/shared/music/freakyMenu.$SOUND_EXT'];
+	public static var dumpExclusions:Array<String> = [
+		'assets/content/audio/music/freakyMenu.$SOUND_EXT',
+		'assets/shared/music/freakyMenu.$SOUND_EXT'
+	];
 	// haya I love you for the base cache dump I took to the max
 	public static function clearUnusedMemory()
 	{
@@ -154,6 +157,72 @@ class Paths
 	static public function setCurrentLevel(name:String)
 		currentLevel = name.toLowerCase();
 
+	static final NEW_ROUTES:Map<String, String> = [
+		'data' => 'data/',
+		'characters' => 'data/characters/',
+		'stages' => 'data/stages/',
+		'weeks' => 'data/weeks/',
+		'images' => 'content/images/',
+		'sounds' => 'content/audio/sounds/',
+		'music' => 'content/audio/music/',
+		'shaders' => 'content/shaders/',
+		'videos' => 'videos/',
+		'fonts' => 'fonts/',
+		'translations' => 'content/translations/',
+	];
+
+	static final IMAGE_ALIASES:Map<String, String> = [
+		'icons' => 'characters/icons',
+		'noteSkins' => 'notes',
+		'noteSplashes' => 'notes/splashes',
+		'achievements' => 'extra/achievements',
+		'dialogue' => 'extra/dialogue',
+		'soundtray' => 'extra/soundtray',
+		'menubackgrounds' => 'storymode/weekbg',
+		'menucharacters' => 'storymode/weekcharacters',
+		'menudifficulties' => 'storymode/weekdiff',
+		'storymenu' => 'storymode/weekname'
+	];
+
+	public static function routeKey(file:String):String
+	{
+		var slash:Int = file.indexOf('/');
+		if(slash < 0) return null;
+
+		var category:String = file.substr(0, slash);
+		var route:String = NEW_ROUTES.get(category);
+		if(route == null) return null;
+
+		var rest:String = file.substr(slash + 1);
+		if(category == 'images') rest = aliasImageKey(rest);
+
+		return route + rest;
+	}
+
+	static function aliasImageKey(rest:String):String
+	{
+		var slash:Int = rest.indexOf('/');
+		if(slash < 0) return rest;
+
+		var alias:String = IMAGE_ALIASES.get(rest.substr(0, slash));
+		return (alias != null) ? alias + rest.substr(slash) : rest;
+	}
+
+	public static function routeLevelKey(file:String, level:String):String
+	{
+		var key:String = file;
+		if(key.startsWith('images/')) key = key.substr(7);
+		return 'content/base_weeks/$level/$key';
+	}
+
+	inline public static function assetExists(path:String, ?type:AssetType = TEXT):Bool
+	{
+		#if sys
+		if(FileSystem.exists(path)) return true;
+		#end
+		return OpenFlAssets.exists(path, type);
+	}
+
 	public static function getPath(file:String, ?type:AssetType = TEXT, ?parentfolder:String, ?modsAllowed:Bool = true):String
 	{
 		#if MODS_ALLOWED
@@ -168,13 +237,30 @@ class Paths
 		#end
 
 		if (parentfolder != null)
+		{
+			if(parentfolder != 'songs')
+			{
+				var routedLevel:String = 'assets/' + routeLevelKey(file, parentfolder);
+				if(assetExists(routedLevel, type)) return routedLevel;
+			}
 			return getFolderPath(file, parentfolder);
+		}
 
 		if (currentLevel != null && currentLevel != 'shared')
 		{
+			var routedLevel:String = 'assets/' + routeLevelKey(file, currentLevel);
+			if(assetExists(routedLevel, type)) return routedLevel;
+
 			var levelPath = getFolderPath(file, currentLevel);
 			if (OpenFlAssets.exists(levelPath, type))
 				return levelPath;
+		}
+
+		var routed:String = routeKey(file);
+		if(routed != null)
+		{
+			var newPath:String = 'assets/' + routed;
+			if(assetExists(newPath, type)) return newPath;
 		}
 		return getSharedPath(file);
 	}
@@ -184,6 +270,19 @@ class Paths
 
 	inline public static function getSharedPath(file:String = '')
 		return 'assets/shared/$file';
+
+	public static function getRoutedSharedPath(file:String = '')
+	{
+		var routed:String = routeKey(file);
+		if(routed != null)
+		{
+			var newPath:String = 'assets/' + routed;
+			#if sys
+			if(FileSystem.exists(newPath)) return newPath;
+			#end
+		}
+		return 'assets/shared/$file';
+	}
 
 	inline static public function txt(key:String, ?folder:String)
 		return getPath('data/$key.txt', TEXT, folder, true);
@@ -225,6 +324,9 @@ class Paths
 		#if MODS_ALLOWED
 		if(modsAllowed)
 		{
+			var newPath0 = 'data/songs/$formattedSong/song/Inst.$SOUND_EXT';
+			if(FileSystem.exists(getPath(newPath0, SOUND, null, true)))
+				return returnSound('songs/$formattedSong/song/Inst', 'data', modsAllowed);
 			var newPath1 = 'data/$formattedSong/song/Inst.$SOUND_EXT';
 			if(FileSystem.exists(getPath(newPath1, SOUND, null, true)))
 				return returnSound('$formattedSong/song/Inst', 'data', modsAllowed);
@@ -246,6 +348,9 @@ class Paths
 		#if MODS_ALLOWED
 		if(modsAllowed)
 		{
+			var newPath0 = 'data/songs/$formattedSong/song/Voices$suffix.$SOUND_EXT';
+			if(FileSystem.exists(getPath(newPath0, SOUND, null, true)))
+				return returnSound('songs/$formattedSong/song/Voices$suffix', 'data', modsAllowed, false);
 			var newPath1 = 'data/$formattedSong/song/Voices$suffix.$SOUND_EXT';
 			if(FileSystem.exists(getPath(newPath1, SOUND, null, true)))
 				return returnSound('$formattedSong/song/Voices$suffix', 'data', modsAllowed, false);
@@ -524,8 +629,17 @@ class Paths
 
 	static public function modFolders(key:String)
 	{
+		var routed:String = routeKey(key);
+		if(routed == key) routed = null;
+
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
 		{
+			if(routed != null)
+			{
+				var newFile:String = mods(Mods.currentModDirectory + '/' + routed);
+				if(FileSystem.exists(newFile)) return newFile;
+			}
+
 			var fileToCheck:String = mods(Mods.currentModDirectory + '/' + key);
 			if(FileSystem.exists(fileToCheck))
 				return fileToCheck;
@@ -533,6 +647,12 @@ class Paths
 
 		for(mod in Mods.getGlobalMods())
 		{
+			if(routed != null)
+			{
+				var newFile:String = mods(mod + '/' + routed);
+				if(FileSystem.exists(newFile)) return newFile;
+			}
+
 			var fileToCheck:String = mods(mod + '/' + key);
 			if(FileSystem.exists(fileToCheck))
 				return fileToCheck;

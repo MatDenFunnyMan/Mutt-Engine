@@ -2280,7 +2280,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		characterList = [];
 
 		var foldersToCheck:Array<String> = [];
-		var sharedPath:String = Paths.getSharedPath('characters/');
+		var sharedPath:String = Paths.getRoutedSharedPath('characters/');
 		if(FileSystem.exists(sharedPath))
 			foldersToCheck.push(sharedPath);
 
