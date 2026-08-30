@@ -55,6 +55,25 @@ class LuaState extends MusicBeatState
 	public static var instance:LuaState = null;
 	public var scriptName:String = '';
 	public var luaDebugGroup:FlxTypedGroup<funkin.scripting.DebugLuaText>;
+	public var displayTarget:flixel.group.FlxGroup = null;
+
+	override public function add(obj:FlxBasic):FlxBasic
+	{
+		if(displayTarget != null) return displayTarget.add(obj);
+		return super.add(obj);
+	}
+
+	override public function remove(obj:FlxBasic, splice:Bool = false):FlxBasic
+	{
+		if(displayTarget != null) return displayTarget.remove(obj, splice);
+		return super.remove(obj, splice);
+	}
+
+	override public function insert(position:Int, obj:FlxBasic):FlxBasic
+	{
+		if(displayTarget != null) return displayTarget.insert(position, obj);
+		return super.insert(position, obj);
+	}
 
 	#if HSCRIPT_ALLOWED
 	public var hscript:HScript = null;

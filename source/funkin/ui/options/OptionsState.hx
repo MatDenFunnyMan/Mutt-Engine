@@ -36,21 +36,21 @@ class OptionsState extends MusicBeatState
 		switch(label)
 		{
 			case 'Note Colors':
-				openSubState(new funkin.ui.options.NotesColorSubState());
+				SubStateManager.open(this, 'NotesColorSubState', () -> new funkin.ui.options.NotesColorSubState());
 			case 'Controls':
-				openSubState(new funkin.ui.options.ControlsSubState());
+				SubStateManager.open(this, 'ControlsSubState', () -> new funkin.ui.options.ControlsSubState());
 			case 'Graphics':
-				openSubState(new funkin.ui.options.GraphicsSettingsSubState());
+				SubStateManager.open(this, 'GraphicsSettingsSubState', () -> new funkin.ui.options.GraphicsSettingsSubState());
 			case 'Visuals':
-				openSubState(new funkin.ui.options.VisualsSettingsSubState());
+				SubStateManager.open(this, 'VisualsSettingsSubState', () -> new funkin.ui.options.VisualsSettingsSubState());
 			case 'Gameplay':
-				openSubState(new funkin.ui.options.GameplaySettingsSubState());
+				SubStateManager.open(this, 'GameplaySettingsSubState', () -> new funkin.ui.options.GameplaySettingsSubState());
 			case 'Adjust Delay and Combo':
 				MusicBeatState.switchState(new funkin.ui.options.NoteOffsetState());
 			case 'Developer':
-				openSubState(new funkin.ui.options.DeveloperSettingsSubState());
+				SubStateManager.open(this, 'DeveloperSettingsSubState', () -> new funkin.ui.options.DeveloperSettingsSubState());
 			case 'Language':
-				openSubState(new funkin.ui.options.LanguageSubState());
+				SubStateManager.open(this, 'LanguageSubState', () -> new funkin.ui.options.LanguageSubState());
 		}
 	}
 

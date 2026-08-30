@@ -27,6 +27,7 @@ import funkin.util.CoolUtil;
 import funkin.backend.MusicBeatState;
 import funkin.backend.MusicBeatSubstate;
 import funkin.backend.CustomFadeTransition;
+import funkin.backend.SubStateManager;
 import funkin.save.ClientPrefs;
 import funkin.Conductor;
 import funkin.game.stages.BaseStage;

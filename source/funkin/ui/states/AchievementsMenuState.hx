@@ -199,7 +199,7 @@ class AchievementsMenuState extends MusicBeatState
 			
 			if(controls.RESET && (options[curSelected].unlocked || options[curSelected].curProgress > 0))
 			{
-				openSubState(new ResetAchievementSubstate());
+				SubStateManager.open(this, 'ResetAchievementSubstate', () -> new ResetAchievementSubstate());
 			}
 		}
 

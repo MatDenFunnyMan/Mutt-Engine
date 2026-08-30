@@ -509,7 +509,7 @@ class FreeplayState extends MusicBeatState
 		{
 			stopPreview();
 			persistentUpdate = false;
-			openSubState(new GameplayChangersSubstate());
+			SubStateManager.open(this, 'GameplayChangersSubstate', () -> new GameplayChangersSubstate());
 		}
 		else if(FlxG.keys.justPressed.SPACE)
 		{
@@ -635,7 +635,7 @@ class FreeplayState extends MusicBeatState
 		{
 			stopPreview();
 			persistentUpdate = false;
-			openSubState(new ResetScoreSubState(songs[curSelected].songName, curDifficulty, songs[curSelected].songCharacter));
+			SubStateManager.open(this, 'ResetScoreSubState', () -> new ResetScoreSubState(songs[curSelected].songName, curDifficulty, songs[curSelected].songCharacter));
 			FlxG.sound.play(Paths.sound('scrollMenu'));
 		}
 
