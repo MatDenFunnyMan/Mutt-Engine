@@ -43,42 +43,22 @@ import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
 
 import haxe.Json;
+import funkin.scripting.FunkinScript;
+import funkin.scripting.FunkinScript.FunkinLuaScript;
 
-class FunkinLua {
-	public var lua:State = null;
+class FunkinLua extends FunkinLuaScript {
 	public var camTarget:FlxCamera;
-	public var scriptName:String = '';
-	public var modFolder:String = null;
-	public var closed:Bool = false;
-
-	#if HSCRIPT_ALLOWED
-	public var hscript:HScript = null;
-	#end
 
 	public var callbacks:Map<String, Dynamic> = new Map<String, Dynamic>();
 	public static var customFunctions:Map<String, Dynamic> = new Map<String, Dynamic>();
 
 	public function new(scriptName:String) {
-		lua = LuaL.newstate();
-		LuaL.openlibs(lua);
+		super(scriptName);
+		traceLabel = 'FunkinLua';
+		initLua();
 
-		LuaSharedFunctions.registerFileAndSaveFunctions(lua);
-
-		//trace('Lua version: ' + Lua.version());
-		//trace("LuaJIT version: " + Lua.versionJIT());
-
-		//LuaL.dostring(lua, CLENSE);
-
-		this.scriptName = scriptName.trim();
 		var game:PlayState = PlayState.instance;
 		if(game != null) game.luaArray.push(this);
-
-		var myFolder:Array<String> = this.scriptName.split('/');
-		#if MODS_ALLOWED
-		if(myFolder[0] + '/' == Paths.mods() && (Mods.currentModDirectory == myFolder[1] || Mods.getGlobalMods().contains(myFolder[1]))) //is inside mods folder
-			this.modFolder = myFolder[1];
-		#end
-
 		// Lua shit
 		set('Function_StopLua', LuaUtils.Function_StopLua);
 		set('Function_StopHScript', LuaUtils.Function_StopHScript);
@@ -1452,9 +1432,8 @@ class FunkinLua {
 	}
 
 	//main
-	public var lastCalledFunction:String = '';
 	public static var lastCalledScript:FunkinLua = null;
-	public function call(func:String, args:Array<Dynamic>):Dynamic {
+	override public function call(func:String, args:Array<Dynamic>):Dynamic {
 		if(closed) return LuaUtils.Function_Continue;
 
 		lastCalledFunction = func;
@@ -1497,31 +1476,8 @@ class FunkinLua {
 		return LuaUtils.Function_Continue;
 	}
 
-	public function set(variable:String, data:Dynamic) {
-		if(lua == null) {
-			return;
-		}
-
-		Convert.toLua(lua, data);
-		Lua.setglobal(lua, variable);
-	}
-
-	public function stop() {
-		closed = true;
-
-		if(lua == null) {
-			return;
-		}
-		Lua.close(lua);
-		lua = null;
-		#if HSCRIPT_ALLOWED
-		if(hscript != null)
-		{
-			hscript.destroy();
-			hscript = null;
-		}
-		#end
-	}
+	override public function scriptTrace(text:String):Void
+		luaTrace(text, false, false, FlxColor.RED);
 
 	function oldTweenFunction(tag:String, vars:String, tweenValue:Any, duration:Float, ease:String, funcName:String)
 	{

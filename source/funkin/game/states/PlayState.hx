@@ -244,6 +244,7 @@ class PlayState extends MusicBeatState
 
 	public var songScore:Int = 0;
 	public var songHits:Int = 0;
+	public var maxCombo:Int = 0;
 	public var songMisses:Int = 0;
 	public var scoreTxt:FlxText;
 	public var detailedRankingTxt:FlxText;
@@ -4745,6 +4746,7 @@ class PlayState extends MusicBeatState
 			#if !switch
 			var percent:Float = ratingPercent;
 			if(Math.isNaN(percent)) percent = 0;
+			newHighscore = (songScore > Highscore.getScore(Song.loadedSongName, storyDifficulty));
 			Highscore.saveScore(Song.loadedSongName, songScore, storyDifficulty, percent, songMisses);
 			#end
 			playbackRate = 1;
@@ -4772,17 +4774,11 @@ class PlayState extends MusicBeatState
 					#end
 					DiscordClient.changePresence("In the Menus", null);
 					#end
-					FlxG.sound.playMusic(Paths.music('freakyMenu'));
 
 					canResync = false;
 					var storyEndState:String = returnAfterSongState;
 					returnAfterSongState = null;
-					if(storyEndState != null)
-						MusicBeatState.switchStateByName(storyEndState);
-					else
-						MusicBeatState.switchState(new StoryMenuState());
 
-					// if ()
 					if(!ClientPrefs.getGameplaySetting('practice') && !ClientPrefs.getGameplaySetting('botplay')) {
 						StoryMenuState.weekCompleted.set(WeekData.weeksList[storyWeek], true);
 						Highscore.saveWeekScore(WeekData.getWeekFileName(), campaignScore, storyDifficulty);
@@ -4791,6 +4787,17 @@ class PlayState extends MusicBeatState
 						FlxG.save.flush();
 					}
 					changedDifficulty = false;
+
+					var finishStory:Void->Void = function()
+					{
+						FlxG.sound.playMusic(Paths.music('freakyMenu'));
+						if(storyEndState != null)
+							MusicBeatState.switchStateByName(storyEndState);
+						else
+							MusicBeatState.switchState(new StoryMenuState());
+					};
+
+					showResults(makeResultsData(true), finishStory);
 				}
 				else
 				{
@@ -4813,55 +4820,111 @@ class PlayState extends MusicBeatState
 			}
 			else
 				{
-					trace('WENT BACK TO FREEPLAY??');
-					#if DISCORD_ALLOWED
-					DiscordClient.clearSongImageKey();
-					#if MODS_ALLOWED
-					DiscordClient.loadModRPC();
-					#else
-					DiscordClient.resetClientID();
-					#end
-					DiscordClient.changePresence("In the Menus", null);
-					#end
-					Mods.loadTopMod();
+					var finishFreeplay:Void->Void = function()
+					{
+						trace('WENT BACK TO FREEPLAY??');
+						#if DISCORD_ALLOWED
+						DiscordClient.clearSongImageKey();
+						#if MODS_ALLOWED
+						DiscordClient.loadModRPC();
+						#else
+						DiscordClient.resetClientID();
+						#end
+						DiscordClient.changePresence("In the Menus", null);
+						#end
+						Mods.loadTopMod();
 
-					canResync = false;
+						canResync = false;
 					
-					var stateToReturn:String = returnAfterSongState != null ? returnAfterSongState : 'FreeplayState';
-					returnAfterSongState = null;
+						var stateToReturn:String = returnAfterSongState != null ? returnAfterSongState : 'FreeplayState';
+						returnAfterSongState = null;
 					
-					#if HSCRIPT_ALLOWED
-					var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
-					if(hscriptState != null)
-					{
-						MusicBeatState.switchState(hscriptState);
-					}
-					else
-					#end
-					{
-						var luaState = funkin.backend.StateManager.loadLuaState(stateToReturn);
-						if(luaState != null)
+						#if HSCRIPT_ALLOWED
+						var hscriptState = funkin.backend.HScriptStateLoader.loadStateScript(stateToReturn);
+						if(hscriptState != null)
 						{
-							MusicBeatState.switchState(luaState);
+							MusicBeatState.switchState(hscriptState);
 						}
 						else
+						#end
 						{
-							var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
-							if(stateClass != null)
+							var luaState = funkin.backend.StateManager.loadLuaState(stateToReturn);
+							if(luaState != null)
 							{
-								var stateInstance = Type.createInstance(stateClass, []);
-								MusicBeatState.switchState(stateInstance);
+								MusicBeatState.switchState(luaState);
 							}
 							else
-								MusicBeatState.switchState(new FreeplayState());
+							{
+								var stateClass = funkin.backend.StateManager.getStateClass(stateToReturn);
+								if(stateClass != null)
+								{
+									var stateInstance = Type.createInstance(stateClass, []);
+									MusicBeatState.switchState(stateInstance);
+								}
+								else
+									MusicBeatState.switchState(new FreeplayState());
+							}
 						}
-					}
-					FlxG.sound.playMusic(Paths.music('freakyMenu'));
-					changedDifficulty = false;
+						FlxG.sound.playMusic(Paths.music('freakyMenu'));
+						changedDifficulty = false;
+					};
+
+					showResults(makeResultsData(false), finishFreeplay);
 			}
 			transitioning = true;
 		}
 		return true;
+	}
+
+	var newHighscore:Bool = false;
+
+	function ratingHits(index:Int):Int
+	{
+		if(ratingsData == null || index < 0 || index >= ratingsData.length) return 0;
+		return ratingsData[index].hits;
+	}
+
+	function makeResultsData(isWeekEnd:Bool):funkin.ui.states.ResultsState.ResultsData
+	{
+		var percent:Float = ratingPercent;
+		if(Math.isNaN(percent)) percent = 0;
+
+		var name:String = SONG.song;
+		if(isWeekEnd)
+		{
+			var week:WeekData = WeekData.getCurrentWeek();
+			if(week != null && week.weekName != null && week.weekName.length > 0) name = week.weekName;
+		}
+
+		return {
+			songName: name,
+			difficulty: Difficulty.getString(),
+			score: isWeekEnd ? campaignScore : songScore,
+			accuracy: percent,
+			misses: isWeekEnd ? campaignMisses : songMisses,
+			sicks: ratingHits(0),
+			goods: ratingHits(1),
+			bads: ratingHits(2),
+			shits: ratingHits(3),
+			totalHits: songHits,
+			maxCombo: maxCombo,
+			ratingFC: ratingFC,
+			isStoryMode: isWeekEnd,
+			isNewHighscore: newHighscore,
+			playerCharacter: SONG.player1
+		};
+	}
+
+	function showResults(data:funkin.ui.states.ResultsState.ResultsData, onContinue:Void->Void)
+	{
+		var ret:Dynamic = callOnScripts('onResultsScreen', [data.score, data.accuracy, data.misses], true);
+		if(ret == LuaUtils.Function_Stop)
+		{
+			onContinue();
+			return;
+		}
+
+		MusicBeatState.switchState(new funkin.ui.states.ResultsState(data, onContinue));
 	}
 
 	public function KillNotes() {
@@ -5897,6 +5960,7 @@ class PlayState extends MusicBeatState
 			if (!note.isSustainNote)
 			{
 				combo++;
+				if(combo > maxCombo) maxCombo = combo;
 				if(combo > 9999) combo = 9999;
 				popUpScore(note);
 			}

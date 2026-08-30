@@ -12,6 +12,15 @@ import funkin.input.InputFormatter;
 
 class BaseOptionsMenu extends MusicBeatSubstate
 {
+	public static var OPTION_SCALE:Float = 0.68;
+	public static var OPTION_SPACING:Float = 100;
+	public static var CHECKBOX_SCALE:Float = 0.62;
+	public static var CHECKBOX_GAP:Float = 20;
+	public static var CHECKBOX_NUDGE_X:Float = 0;
+	public static var CHECKBOX_NUDGE_Y:Float = 0;
+	public static var VALUE_GAP:Float = 60;
+	public static var VALUE_SHIFT:Float = 80;
+
 	private var curOption:Option = null;
 	private var curSelected:Int = 0;
 	private var optionsArray:Array<Option>;
@@ -71,26 +80,27 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 		for (i in 0...optionsArray.length)
 		{
-			var optionText:Alphabet = new Alphabet(220, 260, optionsArray[i].name, false);
+			var optionText:Alphabet = new Alphabet(220, 260, optionsArray[i].name, true);
+			optionText.setScale(OPTION_SCALE);
+			optionText.distancePerItem.y = OPTION_SPACING;
 			optionText.isMenuItem = true;
-			/*optionText.forceX = 300;
-			optionText.yMult = 90;*/
 			optionText.targetY = i;
 			grpOptions.add(optionText);
 
 			if(optionsArray[i].type == BOOL)
 			{
-				var checkbox:CheckboxThingie = new CheckboxThingie(optionText.x - 105, optionText.y, Std.string(optionsArray[i].getValue()) == 'true');
+				var checkbox:CheckboxThingie = new CheckboxThingie(optionText.x - 105, optionText.y, Std.string(optionsArray[i].getValue()) == 'true', CHECKBOX_SCALE);
+				checkbox.offsetX = 130 - CHECKBOX_GAP - (drawnRight(checkbox) - checkbox.x) + CHECKBOX_NUDGE_X;
+				checkbox.offsetY = textMiddle(optionText) - (drawnMiddle(checkbox) - checkbox.y) - 30 + CHECKBOX_NUDGE_Y;
 				checkbox.sprTracker = optionText;
 				checkbox.ID = i;
 				checkboxGroup.add(checkbox);
 			}
 			else
 			{
-				optionText.x -= 80;
-				optionText.startPosition.x -= 80;
-				//optionText.xAdd -= 80;
-				var valueText:AttachedText = new AttachedText('' + optionsArray[i].getValue(), optionText.width + 60);
+				optionText.x -= VALUE_SHIFT;
+				optionText.startPosition.x -= VALUE_SHIFT;
+				var valueText:AttachedText = new AttachedText('' + optionsArray[i].getValue(), optionText.width + VALUE_GAP, 0, true, OPTION_SCALE);
 				valueText.sprTracker = optionText;
 				valueText.copyAlpha = true;
 				valueText.ID = i;
@@ -103,6 +113,32 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 		changeSelection();
 		reloadCheckboxes();
+	}
+
+	inline function drawnTop(spr:FlxSprite):Float
+		return spr.y - spr.offset.y + (spr.origin.y * (1 - spr.scale.y));
+
+	inline function drawnMiddle(spr:FlxSprite):Float
+		return drawnTop(spr) + (spr.frameHeight * spr.scale.y * 0.5);
+
+	inline function drawnRight(spr:FlxSprite):Float
+		return spr.x - spr.offset.x + (spr.origin.x * (1 - spr.scale.x)) + (spr.frameWidth * spr.scale.x);
+
+	function textMiddle(alpha:Alphabet):Float
+	{
+		if(alpha.letters.length < 1) return 0;
+
+		var top:Float = drawnTop(alpha.letters[0]);
+		var bot:Float = top;
+		for(letter in alpha.letters)
+		{
+			var lt:Float = drawnTop(letter);
+			if(lt < top) top = lt;
+
+			var lb:Float = lt + (letter.frameHeight * letter.scale.y);
+			if(lb > bot) bot = lb;
+		}
+		return ((top + bot) * 0.5) - alpha.y;
 	}
 
 	public function addOption(option:Option) {
@@ -408,12 +444,12 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		}
 
 		var bind:AttachedText = cast option.child;
-		var attach:AttachedText = new AttachedText(text, bind.offsetX);
+		var attach:AttachedText = new AttachedText(text, bind.offsetX, 0, true, OPTION_SCALE);
 		attach.sprTracker = bind.sprTracker;
 		attach.copyAlpha = true;
 		attach.ID = bind.ID;
 		playstationCheck(attach);
-		attach.scaleX = Math.min(1, MAX_KEYBIND_WIDTH / attach.width);
+		attach.scaleX = Math.min(OPTION_SCALE, MAX_KEYBIND_WIDTH / attach.width);
 		attach.x = bind.x;
 		attach.y = bind.y;
 

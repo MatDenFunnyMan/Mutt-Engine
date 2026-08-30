@@ -161,7 +161,7 @@ class LoadingState extends MusicBeatState
 			loadingLua = LuaStateLoader.createLoadingScript(barBack, bar, this);
 			if(loadingLua != null)
 			{
-				if(loadingLua.funcExists('onCreate'))
+				if(loadingLua.exists('onCreate'))
 				{
 					loadingLua.call('onCreate', []);
 					trace('initialized lua loading script successfully');
