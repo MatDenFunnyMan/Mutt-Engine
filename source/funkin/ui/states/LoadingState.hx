@@ -651,7 +651,7 @@ class LoadingState extends MusicBeatState
 				prepare(imgs, snds, mscs);
 			}
 
-			songsToPrepare.push('$folder/Inst');
+			songsToPrepare.push(songVariant('$folder/Inst'));
 
 			var player1:String = song.player1;
 			var player2:String = song.player2;
@@ -665,11 +665,11 @@ class LoadingState extends MusicBeatState
 			{
 				if(Paths.fileExists('$prefixVocals-Player.${Paths.SOUND_EXT}', SOUND, false, 'songs') && Paths.fileExists('$prefixVocals-Opponent.${Paths.SOUND_EXT}', SOUND, false, 'songs'))
 				{
-					songsToPrepare.push('$prefixVocals-Player');
-					songsToPrepare.push('$prefixVocals-Opponent');
+					songsToPrepare.push(songVariant('$prefixVocals-Player'));
+					songsToPrepare.push(songVariant('$prefixVocals-Opponent'));
 				}
 				else if(Paths.fileExists('$prefixVocals.${Paths.SOUND_EXT}', SOUND, false, 'songs'))
-					songsToPrepare.push(prefixVocals);
+					songsToPrepare.push(songVariant(prefixVocals));
 			}
 
 			if (player2 != player1)
@@ -815,6 +815,15 @@ class LoadingState extends MusicBeatState
 		});
 	}
 
+	static function songVariant(key:String):String
+	{
+		var suffix:String = Paths.variantSuffix(Difficulty.getFilePath());
+		if(suffix.length < 1) return key;
+
+		if(Paths.fileExists('$key$suffix.${Paths.SOUND_EXT}', SOUND, false, 'songs')) return key + suffix;
+		return key;
+	}
+
 	inline private static function preloadCharacter(char:String, ?prefixVocals:String)
 	{
 		try
@@ -863,7 +872,7 @@ class LoadingState extends MusicBeatState
 	
 			if (prefixVocals != null && character.vocals_file != null && character.vocals_file.length > 0)
 			{
-				songsToPrepare.push(prefixVocals + "-" + character.vocals_file);
+				songsToPrepare.push(songVariant(prefixVocals + "-" + character.vocals_file));
 				if(char == PlayState.SONG.player1) dontPreloadDefaultVoices = true;
 			}
 		}

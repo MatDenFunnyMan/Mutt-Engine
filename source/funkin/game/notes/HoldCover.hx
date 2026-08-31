@@ -16,6 +16,9 @@ class HoldCover extends FlxSprite
 	public var invisible:Bool = false;
 	public var forceHide:Bool = false;
 
+	public var baseScaleX:Float = 1;
+	public var baseScaleY:Float = 1;
+
 	public var configOffsetNormal:Array<Float> = [-105, -100];
 	public var configOffsetPixel:Array<Float> = [-385, -125];
 	public var configAnimPrefixes:Map<String, String> = new Map();
@@ -90,6 +93,8 @@ class HoldCover extends FlxSprite
 		}
 		
 		alpha = ClientPrefs.data.holdCoverAlpha;
+		baseScaleX = scale.x;
+		baseScaleY = scale.y;
 	}
 	
 	public function playHold():Void
@@ -161,7 +166,15 @@ class HoldCover extends FlxSprite
 		}
 		
 		visible = true;
+		followStrum(strum, isPixelStage);
+	}
+
+	public function followStrum(strum:StrumNote, isPixelStage:Bool, scaleRatio:Float = 1):Void
+	{
+		if(strum == null || !visible) return;
+
 		angle = strum.angle;
+		scale.set(baseScaleX * scaleRatio, baseScaleY * scaleRatio);
 		
 		var offsetX:Float = isPixelStage ? configOffsetPixel[0] : configOffsetNormal[0];
 		var offsetY:Float = isPixelStage ? configOffsetPixel[1] : configOffsetNormal[1];

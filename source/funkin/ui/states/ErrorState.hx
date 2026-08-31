@@ -15,7 +15,6 @@ class ErrorState extends MusicBeatState
 		super();
 	}
 
-	public var errorSine:Float = 0;
 	public var errorText:FlxText;
 	override function create()
 	{
@@ -36,9 +35,6 @@ class ErrorState extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
-		errorSine += 180 * elapsed;
-		errorText.alpha = 1 - Math.sin((Math.PI * errorSine) / 180);
-
 		if(controls.ACCEPT && acceptCallback != null)
 			acceptCallback();
 		else if(controls.BACK && backCallback != null)

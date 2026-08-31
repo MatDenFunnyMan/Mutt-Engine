@@ -16,11 +16,10 @@ class Difficulty
 		if(num == null) num = PlayState.storyDifficulty;
 
 		var filePostfix:String = list[num];
-		if(filePostfix != null && Paths.formatToSongPath(filePostfix) != Paths.formatToSongPath(defaultDifficulty))
-			filePostfix = '-' + filePostfix;
-		else
-			filePostfix = '';
-		return Paths.formatToSongPath(filePostfix);
+		if(filePostfix == null || Paths.formatToSongPath(filePostfix) == Paths.formatToSongPath(defaultDifficulty))
+			return '';
+
+		return Paths.variantSuffix(Paths.formatToSongPath(filePostfix));
 	}
 
 	inline public static function loadFromWeek(week:WeekData = null)

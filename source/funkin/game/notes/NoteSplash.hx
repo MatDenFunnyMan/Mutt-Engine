@@ -35,6 +35,8 @@ class NoteSplash extends FlxSprite
 	public var babyArrow:StrumNote;
 	public var noteData:Int = 0;
 
+	public var baseAlpha:Float = 1;
+
 	public var copyX:Bool = true;
 	public var copyY:Bool = true;
 	public var inEditor:Bool = false;
@@ -336,6 +338,7 @@ class NoteSplash extends FlxSprite
 
 		alpha = ClientPrefs.data.splashAlpha;
 		if (note != null) alpha = note.noteSplashData.a;
+		baseAlpha = alpha;
 
 		antialiasing = ClientPrefs.data.antialiasing;
 		if (note != null) antialiasing = note.noteSplashData.antialiasing;
@@ -390,15 +393,22 @@ class NoteSplash extends FlxSprite
 			}
 		}
 
-		if (babyArrow != null)
-		{
-			if (copyX)
-				x = babyArrow.x - Note.swagWidth * 0.95;
-
-			if (copyY)
-				y = babyArrow.y - Note.swagWidth;
-		}
+		followStrum();
 		super.update(elapsed);
+	}
+
+	public function followStrum():Void
+	{
+		if (babyArrow == null) return;
+
+		if (copyX)
+			x = babyArrow.x - Note.swagWidth * 0.95;
+
+		if (copyY)
+			y = babyArrow.y - Note.swagWidth;
+
+		angle = babyArrow.angle;
+		alpha = baseAlpha * babyArrow.alpha;
 	}
 
 	public static function getSplashSkinPostfix()

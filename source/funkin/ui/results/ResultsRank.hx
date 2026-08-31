@@ -13,10 +13,11 @@ enum ResultsRank
 typedef ResultsLayer = {
 	var asset:String;
 	var ?sparrow:Bool;
-	var ?offsetX:Float;
-	var ?offsetY:Float;
-	var ?loop:Bool;
-	var ?startDelay:Float;
+	var ?x:Float;
+	var ?y:Float;
+	var ?scale:Float;
+	var ?delay:Float;
+	var ?loopFrame:Int;
 }
 
 class RankData
@@ -48,27 +49,17 @@ class RankData
 		}
 	}
 
-	public static function folder(rank:ResultsRank):String
+	public static function musicPath(rank:ResultsRank, character:String):String
 	{
-		return switch(rank)
-		{
-			case PERFECT_GOLD, PERFECT: 'resultsPERFECT';
-			case EXCELLENT: 'resultsEXCELLENT';
-			case GREAT: 'resultsGREAT';
-			case GOOD: 'resultsGOOD';
-			case SHIT: 'resultsSHIT';
-		}
-	}
-
-	public static function musicPath(rank:ResultsRank):String
-	{
-		return switch(rank)
+		var base:String = switch(rank)
 		{
 			case PERFECT_GOLD, PERFECT: 'resultsPERFECT';
 			case EXCELLENT: 'resultsEXCELLENT';
 			case GREAT, GOOD: 'resultsNORMAL';
 			case SHIT: 'resultsSHIT';
 		}
+
+		return character == 'bf' ? base : '$base-$character';
 	}
 
 	public static function color(rank:ResultsRank):FlxColor
@@ -130,29 +121,54 @@ class RankData
 
 	public static function layers(rank:ResultsRank, character:String):Array<ResultsLayer>
 	{
-		var root:String = 'results/results-$character/' + folder(rank);
+		return character == 'pico' ? picoLayers(rank) : bfLayers(rank);
+	}
 
-		if(character != 'bf')
-		{
-			return [{asset: root, loop: true}];
-		}
+	static function bfLayers(rank:ResultsRank):Array<ResultsLayer>
+	{
+		var root:String = 'results/results-bf';
 
 		return switch(rank)
 		{
 			case PERFECT_GOLD, PERFECT: [
-				{asset: '$root/bed', loop: true},
-				{asset: '$root/tickleFight', loop: true},
-				{asset: '$root/hearts', loop: true}
+				{asset: '$root/resultsPERFECT/bed', x: 1342, y: 370, loopFrame: 0},
+				{asset: '$root/resultsPERFECT/hearts', x: 1342, y: 370, delay: 4.41, loopFrame: 43}
+			];
+			case EXCELLENT: [
+				{asset: '$root/resultsEXCELLENT', x: 1329, y: 429, loopFrame: 29}
 			];
 			case GREAT: [
-				{asset: '$root/gf', loop: true},
-				{asset: '$root/bf', loop: true}
+				{asset: '$root/resultsGREAT/gf', x: 802, y: 331, scale: 0.93, delay: 0.25, loopFrame: 9},
+				{asset: '$root/resultsGREAT/bf', x: 929, y: 363, scale: 0.93, loopFrame: 15}
 			];
 			case GOOD: [
-				{asset: '$root/resultGirlfriendGOOD', sparrow: true, loop: true},
-				{asset: '$root/bf', loop: true}
+				{asset: '$root/resultsGOOD/resultGirlfriendGOOD', sparrow: true, x: 629, y: 323, delay: 0.91, loopFrame: 9},
+				{asset: '$root/resultsGOOD/bf', x: 662, y: 371, loopFrame: 14}
 			];
-			default: [{asset: root, loop: true}];
+			case SHIT: [
+				{asset: '$root/resultsSHIT', x: 0, y: 20, loopFrame: 0}
+			];
+		}
+	}
+
+	static function picoLayers(rank:ResultsRank):Array<ResultsLayer>
+	{
+		var root:String = 'results/results-pico';
+
+		return switch(rank)
+		{
+			case PERFECT_GOLD, PERFECT: [
+				{asset: '$root/resultsPERFECT', x: 385, y: 82, scale: 0.88, loopFrame: 91}
+			];
+			case EXCELLENT, GREAT: [
+				{asset: '$root/resultsGREAT', x: 350, y: 25, scale: 1.25, loopFrame: 32}
+			];
+			case GOOD: [
+				{asset: '$root/resultsGOOD', x: 350, y: 25, scale: 1.25, loopFrame: 41}
+			];
+			case SHIT: [
+				{asset: '$root/resultsSHIT', x: -185, y: -125, loopFrame: 0}
+			];
 		}
 	}
 
@@ -160,11 +176,10 @@ class RankData
 	{
 		if(playerName == null) return 'bf';
 
-		var lower:String = playerName.toLowerCase();
-		if(lower.indexOf('pico') > -1 && Paths.fileExists('images/results/results-pico/Animation.json', TEXT) == false)
-		{
-			if(Paths.fileExists('images/results/results-pico/resultsGOOD/Animation.json', TEXT)) return 'pico';
-		}
+		if(playerName.toLowerCase().indexOf('pico') > -1
+			&& Paths.fileExists('images/results/results-pico/resultsGOOD/Animation.json', TEXT))
+			return 'pico';
+
 		return 'bf';
 	}
 }

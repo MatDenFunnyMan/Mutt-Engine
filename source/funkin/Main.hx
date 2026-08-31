@@ -89,7 +89,7 @@ class Main extends Sprite
 	public static var fpsVar:FPSCounter;
 	public static var screenshotCounter:Int = 1;
 	public static var engineName:String = "Mutt Engine";
-	public static var engineVersion:String = "0.1.0";
+	public static var engineVersion:String = "1.0.0";
 	public static var audioDisconnected:Bool = false;
 	public static var changeID:Int = 0;
 
@@ -308,7 +308,7 @@ class Main extends Sprite
 		FlxG.stage.addEventListener(openfl.events.KeyboardEvent.KEY_DOWN, onKeyDown);
 		
 		#if CRASH_HANDLER
-		Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onCrash);
+		funkin.util.CrashHandler.init();
 		#end
 
 		FlxG.signals.gameResized.add(function (w, h) {
@@ -472,51 +472,6 @@ class Main extends Sprite
 		});
 	}
 
-	#if CRASH_HANDLER
-	function onCrash(e:UncaughtErrorEvent):Void
-	{
-		var errMsg:String = "";
-		var path:String;
-		var callStack:Array<StackItem> = CallStack.exceptionStack(true);
-		var dateNow:String = Date.now().toString();
-
-		dateNow = dateNow.replace(" ", "_");
-		dateNow = dateNow.replace(":", "'");
-
-		path = "./crash/" + "PsychEngine_" + dateNow + ".txt";
-
-		for (stackItem in callStack)
-		{
-			switch (stackItem)
-			{
-				case FilePos(s, file, line, column):
-					errMsg += file + " (line " + line + ")\n";
-				default:
-					Sys.println(stackItem);
-			}
-		}
-
-		errMsg += "\nUncaught Error: " + e.error;
-		#if officialBuild
-		errMsg += "\nPlease report this error to the GitHub page: https://github.com/ShadowMario/FNF-PsychEngine";
-		#end
-		errMsg += "\n\n> Crash Handler written by: sqirra-rng";
-
-		if (!FileSystem.exists("./crash/"))
-			FileSystem.createDirectory("./crash/");
-
-		File.saveContent(path, errMsg + "\n");
-
-		Sys.println(errMsg);
-		Sys.println("Crash dump saved in " + Path.normalize(path));
-
-		Application.current.window.alert(errMsg, "Error!");
-		#if DISCORD_ALLOWED
-		DiscordClient.shutdown();
-		#end
-		Sys.exit(1);
-	}
-	#end
 
 	#if (cpp && windows)
 	@:functionCode('return _detectWindowsDarkMode();')

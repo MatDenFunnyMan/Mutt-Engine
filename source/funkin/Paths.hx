@@ -317,52 +317,70 @@ class Paths
 	inline static public function music(key:String, ?modsAllowed:Bool = true):Sound
 		return returnSound('music/$key', modsAllowed);
 
-	static public function inst(song:String, ?modsAllowed:Bool = true):Sound
+	public static var VARIANT_FIRST_WORD_ONLY:Bool = true;
+
+	public static function variantSuffix(difficulty:String):String
 	{
-		var formattedSong = formatToSongPath(song);
-		
-		#if MODS_ALLOWED
-		if(modsAllowed)
+		if(difficulty == null || difficulty.length < 1) return '';
+
+		var value:String = difficulty.charAt(0) == '-' ? difficulty.substr(1) : difficulty;
+		if(value.length < 1) return '';
+
+		if(VARIANT_FIRST_WORD_ONLY)
 		{
-			var newPath0 = 'data/songs/$formattedSong/song/Inst.$SOUND_EXT';
-			if(FileSystem.exists(getPath(newPath0, SOUND, null, true)))
-				return returnSound('songs/$formattedSong/song/Inst', 'data', modsAllowed);
-			var newPath1 = 'data/$formattedSong/song/Inst.$SOUND_EXT';
-			if(FileSystem.exists(getPath(newPath1, SOUND, null, true)))
-				return returnSound('$formattedSong/song/Inst', 'data', modsAllowed);
-			
-			var newPath2 = 'data/$formattedSong/songs/Inst.$SOUND_EXT';
-			if(FileSystem.exists(getPath(newPath2, SOUND, null, true)))
-				return returnSound('$formattedSong/songs/Inst', 'data', modsAllowed);
+			var dash:Int = value.indexOf('-');
+			if(dash > 0) value = value.substr(0, dash);
 		}
-		#end
-		
-		return returnSound('$formattedSong/Inst', 'songs', modsAllowed);
+
+		return '-' + value;
 	}
 
-	static public function voices(song:String, postfix:String = null, ?modsAllowed:Bool = true):Sound
+	static function findSongSound(formattedSong:String, fileName:String, modsAllowed:Bool, beepOnNull:Bool = false):Sound
 	{
-		var formattedSong = formatToSongPath(song);
-		var suffix = postfix != null ? '-' + postfix : '';
-		
 		#if MODS_ALLOWED
 		if(modsAllowed)
 		{
-			var newPath0 = 'data/songs/$formattedSong/song/Voices$suffix.$SOUND_EXT';
-			if(FileSystem.exists(getPath(newPath0, SOUND, null, true)))
-				return returnSound('songs/$formattedSong/song/Voices$suffix', 'data', modsAllowed, false);
-			var newPath1 = 'data/$formattedSong/song/Voices$suffix.$SOUND_EXT';
-			if(FileSystem.exists(getPath(newPath1, SOUND, null, true)))
-				return returnSound('$formattedSong/song/Voices$suffix', 'data', modsAllowed, false);
-			
-			var newPath2 = 'data/$formattedSong/songs/Voices$suffix.$SOUND_EXT';
-			if(FileSystem.exists(getPath(newPath2, SOUND, null, true)))
-				return returnSound('$formattedSong/songs/Voices$suffix', 'data', modsAllowed, false);
+			if(FileSystem.exists(getPath('data/songs/$formattedSong/song/$fileName.$SOUND_EXT', SOUND, null, true)))
+				return returnSound('songs/$formattedSong/song/$fileName', 'data', modsAllowed, beepOnNull);
+
+			if(FileSystem.exists(getPath('data/$formattedSong/song/$fileName.$SOUND_EXT', SOUND, null, true)))
+				return returnSound('$formattedSong/song/$fileName', 'data', modsAllowed, beepOnNull);
+
+			if(FileSystem.exists(getPath('data/$formattedSong/songs/$fileName.$SOUND_EXT', SOUND, null, true)))
+				return returnSound('$formattedSong/songs/$fileName', 'data', modsAllowed, beepOnNull);
 		}
 		#end
-		
-		var songKey:String = '$formattedSong/Voices$suffix';
-		return returnSound(songKey, 'songs', modsAllowed, false);
+
+		return returnSound('$formattedSong/$fileName', 'songs', modsAllowed, beepOnNull);
+	}
+
+	static public function inst(song:String, ?difficulty:String, ?modsAllowed:Bool = true):Sound
+	{
+		var formattedSong = formatToSongPath(song);
+		var suffix:String = variantSuffix(difficulty);
+
+		if(suffix.length > 0)
+		{
+			var variant:Sound = findSongSound(formattedSong, 'Inst$suffix', modsAllowed);
+			if(variant != null) return variant;
+		}
+
+		return findSongSound(formattedSong, 'Inst', modsAllowed, true);
+	}
+
+	static public function voices(song:String, postfix:String = null, ?difficulty:String, ?modsAllowed:Bool = true):Sound
+	{
+		var formattedSong = formatToSongPath(song);
+		var base:String = 'Voices' + (postfix != null ? '-' + postfix : '');
+		var suffix:String = variantSuffix(difficulty);
+
+		if(suffix.length > 0)
+		{
+			var variant:Sound = findSongSound(formattedSong, base + suffix, modsAllowed);
+			if(variant != null) return variant;
+		}
+
+		return findSongSound(formattedSong, base, modsAllowed);
 	}
 
 	inline static public function soundRandom(key:String, min:Int, max:Int, ?modsAllowed:Bool = true)

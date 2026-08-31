@@ -6,6 +6,10 @@ import funkin.data.WeekData;
 import funkin.data.Song;
 import funkin.game.Rating;
 
+import modcharting.ModchartFuncs;
+import modcharting.NoteMovement;
+import modcharting.PlayfieldRenderer;
+
 import flixel.FlxBasic;
 import flixel.FlxObject;
 import flixel.FlxSubState;
@@ -656,6 +660,9 @@ class PlayState extends MusicBeatState
 
 		generateSong();
 
+		playfieldRenderer = new PlayfieldRenderer(strumLineNotes, notes, this);
+		noteGroup.add(playfieldRenderer);
+
 		noteGroup.add(grpNoteSplashes);
 		if(ClientPrefs.data.holdCoverAlpha > 0)
 			initializeHoldCovers();
@@ -813,6 +820,7 @@ class PlayState extends MusicBeatState
 		resetRPC();
 
 		stagesFunc(function(stage:BaseStage) stage.createPost());
+		ModchartFuncs.loadLuaFunctions();
 		callOnScripts('onCreatePost');
 		
 		var splash:NoteSplash = new NoteSplash();
@@ -1275,6 +1283,8 @@ class PlayState extends MusicBeatState
 				
 				healthBar.valueFunction = function() return 2 - health;
 			}
+			NoteMovement.getDefaultStrumPos(this);
+
 			for (i in 0...playerStrums.length) {
 				setOnScripts('defaultPlayerStrumX' + i, playerStrums.members[i].x);
 				setOnScripts('defaultPlayerStrumY' + i, playerStrums.members[i].y);
@@ -1613,10 +1623,10 @@ class PlayState extends MusicBeatState
 		{
 			if (songData.needsVoices)
 			{
-				var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-				vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(songData.song));
+				var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile, Difficulty.getFilePath());
+				vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(songData.song, null, Difficulty.getFilePath()));
 				
-				var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+				var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile, Difficulty.getFilePath());
 				if(oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 			}
 		}
@@ -1632,7 +1642,7 @@ class PlayState extends MusicBeatState
 		inst = new FlxSound();
 		try
 		{
-			inst.loadEmbedded(Paths.inst(songData.song));
+			inst.loadEmbedded(Paths.inst(songData.song, Difficulty.getFilePath()));
 		}
 		catch (e:Dynamic) {}
 		FlxG.sound.list.add(inst);
@@ -2337,6 +2347,11 @@ class PlayState extends MusicBeatState
 
 			if (FlxG.keys.justPressed.SEVEN)
 				openChartEditorAtCurrentTime();
+
+			#if !DISABLE_MODCHART_EDITOR
+			if (FlxG.keys.justPressed.EIGHT)
+				openModchartEditor();
+			#end
 		}
 
 		if (healthBar.bounds.max != null && health > healthBar.bounds.max)
@@ -2651,6 +2666,35 @@ class PlayState extends MusicBeatState
 		ChartingState.skipStartupMenu = true;
 		MusicBeatState.switchState(new ChartingState());
 	}
+
+	#if !DISABLE_MODCHART_EDITOR
+	function openModchartEditor()
+	{
+		canResync = false;
+		FlxG.camera.followLerp = 0;
+		persistentUpdate = false;
+		paused = true;
+
+		if(FlxG.sound.music != null)
+			FlxG.sound.music.stop();
+		if(vocals != null)
+			vocals.pause();
+		if(opponentVocals != null)
+			opponentVocals.pause();
+
+		#if DISCORD_ALLOWED
+		DiscordClient.clearSongImageKey();
+		DiscordClient.changePresence("Modchart Editor", null, null, true);
+		#if MODS_ALLOWED
+		DiscordClient.loadModRPC();
+		#else
+		DiscordClient.resetClientID();
+		#end
+		#end
+
+		MusicBeatState.switchState(new modcharting.ModchartEditorState());
+	}
+	#end
 
 	function openChartEditorAtCurrentTime()
 	{

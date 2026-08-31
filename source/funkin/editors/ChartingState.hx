@@ -3972,7 +3972,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		try
 		{
-			FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song), 0);
+			FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song, Difficulty.getFilePath(curDifficultyIndex)), 0);
 			FlxG.sound.music.pause();
 			FlxG.sound.music.time = time;
 			FlxG.sound.music.onComplete = (function() songFinished = true);
@@ -3989,14 +3989,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			try
 			{
-				var playerVocals:Sound = Paths.voices(PlayState.SONG.song, (characterData.vocalsP1 == null || characterData.vocalsP1.length < 1) ? 'Player' : characterData.vocalsP1);
-				vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(PlayState.SONG.song));
+				var playerVocals:Sound = Paths.voices(PlayState.SONG.song, (characterData.vocalsP1 == null || characterData.vocalsP1.length < 1) ? 'Player' : characterData.vocalsP1, Difficulty.getFilePath(curDifficultyIndex));
+				vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(PlayState.SONG.song, null, Difficulty.getFilePath(curDifficultyIndex)));
 				vocals.volume = 0;
 				vocals.play();
 				vocals.pause();
 				vocals.time = time;
 				
-				var oppVocals:Sound = Paths.voices(PlayState.SONG.song, (characterData.vocalsP2 == null || characterData.vocalsP2.length < 1) ? 'Opponent' : characterData.vocalsP2);
+				var oppVocals:Sound = Paths.voices(PlayState.SONG.song, (characterData.vocalsP2 == null || characterData.vocalsP2.length < 1) ? 'Opponent' : characterData.vocalsP2, Difficulty.getFilePath(curDifficultyIndex));
 				if(oppVocals != null && oppVocals.length > 0)
 				{
 					opponentVocals.loadEmbedded(oppVocals);
