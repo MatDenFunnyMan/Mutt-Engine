@@ -4,6 +4,7 @@ APIStuff.hx
 art/buildScripts/build_x32-officialrelease.bat
 art/buildScripts/build_x64-officialrelease.bat
 art/buildScripts/test_x64-debug-officialrelease.bat
+ROADMAP.txt
 
 ### VS Code
 export/*

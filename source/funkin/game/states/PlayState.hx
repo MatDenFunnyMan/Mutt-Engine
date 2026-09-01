@@ -768,6 +768,9 @@ class PlayState extends MusicBeatState
 		// SONG SPECIFIC SCRIPTS
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 		var scriptFolders:Array<String> = [
+			'data/songs/$songName/',
+			'data/songs/$songName/scripts/',
+			'data/songs/$songName/script/',
 			'data/$songName/',
 			'data/$songName/scripts/',
 			'data/$songName/script/'

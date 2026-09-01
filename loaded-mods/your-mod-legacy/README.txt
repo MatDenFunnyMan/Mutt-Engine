@@ -1,0 +1,1 @@
+Mutt Engine allows mods with both the new and legacy mod folder structure, as a sort of backwards compatibility

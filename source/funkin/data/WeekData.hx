@@ -89,7 +89,8 @@ class WeekData {
 		var sexList:Array<String> = CoolUtil.coolTextFile(Paths.getRoutedSharedPath('weeks/weekList.txt'));
 		for (i in 0...sexList.length) {
 			for (j in 0...directories.length) {
-				var fileToCheck:String = directories[j] + 'weeks/' + sexList[i] + '.json';
+				var fileToCheck:String = directories[j] + 'data/weeks/' + sexList[i] + '.json';
+				if(!weekPathExists(fileToCheck)) fileToCheck = directories[j] + 'weeks/' + sexList[i] + '.json';
 				if(!weeksLoaded.exists(sexList[i])) {
 					var week:WeekFile = getWeekFile(fileToCheck);
 					if(week != null) {
@@ -112,7 +113,7 @@ class WeekData {
 
 		#if MODS_ALLOWED
 		for (i in 0...directories.length) {
-			var directory:String = directories[i] + 'weeks/';
+			for (directory in [directories[i] + 'data/weeks/', directories[i] + 'weeks/']) {
 			if(FileSystem.exists(directory)) {
 				var listOfWeeks:Array<String> = CoolUtil.coolTextFile(directory + 'weekList.txt');
 				for (daWeek in listOfWeeks)
@@ -133,7 +134,17 @@ class WeekData {
 					}
 				}
 			}
+			}
 		}
+		#end
+	}
+
+	private static function weekPathExists(path:String):Bool
+	{
+		#if MODS_ALLOWED
+		return FileSystem.exists(path);
+		#else
+		return OpenFlAssets.exists(path);
 		#end
 	}
 

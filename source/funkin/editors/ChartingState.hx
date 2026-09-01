@@ -1465,7 +1465,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		var folder:String = Paths.getRoutedSharedPath('weeks/');
 		#if MODS_ALLOWED
-		if(week.folder != null && week.folder.length > 0) folder = Paths.mods(week.folder + '/weeks/');
+		if(week.folder != null && week.folder.length > 0) folder = Paths.modsRoutedFolder('weeks/', week.folder);
 		#end
 		var path:String = folder + week.fileName + '.json';
 

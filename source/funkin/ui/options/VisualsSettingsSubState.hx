@@ -53,7 +53,6 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		ClientPrefs.data.noteSkin = ClientPrefs.defaultData.noteSkin;
 		ClientPrefs.data.splashSkin = ClientPrefs.defaultData.splashSkin;
 
-		/*
 		var noteSkins:Array<String> = Mods.mergeAllTextsNamed('images/noteSkins/list.txt');
 		var autoDetectedSkins:Array<String> = detectNoteSkins();
 		for (skin in autoDetectedSkins)
@@ -98,7 +97,6 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			addOption(option);
 			option.onChange = onChangeSplashSkin;
 		}
-		*/
 
 		var option:Option = new Option('Hold Cover Opacity',
 			'How much transparent should the Hold Covers be.',
@@ -187,7 +185,6 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
-		/*
 		var option:Option = new Option('Camera Zooms',
 			"If unchecked, the camera won't zoom in on a beat hit.",
 			'camZooms',
@@ -210,7 +207,6 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		option.changeValue = 0.1;
 		option.decimals = 1;
 		addOption(option);
-		*/
 		
 		#if !mobile
 		var option:Option = new Option('FPS Counter:',
@@ -264,7 +260,6 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
-		/*
 		#if (cpp && windows)
 		var option:Option = new Option('Window Theme:',
 			"Select window color theme.\nPC Theme = Follows your system theme\nWhite = Always light mode\nDark = Always dark mode",
@@ -289,7 +284,6 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = onChangeWindowColor;
 		#end
-		*/
 
 		super();
 		add(notes);

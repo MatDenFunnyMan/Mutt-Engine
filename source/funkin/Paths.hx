@@ -215,6 +215,13 @@ class Paths
 		return 'content/base_weeks/$level/$key';
 	}
 
+	public static function routeModLevelKey(file:String, level:String):String
+	{
+		var key:String = file;
+		if(key.startsWith('images/')) key = key.substr(7);
+		return 'content/custom_weeks/$level/$key';
+	}
+
 	inline public static function assetExists(path:String, ?type:AssetType = TEXT):Bool
 	{
 		#if sys
@@ -228,6 +235,13 @@ class Paths
 		#if MODS_ALLOWED
 		if(modsAllowed)
 		{
+			var level:String = (parentfolder != null) ? parentfolder : currentLevel;
+			if(level != null && level != 'shared' && level != 'songs')
+			{
+				var moddedLevel:String = modFolders(routeModLevelKey(file, level));
+				if(FileSystem.exists(moddedLevel)) return moddedLevel;
+			}
+
 			var customFile:String = file;
 			if (parentfolder != null) customFile = '$parentfolder/$file';
 
@@ -644,6 +658,18 @@ class Paths
 
 	inline static public function modsImagesJson(key:String)
 		return modFolders('images/' + key + '.json');
+
+	public static function modsRoutedFolder(key:String, ?modDir:String):String
+	{
+		var prefix:String = (modDir != null && modDir.length > 0) ? modDir + '/' : '';
+		var oldPath:String = mods(prefix + key);
+		var routed:String = routeKey(key);
+
+		if(routed == null || routed == key) return oldPath;
+		if(FileSystem.exists(oldPath)) return oldPath;
+
+		return mods(prefix + routed);
+	}
 
 	static public function modFolders(key:String)
 	{
