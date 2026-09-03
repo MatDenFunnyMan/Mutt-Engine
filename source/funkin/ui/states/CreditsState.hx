@@ -39,6 +39,8 @@ class CreditsState extends MusicBeatState
 		#end
 
 		var defaultList:Array<Array<String>> = [ //Name - Icon name - Description - Link - BG Color
+			["Mutt Engine"],
+			["matdenfunnyman", "mat", "Made this bs Mutt Engine", "https://www.youtube.com/@matdenfunnyman2", "#54ff62"],
 			["Cheese Engine Team"],
 			["Chris",				"chris",		    "Owner and Coder of Cheese Engine",									"https://x.com/cheesebased1",		"2B2B45"],
 			["Slushi",				"slushi",		    "Coder of WindowsAPI Library",									"https://github.com/Slushi-Github",	"91E0DB"],
