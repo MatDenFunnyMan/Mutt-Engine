@@ -88,27 +88,6 @@ class MusicBeatState extends FlxState
 			}
 		}
 
-		if(ClientPrefs.data.developerMode && FlxG.keys.justPressed.SEVEN && FlxG.state.subState == null)
-		{
-			var parts = Type.getClassName(Type.getClass(FlxG.state)).split('.');
-			var stateName = parts[parts.length - 1];
-			if(stateName == 'HScriptState' && Std.isOfType(FlxG.state, HScriptStateLoader.HScriptState))
-			{
-				var hscriptState:HScriptStateLoader.HScriptState = cast FlxG.state;
-				stateName = hscriptState.stateName;
-			}
-			else if(stateName == 'LuaState' && Std.isOfType(FlxG.state, funkin.scripting.LuaStateLoader.LuaState))
-			{
-				var luaState:funkin.scripting.LuaStateLoader.LuaState = cast FlxG.state;
-				stateName = luaState.stateName;
-			}
-			if(stateName.toLowerCase() == 'mainmenustate')
-			{
-				funkin.editors.EditorHelper.saveCurrentState();
-				FlxG.state.openSubState(new funkin.editors.EditorPickerSubstate());
-			}
-		}
-
 		if (oldStep != curStep)
 		{
 			if(curStep > 0)

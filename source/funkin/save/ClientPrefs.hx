@@ -87,6 +87,7 @@ import funkin.ui.states.TitleState;
 	public var discordRPC:Bool = true;
 	public var loadingScreen:Bool = true;
 	public var developerMode:Bool = false;
+	public var disableSongResults:Bool = false;
 	public var language:String = 'en-US';
 	public var windowTheme:String = 'PC Theme';
 	public var windowColor:String = 'Default';
@@ -122,6 +123,7 @@ class ClientPrefs {
 		
 		'debug_1'		=> [SEVEN],
 		'debug_2'		=> [EIGHT],
+		'modchart_editor' => [NINE],
 		'screenshot'	=> [F3],
 		'fullscreen'	=> [F11],
 		'debug_console'	=> [F12],

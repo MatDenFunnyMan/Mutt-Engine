@@ -1,33 +1,20 @@
-![CheeseEngineLogo](docs/img/CheeseEngineLogo.png)
-
-# Cheese Engine!
+# Mutt Engine - Psych Engine but better ig
 
 Original Engine created by ShadowMario: [@ShadowMario](https://github.com/ShadowMario)
 
-Attempting to be an engine with V Slice + Codename + Psych Engine features, and trying to fix bugs!
+A Psych Engine fork focused on "modernizing" the latest version of Psych, bringing features from other projects (Codename, Nightmare Vision, V-Slice, and more!) whilst adding TONS of useful coding functions for modding.
+Base used: Cheese Engine by [@Chris](https://github.com/whenkenas) - Version 1.61
 
 ## CHANGES:
 
-- **States in HSCRIPT and LUA** - Read the readme.txt file in the respective mod folder for more information
-- **Better Chart Editor** - More similar to V Slice and more PEAK EVENTS!
-![Chart Editor](docs/img/ChartEditor.png)
-- **V Slice Stickers** - You can add your own stickers!
-- **MetaData Pause SubState** - Enhanced pause menu with metadata
-- **V Slice Volume** - Now the volume is more... cooler!
-- **Custom EXE Icon & Name** - Edit with pack.png and pack.json
-- **Mod Selector** - Press Tab in MainMenuState
-- **V Slice FPS** - Modern FPS counter
-- **More NoteSkins, NoteSplashes, and Hold Covers!** - Expanded customization
-- **Better Stage Editor** - Now only exports Lua along with its Json (We will be adding Lua, Haxe, and Json in the future)
-- **Improved Editor Selector** - Now with icons (Similar to Codename, credits to their team for the idea!)
-![Editor Selector](docs/img/EditorSelector.png)
-- **More Values in HSCRIPT and Lua** - Extended scripting capabilities
-- **Toys in ChartEditor** - Can be activated in "View"
-- **New options for ChartingState** - Enhanced charting experience
-- **More additions to Gameplay Changer** - Mirror Chart and Opponent Mode
-- **Dark Mode** - You can change the color to whatever you want in options!
-- **Detailed RANKING** - Enhanced scoring system
-- **And so much MORE!**
+- New source structure, re-organized for a more "modern" look.
+- EVEN better Chart Editor - Startup Wizard, Change Difficulty inside Editor, V-Slice/Codename compatibility, etc. (MORE coming in future updates)
+- Character Editor - Spritesheet View, Multi-Ghost, Icon Sub-Editor & Adobe Atlas Support (COMING SOON)
+- **Stage Editor** - TONS of bug fixes, Pixel Stage support, Atlas support (coming soon)
+- Custom States/Substates, softcoded in LUA/HX
+- Modcharting, using [@TheZoroForce420's Modcharting Tools](https://github.com/TheZoroForce240/FNF-Modcharting-Tools) as a base. (Will be changed w Funkin Modchart in future updates)
+
+**AND MORE!!**
 
 ---
 
@@ -57,7 +44,7 @@ There you can learn how to use the 212+ PlayState functions in your mod!
 ## Credits:
 * Shadow Mario - Main Programmer and Head of Psych Engine
 * Riveren - Main Artist/Animator of Psych Engine
-* **Chris** - Creator of Cheese Engine
+* **Matdenfunnyman** - Creator of Cheese Engine
 
 ### Special Thanks
 * bbpanzu - Ex-Team Member (Programmer)
@@ -77,7 +64,7 @@ There you can learn how to use the 212+ PlayState functions in your mod!
 
 ***
 
-# Psych Engine Features
+# Psych Engine README
 
 ## Attractive animated dialogue boxes:
 
@@ -158,5 +145,5 @@ There you can learn how to use the 212+ PlayState functions in your mod!
 * You can enable "Combo Stacking" in Gameplay Options. This causes the combo sprites to just be one sprite with an animation rather than sprites spawning each note hit
 
 
-#### Cheese Engine based on Psych Engine by ShadowMario
-#### Psych Engine by ShadowMario, Friday Night Funkin' by ninjamuffin99
+#### Mutt Engine based on Psych Engine by ShadowMario
+#### Psych Engine by ShadowMario, Friday Night Funkin' by Funkin Team

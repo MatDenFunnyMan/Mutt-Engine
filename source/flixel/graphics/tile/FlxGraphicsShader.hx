@@ -122,19 +122,6 @@ class FlxGraphicsShader extends GraphicsShader
 			if(useNewerRendering){
 				#if sys Sys.println("Using newer rendering for OpenGL 3"); #end
 				trace("Using newer rendering for OpenGL 3");
-
-				try
-				{
-					var exts:Array<String> = gl.getSupportedExtensions();
-					if(exts != null)
-						for(ext in exts)
-							if(ext != null && ext.indexOf('blend_equation_advanced') > -1)
-								openfl.display.OpenGLRenderer.advancedBlend = true;
-				}
-				catch(e:Dynamic) {}
-
-				#if sys Sys.println("Advanced blend equations: " + openfl.display.OpenGLRenderer.advancedBlend); #end
-				trace("Advanced blend equations: " + openfl.display.OpenGLRenderer.advancedBlend);
 			}
 			else{
 				#if sys Sys.println("Using legacy rendering. Some shaders may not work on your device!"); #end
@@ -151,9 +138,6 @@ class FlxGraphicsShader extends GraphicsShader
 			#else
 			prefix = '#version 330\n';
 			#end
-
-			if(openfl.display.OpenGLRenderer.advancedBlend)
-				prefix += "#extension GL_KHR_blend_equation_advanced : enable\nlayout(blend_support_all_equations) out;\n";
 		}
 
 		#if (js && html5)

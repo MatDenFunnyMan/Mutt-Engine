@@ -15,9 +15,6 @@ class ModSelectorSubstate extends MusicBeatSubstate
 	var curSelected:Int = 0;
 	var bg:FlxSprite;
 	var subCam:FlxCamera;
-	var bgAnim:FlxSprite;
-	var box:FlxSprite;
-	var rayo:FlxSprite;
 
 	function getCurrentModMode():String
 	{
@@ -51,37 +48,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 		bg.scrollFactor.set();
 		add(bg);
 		
-		FlxTween.tween(bg, {alpha: 0.5}, 0.25, {ease: FlxEase.cubeOut});
-
-		bgAnim = new FlxSprite(0, 0);
-		bgAnim.frames = Paths.getSparrowAtlas('mainmenu/ModSelector/bg');
-		bgAnim.animation.addByPrefix('idle', 'idle', 6, true);
-		bgAnim.animation.play('idle');
-		bgAnim.setGraphicSize(FlxG.width, FlxG.height);
-		bgAnim.updateHitbox();
-		bgAnim.screenCenter();
-		bgAnim.scrollFactor.set();
-		bgAnim.alpha = 0;
-		add(bgAnim);
-
-		box = new FlxSprite(0, 0).loadGraphic(Paths.image('mainmenu/ModSelector/box'));
-		box.setGraphicSize(FlxG.width, FlxG.height);
-		box.updateHitbox();
-		box.screenCenter();
-		box.scrollFactor.set();
-		box.alpha = 0;
-		add(box);
-
-		rayo = new FlxSprite(0, 0);
-		rayo.frames = Paths.getSparrowAtlas('mainmenu/ModSelector/rayo');
-		rayo.animation.addByPrefix('idle', 'idle', 6, true);
-		rayo.animation.play('idle');
-		rayo.setGraphicSize(FlxG.width, FlxG.height);
-		rayo.updateHitbox();
-		rayo.screenCenter();
-		rayo.scrollFactor.set();
-		rayo.alpha = 0;
-		add(rayo);
+		FlxTween.tween(bg, {alpha: 0.75}, 0.25, {ease: FlxEase.cubeOut});
 
 		#if MODS_ALLOWED
 		var modsDirectories = Mods.getModDirectories();
@@ -119,7 +86,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 			
 			if(isCurrentMode)
 			{
-				modText.color = FlxColor.LIME;
+				modText.color = FlxColor.RED;
 				curSelected = i;
 			}
 			
@@ -127,10 +94,6 @@ class ModSelectorSubstate extends MusicBeatSubstate
 		}
 
 		changeSelection(0, true);
-
-		FlxTween.tween(bgAnim, {alpha: 1}, 0.25, {ease: FlxEase.cubeOut});
-		FlxTween.tween(box, {alpha: 1}, 0.25, {ease: FlxEase.cubeOut});
-		FlxTween.tween(rayo, {alpha: 1}, 0.25, {ease: FlxEase.cubeOut});
 		
 		for (k => modText in grpMods.members)
 		{
@@ -154,9 +117,6 @@ class ModSelectorSubstate extends MusicBeatSubstate
 		if (!_justOpened && (controls.BACK || FlxG.keys.justPressed.TAB))
 		{
 			FlxG.sound.play(Paths.sound('cancelMenu'));
-			FlxTween.tween(bgAnim, {alpha: 0}, 0.25, {ease: FlxEase.cubeOut});
-			FlxTween.tween(box, {alpha: 0}, 0.25, {ease: FlxEase.cubeOut});
-			FlxTween.tween(rayo, {alpha: 0}, 0.25, {ease: FlxEase.cubeOut});
 			FlxTween.tween(bg, {alpha: 0}, 0.25, {ease: FlxEase.cubeOut});
 			
 			for (modText in grpMods.members)
@@ -248,9 +208,6 @@ class ModSelectorSubstate extends MusicBeatSubstate
 			#end
 			
 			FlxG.sound.play(Paths.sound('confirmMenu'));
-			FlxTween.tween(bgAnim, {alpha: 0}, 0.25, {ease: FlxEase.cubeOut});
-			FlxTween.tween(box, {alpha: 0}, 0.25, {ease: FlxEase.cubeOut});
-			FlxTween.tween(rayo, {alpha: 0}, 0.25, {ease: FlxEase.cubeOut});
 			FlxTween.tween(bg, {alpha: 0}, 0.25, {ease: FlxEase.cubeOut});
 			
 			for (modText in grpMods.members)

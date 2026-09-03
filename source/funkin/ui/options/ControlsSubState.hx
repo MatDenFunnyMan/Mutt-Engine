@@ -42,6 +42,7 @@ class ControlsSubState extends MusicBeatSubstate
 		[false, 'DEBUG'],
 		[false, 'Key 1', 'debug_1', 'Debug Key #1'],
 		[false, 'Key 2', 'debug_2', 'Debug Key #2'],
+		[false, 'Modchart', 'modchart_editor', 'Modchart Editor'],
 		[false, 'Screenshot', 'screenshot', 'Screenshot'],
 		[false, 'Fullscreen', 'fullscreen', 'Fullscreen'],
 		[false, 'Console', 'debug_console', 'Debug Console']

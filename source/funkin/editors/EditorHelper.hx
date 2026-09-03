@@ -23,7 +23,7 @@ class EditorHelper
 				var luaState:funkin.scripting.LuaStateLoader.LuaState = cast FlxG.state;
 				stateName = luaState.stateName;
 			}
-			if(stateName == 'MasterEditorMenu')
+			if(stateName == 'MasterEditorMenu' || stateName == 'EditorMenuState')
 				stateName = 'MainMenuState';
 			returnToState = stateName;
 			trace('EditorHelper: Saved return state: $stateName');

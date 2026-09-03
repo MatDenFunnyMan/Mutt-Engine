@@ -358,8 +358,8 @@ class PlayState extends MusicBeatState
 
 		// var gameCam:FlxCamera = FlxG.camera;
 		camGame = initPsychCamera();
-		camHUD = new FlxCamera();
-		camOther = new FlxCamera();
+		camHUD = new PsychCamera();
+		camOther = new PsychCamera();
 		camHUD.bgColor.alpha = 0;
 		camOther.bgColor.alpha = 0;
 
@@ -2347,14 +2347,13 @@ class PlayState extends MusicBeatState
 				openChartEditor();
 			else if (controls.justPressed('debug_2'))
 				openCharacterEditor();
+			#if !DISABLE_MODCHART_EDITOR
+			else if (controls.justPressed('modchart_editor'))
+				openModchartEditor();
+			#end
 
 			if (FlxG.keys.justPressed.SEVEN)
 				openChartEditorAtCurrentTime();
-
-			#if !DISABLE_MODCHART_EDITOR
-			if (FlxG.keys.justPressed.EIGHT)
-				openModchartEditor();
-			#end
 		}
 
 		if (healthBar.bounds.max != null && health > healthBar.bounds.max)
@@ -4964,7 +4963,13 @@ class PlayState extends MusicBeatState
 
 	function showResults(data:funkin.ui.states.ResultsState.ResultsData, onContinue:Void->Void)
 	{
-		var ret:Dynamic = callOnScripts('onResultsScreen', [data.score, data.accuracy, data.misses], true);
+		if(ClientPrefs.data.disableSongResults)
+		{
+			onContinue();
+			return;
+		}
+
+		var ret:Dynamic = callOnScripts('onResultsScreen', [data.score, data.accuracy, data.misses], false);
 		if(ret == LuaUtils.Function_Stop)
 		{
 			onContinue();

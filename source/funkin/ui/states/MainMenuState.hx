@@ -3,7 +3,6 @@ package funkin.ui.states;
 import flixel.FlxObject;
 import flixel.effects.FlxFlicker;
 import lime.app.Application;
-import funkin.editors.MasterEditorMenu;
 import funkin.ui.options.OptionsState;
 import funkin.modding.ModSelectorSubstate;
 import funkin.backend.StateManager;
@@ -369,11 +368,10 @@ class MainMenuState extends MusicBeatState
 				persistentUpdate = false;
 				openSubState(new ModSelectorSubstate());
 			}
-			if (FlxG.keys.justPressed.SEVEN && ClientPrefs.data.developerMode && subState == null)
+			if (FlxG.keys.justPressed.SIX && ClientPrefs.data.developerMode && subState == null)
 			{
-				FlxG.mouse.visible = false;
 				persistentUpdate = false;
-				openSubState(new funkin.editors.EditorPickerSubstate());
+				MusicBeatState.switchState(new funkin.editors.EditorMenuState());
 			}
 		}
 
