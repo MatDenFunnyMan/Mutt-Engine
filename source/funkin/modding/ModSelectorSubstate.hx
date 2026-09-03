@@ -265,7 +265,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 			
 			if(currentMode == 'MODS + FNF SONGS' || currentMode == 'ALL MODS' || currentMode == 'DISABLE MODS')
 			{
-				lime.app.Application.current.window.title = "Friday Night Funkin': Psych Engine";
+				lime.app.Application.current.window.title = Main.windowTitle;
 				
 				try {
 					#if (cpp && windows)
@@ -285,7 +285,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 				
 				#if (cpp && windows)
 				try {
-					funkin.external.winapi.WindowsCPP.reDefineMainWindowTitle("Friday Night Funkin': Psych Engine");
+					funkin.external.winapi.WindowsCPP.reDefineMainWindowTitle(Main.windowTitle);
 					funkin.external.winapi.WindowsCPP.resetWindowBorderColor();
 					Main.updateWindowTheme();
 				} catch(e:Dynamic) {}
@@ -294,7 +294,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 			else
 			{
 				var pack:Dynamic = Mods.getPack();
-				var newTitle:String = "Friday Night Funkin': Psych Engine";
+				var newTitle:String = Mods.getWindowTitle();
 				if (pack != null && pack.name != null)
 					newTitle = pack.name;
 				lime.app.Application.current.window.title = newTitle;

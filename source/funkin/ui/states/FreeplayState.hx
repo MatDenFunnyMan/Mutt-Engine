@@ -104,7 +104,7 @@ class FreeplayState extends MusicBeatState
 		#if MODS_ALLOWED
 		if(currentMode == 'MODS + FNF SONGS' || currentMode == 'ALL MODS' || currentMode == 'DISABLE MODS')
 		{
-			lime.app.Application.current.window.title = "Friday Night Funkin': Psych Engine";
+			lime.app.Application.current.window.title = Main.windowTitle;
 		}
 		#end
 

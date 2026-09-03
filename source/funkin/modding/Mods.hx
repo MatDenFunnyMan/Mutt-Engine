@@ -180,6 +180,26 @@ class Mods
 		return null;
 	}
 
+	public static function getWindowTitle(?folder:String = null):String
+	{
+		#if MODS_ALLOWED
+		var pack:Dynamic = getPack(folder);
+		if(pack != null)
+		{
+			var change:Dynamic = pack.changeTitle;
+			if(change != null && change == false)
+				return funkin.Main.windowTitle;
+
+			if(pack.windowTitle != null && Std.string(pack.windowTitle).length > 0)
+				return Std.string(pack.windowTitle);
+
+			if(pack.name != null && Std.string(pack.name).length > 0)
+				return Std.string(pack.name);
+		}
+		#end
+		return funkin.Main.windowTitle;
+	}
+
 	public static var updatedOnState:Bool = false;
 	inline public static function parseList():ModsList {
 		if(!updatedOnState) updateModList();

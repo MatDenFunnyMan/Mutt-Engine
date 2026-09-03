@@ -124,11 +124,12 @@ class TitleState extends MusicBeatState
 
 		if(isSingleMod)
 		{
+			lime.app.Application.current.window.title = Mods.getWindowTitle();
 			var pack:Dynamic = Mods.getPack();
 			if(pack != null && pack.name != null)
 				lime.app.Application.current.window.title = pack.name;
 			else
-				lime.app.Application.current.window.title = "Friday Night Funkin': Psych Engine";
+				lime.app.Application.current.window.title = Main.windowTitle;
 
 			var iconPath:String = Paths.modFolders('pack.png');
 			if(sys.FileSystem.exists(iconPath))
@@ -139,7 +140,7 @@ class TitleState extends MusicBeatState
 		}
 		else
 		{
-			lime.app.Application.current.window.title = "Friday Night Funkin': Psych Engine";
+			lime.app.Application.current.window.title = Main.windowTitle;
 		}
 		#end
 

@@ -1,0 +1,1 @@
+put your stage assets here, MUST be in a folder with the stage JSON name or wont work

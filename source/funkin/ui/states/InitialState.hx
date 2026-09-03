@@ -21,10 +21,9 @@ class InitialState extends MusicBeatState
 		if(_isSingleMod && Mods.currentModDirectory != null && Mods.currentModDirectory != '')
 		{
 			try {
-				var pack:Dynamic = Mods.getPack();
-				if (pack != null && pack.name != null)
-					lime.app.Application.current.window.title = pack.name;
-				
+				var newTitle:String = Mods.getWindowTitle();
+				lime.app.Application.current.window.title = newTitle;
+
 				var iconPath:String = Paths.modFolders('pack.png');
 				if (sys.FileSystem.exists(iconPath))
 				{
@@ -32,8 +31,7 @@ class InitialState extends MusicBeatState
 					lime.app.Application.current.window.setIcon(icon);
 				}
 
-				if (pack != null && pack.name != null)
-					funkin.external.winapi.WindowsCPP.reDefineMainWindowTitle(pack.name);
+				funkin.external.winapi.WindowsCPP.reDefineMainWindowTitle(newTitle);
 				Main.applyModWindowColor();
 			} catch(e:Dynamic) {
 				trace("Error loading mod pack info: " + e);

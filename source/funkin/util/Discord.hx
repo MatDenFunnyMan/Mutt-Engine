@@ -206,7 +206,7 @@ class DiscordClient
 		if (pack != null && pack.name != null && Mods.currentModDirectory != '')
 			return pack.name;
 		#end
-		return "Friday Night Funkin': Psych Engine";
+		return Main.windowTitle;
 	}
 
 	private static function set_clientID(newID:String)
