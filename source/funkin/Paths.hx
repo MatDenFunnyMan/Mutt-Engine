@@ -498,11 +498,15 @@ class Paths
 			var modKey:String = key;
 			if(parentFolder == 'songs') modKey = 'songs/$key';
 
-			for(mod in Mods.getGlobalMods())
-				if (FileSystem.exists(mods('$mod/$modKey')))
+			var level:String = (parentFolder != null) ? parentFolder : currentLevel;
+			if(level != null && level != 'shared' && level != 'songs')
+				if(FileSystem.exists(modFolders(routeModLevelKey(key, level))))
 					return true;
 
-			if (FileSystem.exists(mods(Mods.currentModDirectory + '/' + modKey)) || FileSystem.exists(mods(modKey)))
+			if(FileSystem.exists(modFolders(modKey)))
+				return true;
+
+			if(FileSystem.exists(mods(modKey)))
 				return true;
 		}
 		#end
