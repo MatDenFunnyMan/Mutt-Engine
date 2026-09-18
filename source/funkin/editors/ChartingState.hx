@@ -2113,13 +2113,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var pendingNote:MetaNote = null;
 	var pendingWasSelected:Bool = false;
 	var pendingDuplicate:Bool = false;
+	var pendingMultiSelect:Bool = false;
 	var pendingMouseX:Float = 0;
 	var pendingMouseY:Float = 0;
 	static inline final DRAG_THRESHOLD:Float = 4;
 
 	var ignoreClickForThisFrame:Bool = false;
-	var _leftClickedOffGrid:Bool = false;
-	var _rightClickedOffGrid:Bool = false;
+	var _clickUpLeft:Bool = false;
+	var _clickUpRight:Bool = false;
 	var outputAlpha:Float = 0;
 	var songFinished:Bool = false;
 
@@ -2149,6 +2150,21 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		var menu = upperBox.selectedTab.menu;
 		return (menu != null && menu.visible && FlxG.mouse.overlaps(menu));
+	}
+
+	function mouseOverGridColumn():Bool
+	{
+		if(gridBg == null || mouseOverUpperMenu()) return false;
+		return FlxG.mouse.x >= gridBg.x && FlxG.mouse.x < gridBg.x + gridBg.width;
+	}
+
+	function playClickDown(right:Bool)
+	{
+		if(right ? _clickUpRight : _clickUpLeft) return;
+
+		FlxG.sound.play(Paths.sound('chartingSounds/ClickDown'), 0.75);
+		if(right) _clickUpRight = true;
+		else _clickUpLeft = true;
 	}
 
 	function mouseOverGrid():Bool{
@@ -2726,26 +2742,22 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			selectionStart.set(FlxG.mouse.screenX, FlxG.mouse.screenY);
 			selectionBox.visible = true;
 			updateSelectionBox();
+			playClickDown(true);
 		}
 		
-		if(FlxG.mouse.justPressed){
-			_leftClickedOffGrid = !mouseOverGrid();
-			if(_leftClickedOffGrid) FlxG.sound.play(Paths.sound('chartingSounds/ClickDown'), 0.75);
+		if(FlxG.mouse.justPressed && !mouseOverGridColumn()) playClickDown(false);
+		if(FlxG.mouse.justPressedRight && !mouseOverGridColumn()) playClickDown(true);
+
+		if(FlxG.mouse.justReleased)
+		{
+			if(_clickUpLeft) FlxG.sound.play(Paths.sound('chartingSounds/ClickUp'), 0.75);
+			_clickUpLeft = false;
 		}
 
-		if(FlxG.mouse.justReleased){
-			if(_leftClickedOffGrid) FlxG.sound.play(Paths.sound('chartingSounds/ClickUp'), 0.75);
-			_leftClickedOffGrid = false;
-		}
-
-		if(FlxG.mouse.justPressedRight){
-			_rightClickedOffGrid = !mouseOverGrid();
-			if(_rightClickedOffGrid) FlxG.sound.play(Paths.sound('chartingSounds/ClickDown'), 0.75);
-		}
-
-		if(FlxG.mouse.justReleasedRight){
-			if(_rightClickedOffGrid) FlxG.sound.play(Paths.sound('chartingSounds/ClickUp'), 0.75);
-			_rightClickedOffGrid = false;
+		if(FlxG.mouse.justReleasedRight)
+		{
+			if(_clickUpRight) FlxG.sound.play(Paths.sound('chartingSounds/ClickUp'), 0.75);
+			_clickUpRight = false;
 		}
 		
 		if((FlxG.mouse.justPressed || FlxG.mouse.justPressedRight) && (FlxG.mouse.overlaps(mainBox.bg) || FlxG.mouse.overlaps(infoBox.bg) || mouseOverUpperMenu())){
@@ -2861,7 +2873,18 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		if(pendingNote != null && (!FlxG.mouse.pressed || !pendingNote.exists))
 		{
-			if(pendingWasSelected && pendingNote.exists) deselectNote(pendingNote);
+			if(pendingWasSelected && pendingNote.exists)
+			{
+				if(pendingMultiSelect || selectedNotes.length == 1) deselectNote(pendingNote);
+				else
+				{
+					var sel = selectedNotes.copy();
+					resetSelectedNotes();
+					selectedNotes.push(pendingNote);
+					addUndoAction(SELECT_NOTE, {old: sel, current: selectedNotes.copy()});
+					onSelectNote();
+				}
+			}
 			pendingNote = null;
 		}
 
@@ -2933,15 +2956,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			if(pendingNote != null && FlxG.mouse.pressed &&
 				(Math.abs(FlxG.mouse.x - pendingMouseX) >= DRAG_THRESHOLD || Math.abs(FlxG.mouse.y - pendingMouseY) >= DRAG_THRESHOLD))
 			{
-				if(!pendingWasSelected && !pendingDuplicate && selectedNotes.length > 1)
-				{
-					var sel = selectedNotes.copy();
-					resetSelectedNotes();
-					selectedNotes.push(pendingNote);
-					addUndoAction(SELECT_NOTE, {old: sel, current: selectedNotes.copy()});
-					onSelectNote();
-				}
-
 				if(pendingDuplicate) duplicateSelectedNotes();
 				moveSelectedNotes(noteData, dummyArrow.y);
 				pendingNote = null;
@@ -3105,12 +3119,15 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 							pendingNote = closest;
 							pendingWasSelected = selectedNotes.contains(closest);
 							pendingDuplicate = FlxG.keys.pressed.SHIFT;
+							pendingMultiSelect = FlxG.keys.pressed.CONTROL;
 							pendingMouseX = FlxG.mouse.x;
 							pendingMouseY = FlxG.mouse.y;
-							
+							playClickDown(false);
+
 							if(!pendingWasSelected)
 							{
 								var sel = selectedNotes.copy();
+								if(!pendingMultiSelect) resetSelectedNotes();
 								selectedNotes.push(closest);
 								addUndoAction(SELECT_NOTE, {old: sel, current: selectedNotes.copy()});
 								onSelectNote();

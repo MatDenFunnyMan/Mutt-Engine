@@ -14,12 +14,14 @@ import openfl.utils.Assets;
 
 import funkin.game.Character;
 import funkin.ui.HealthIcon;
+import funkin.util.AtlasUtil;
 import funkin.ui.Bar;
 
 import funkin.editors.content.Prompt;
 import funkin.editors.content.PsychJsonPrinter;
 import funkin.editors.content.FileDialogHandler;
 import funkin.editors.content.Prompt.BasePrompt;
+import funkin.editors.content.IconAnimationPrompt;
 
 class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
@@ -196,10 +198,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 		if(ClientPrefs.data.cacheOnGPU) Paths.clearUnusedMemory();
 
-		new FlxTimer().start(10, function(_) {
-			FlxG.sound.playMusic(Paths.music('chartEditorLoop'), 0);
-			FlxG.sound.music.fadeIn(1.5, 0, 0.75);
-		});
+		EditorHelper.scheduleEditorMusic(10);
 
 		super.create();
 	}
@@ -279,6 +278,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		}
 		character.debugMode = true;
 		character.missingCharacter = false;
+		loadedImageFile = character.imageFile;
 
 		if(pos > -1) insert(pos, character);
 		else add(character);
@@ -566,6 +566,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 		character.loadCharacterFile(_template);
 		character.missingCharacter = false;
+		loadedImageFile = character.imageFile;
 		character.color = FlxColor.WHITE;
 		character.alpha = 1;
 		reloadAnimList();
@@ -631,7 +632,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		var btnY:Int = 0;
 		var btnWid:Int = 150;
 
-		var panel:FlxSprite = new FlxSprite().makeGraphic(btnWid, 105, FlxColor.BLACK, true);
+		var panel:FlxSprite = new FlxSprite().makeGraphic(btnWid, 130, FlxColor.BLACK, true);
 		panel.alpha = 0.8;
 		tab_group.add(panel);
 
@@ -656,6 +657,9 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		axisCheckBox.checked = showCharAxis;
 		axisCheckBox.onClick = function() showCharAxis = axisCheckBox.checked;
 		tab_group.add(axisCheckBox);
+
+		btnY += 25;
+		tab_group.add(EditorHelper.createEditorMusicCheckBox(5, btnY, 120));
 	}
 
 	function addUpperIconTab()
@@ -663,13 +667,39 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		var tab_group = upperBox.getTab('Icon').menu;
 		var btnWid:Int = 150;
 
-		var panel:FlxSprite = new FlxSprite().makeGraphic(btnWid, 22, FlxColor.BLACK, true);
+		var panel:FlxSprite = new FlxSprite().makeGraphic(btnWid, 42, FlxColor.BLACK, true);
 		panel.alpha = 0.8;
 		tab_group.add(panel);
 
 		var btn:PsychUIButton = new PsychUIButton(0, 0, '  Properties...', openIconPrompt, btnWid);
 		btn.text.alignment = LEFT;
 		tab_group.add(btn);
+
+		var btn:PsychUIButton = new PsychUIButton(0, 20, '  Animations...', openIconAnimationPrompt, btnWid);
+		btn.text.alignment = LEFT;
+		tab_group.add(btn);
+	}
+
+	function openIconAnimationPrompt()
+	{
+		upperBox.isMinimized = true;
+		upperBox.bg.visible = false;
+
+		var key:String = healthIcon.iconKey;
+		if(key == null || key.length < 1 || !Paths.fileExists('images/$key.xml', TEXT))
+		{
+			showOutput('Icons do not have an animation XML', true);
+			return;
+		}
+
+		var prompt:IconAnimationPrompt = new IconAnimationPrompt(key, character.isPlayer);
+		prompt.onSaved = function()
+		{
+			healthIcon.reloadIcon(false);
+			healthIcon.setGraphicSize(150);
+			healthIcon.updateHitbox();
+		};
+		openSubState(prompt);
 	}
 
 	function openViewPrompt()
@@ -861,10 +891,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 				return;
 			}
 
-			if(myAnim.indices != null && myAnim.indices.length > 0)
-				atl.anim.addBySymbolIndices('anim', myAnim.name, myAnim.indices, 0, false);
-			else
-				atl.anim.addBySymbol('anim', myAnim.name, 0, false);
+			AtlasUtil.addAnimation(atl, 'anim', myAnim.name, myAnim.indices, 0, false);
 
 			atl.anim.play('anim', true, false, character.atlas.anim.curFrame);
 			atl.anim.pause();
@@ -980,6 +1007,10 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	var animationIndicesInputText:PsychUIInputText;
 	var animationFramerate:PsychUINumericStepper;
 	var animationLoopCheckBox:PsychUICheckBox;
+	var sourceDropDown:PsychUIDropDownMenu;
+	var sourceDropDownText:FlxText;
+	var sourcePrefixes:Array<String> = [];
+	static inline final LABEL_TAG:String = '[Label] ';
 	function addAnimationsUI()
 	{
 		var tab_group = UI_characterbox.getTab('Animations').menu;
@@ -1095,10 +1126,17 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 					break;
 				}
 		});
+		sourceDropDown = new PsychUIDropDownMenu(165, animationDropDown.y, [''], function(_, label:String) {
+			if(label == null || label.length < 1) return;
+			animationNameInputText.text = sourceToAnimationName(label);
+		}, 150);
+		sourceDropDownText = new FlxText(sourceDropDown.x, sourceDropDown.y - 18, 150, '');
+
 		reloadAnimList();
 		animationDropDown.selectedLabel = anims[0] != null ? anims[0].anim : '';
 
 		tab_group.add(new FlxText(animationDropDown.x, animationDropDown.y - 18, 100, 'Animations:'));
+		tab_group.add(sourceDropDownText);
 		tab_group.add(new FlxText(animationInputText.x, animationInputText.y - 18, 100, 'Animation name:'));
 		tab_group.add(new FlxText(animationFramerate.x, animationFramerate.y - 18, 100, 'Framerate:'));
 		tab_group.add(new FlxText(animationNameInputText.x, animationNameInputText.y - 18, 150, 'Animation Symbol Name/Tag:'));
@@ -1111,7 +1149,52 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		tab_group.add(animationLoopCheckBox);
 		tab_group.add(addUpdateButton);
 		tab_group.add(removeButton);
+		tab_group.add(sourceDropDown);
 		tab_group.add(animationDropDown);
+	}
+
+	function reloadSourceDropDown()
+	{
+		var list:Array<String> = [];
+		sourcePrefixes = [];
+
+		if(character.isAnimateAtlas)
+		{
+			var exclude:Array<String> = ['anim'];
+			for (anim in character.animationsArray) exclude.push(anim.anim);
+
+			for (label in AtlasUtil.getFrameLabelNames(character.atlas)) list.push(LABEL_TAG + label);
+			for (symbol in AtlasUtil.getSymbolNames(character.atlas, exclude)) list.push(symbol);
+			sourceDropDownText.text = 'Atlas Symbols/Labels:';
+		}
+		else if(character.frames != null)
+		{
+			var digits:EReg = ~/\d+$/;
+			for (frame in character.frames.frames)
+			{
+				if(frame == null || frame.name == null) continue;
+
+				var prefix:String = digits.replace(frame.name, '');
+				if(prefix.length > 0 && !sourcePrefixes.contains(prefix)) sourcePrefixes.push(prefix);
+			}
+			list = sourcePrefixes.copy();
+			sourceDropDownText.text = 'XML Prefixes:';
+		}
+
+		if(list.length < 1) list.push('');
+		sourceDropDown.list = list;
+		sourceDropDown.selectedIndex = -1;
+	}
+
+	function sourceToAnimationName(label:String):String
+	{
+		if(label.startsWith(LABEL_TAG)) return label.substr(LABEL_TAG.length);
+		if(character.isAnimateAtlas) return label;
+
+		for (other in sourcePrefixes)
+			if(other != label && other.startsWith(label))
+				return label + '0';
+		return label;
 	}
 
 	var imageInputText:PsychUIInputText;
@@ -1643,8 +1726,35 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		}
 	}
 
+	var loadedImageFile:String = null;
+
+	function characterImageExists(image:String):Bool
+	{
+		if(image == null || image.trim().length < 1) return false;
+		if(Paths.fileExists('images/$image/Animation.json', TEXT)) return true;
+
+		for (key in image.split(','))
+			if(!Paths.fileExists('images/${key.trim()}.png', IMAGE))
+				return false;
+		return true;
+	}
+
 	function reloadCharacterImage()
 	{
+		if(!characterImageExists(character.imageFile))
+		{
+			var mod:String = Mods.currentModDirectory;
+			var where:String = (mod == null || mod.length < 1) ? 'No Mod Directory loaded, select it in the Editor Menu' : 'Mod Directory: $mod';
+			showOutput('Image not found: ${character.imageFile}\n$where', true);
+
+			if(loadedImageFile != null)
+			{
+				character.imageFile = loadedImageFile;
+				imageInputText.text = loadedImageFile;
+			}
+			return;
+		}
+
 		clearGhosts();
 
 		var lastAnim:String = character.getAnimationName();
@@ -1688,6 +1798,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			if(lastAnim != '') character.playAnim(lastAnim, true);
 			else character.dance();
 		}
+		loadedImageFile = character.imageFile;
+		if(sourceDropDown != null) reloadSourceDropDown();
 	}
 
 	function reloadCharacterOptions() {
@@ -2199,6 +2311,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		updateSheetFrames();
 		if(animScrollList != null) animScrollList.setList(anims, curAnim);
 		if(animationDropDown != null) reloadAnimationDropDown();
+		if(sourceDropDown != null) reloadSourceDropDown();
 	}
 
 	inline function updateText()
@@ -2251,13 +2364,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			else
 				character.animation.addByPrefix(anim, name, fps, loop);
 		}
-		else
-		{
-			if(indices != null && indices.length > 0)
-				character.atlas.anim.addBySymbolIndices(anim, name, indices, fps, loop);
-			else
-				character.atlas.anim.addBySymbol(anim, name, fps, loop);
-		}
+		else AtlasUtil.addAnimation(character.atlas, anim, name, indices, fps, loop);
 
 		if(!character.hasAnimation(anim))
 			character.addOffset(anim, 0, 0);

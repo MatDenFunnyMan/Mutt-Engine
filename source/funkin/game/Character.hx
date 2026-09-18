@@ -227,10 +227,7 @@ class Character extends FlxSprite
 				#if flxanimate
 				else
 				{
-					if(animIndices != null && animIndices.length > 0)
-						atlas.anim.addBySymbolIndices(animAnim, animName, animIndices, animFps, animLoop);
-					else
-						atlas.anim.addBySymbol(animAnim, animName, animFps, animLoop);
+					funkin.util.AtlasUtil.addAnimation(atlas, animAnim, animName, animIndices, animFps, animLoop);
 				}
 				#end
 

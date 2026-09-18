@@ -14,7 +14,7 @@ class NewChartPrompt extends BasePrompt
 	public var outCoder:String = '';
 
 	static inline final BOX_W:Int = 640;
-	static inline final BOX_H:Int = 420;
+	static inline final BOX_H:Int = 460;
 	static inline final FIELD_W:Int = 170;
 	static inline final DROP_W:Int = 160;
 
@@ -32,6 +32,7 @@ class NewChartPrompt extends BasePrompt
 	var gfDrop:PsychUIDropDownMenu;
 	var opponentDrop:PsychUIDropDownMenu;
 	var bpmStepper:PsychUINumericStepper;
+	var speedStepper:PsychUINumericStepper;
 	var warnText:FlxText;
 
 	public function new(stages:Array<String>, characters:Array<String>)
@@ -82,6 +83,8 @@ class NewChartPrompt extends BasePrompt
 		labels.push(addLabel(rightLabelX, bg.y + 265, 'Opponent:'));
 		bpmStepper = new PsychUINumericStepper(rightFieldX, bg.y + 305, 1, 150, 1, 1000, 2, 90);
 		labels.push(addLabel(rightLabelX, bg.y + 305, 'BPM:'));
+		speedStepper = new PsychUINumericStepper(rightFieldX, bg.y + 345, 0.1, 1, 0.1, 10, 2, 90);
+		labels.push(addLabel(rightLabelX, bg.y + 345, 'Scroll Speed:'));
 
 		selectIn(stageDrop, 'stage');
 		selectIn(playerDrop, 'bf');
@@ -91,9 +94,10 @@ class NewChartPrompt extends BasePrompt
 		for (input in [songNameInput, artistInput, composerInput, charterInput, coderInput])
 			input.cameras = cameras;
 		bpmStepper.cameras = cameras;
+		speedStepper.cameras = cameras;
 
 		var divider:FlxSprite = new FlxSprite(bg.x + 320, bg.y + 100).makeGraphic(1, 1, FlxColor.WHITE);
-		divider.scale.set(1, 230);
+		divider.scale.set(1, 270);
 		divider.updateHitbox();
 		divider.alpha = 0.35;
 		divider.cameras = cameras;
@@ -120,6 +124,7 @@ class NewChartPrompt extends BasePrompt
 		add(charterInput);
 		add(coderInput);
 		add(bpmStepper);
+		add(speedStepper);
 		add(opponentDrop);
 		add(gfDrop);
 		add(playerDrop);
@@ -173,7 +178,7 @@ class NewChartPrompt extends BasePrompt
 			events: [],
 			bpm: bpmStepper.value,
 			needsVoices: true,
-			speed: 1,
+			speed: speedStepper.value,
 			offset: 0,
 
 			player1: pick(playerDrop, 'bf'),

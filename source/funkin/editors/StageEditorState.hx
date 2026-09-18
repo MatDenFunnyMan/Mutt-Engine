@@ -126,10 +126,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		if(FlxG.sound.music != null && FlxG.sound.music.playing)
 			FlxG.sound.music.fadeOut(0.6, 0);
 
-		new FlxTimer().start(10, function(_) {
-			FlxG.sound.playMusic(Paths.music('chartEditorLoop'), 0);
-			FlxG.sound.music.fadeIn(1.5, 0, 0.75);
-		});
+		EditorHelper.scheduleEditorMusic(10);
 
 		super.create();
 	}
@@ -1340,7 +1337,11 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		});
 		plDropdown.selectedLabel = boyfriend.curCharacter;
 
+		objY += 50;
+		var editorMusicCheckBox:PsychUICheckBox = EditorHelper.createEditorMusicCheckBox(objX, objY, 130);
+
 		tab_group.add(openPreloadButton);
+		tab_group.add(editorMusicCheckBox);
 		tab_group.add(new FlxText(plDropdown.x, plDropdown.y - 18, 100, 'Player:'));
 		tab_group.add(plDropdown);
 		tab_group.add(new FlxText(gfDropdown.x, gfDropdown.y - 18, 100, 'Girlfriend:'));

@@ -1,11 +1,82 @@
 package funkin.editors;
 import funkin.backend.HScriptStateLoader.HScriptState;
 import funkin.backend.StateManager;
+import flixel.util.FlxSave;
 
 class EditorHelper
 {
 	public static var returnToState:String = 'MainMenuState';
-	
+
+	static var _editorMusicTimer:FlxTimer;
+
+	static function bindEditorSave():FlxSave
+	{
+		var save:FlxSave = new FlxSave();
+		save.bind('chart_editor_data', CoolUtil.getSavePath());
+		return save;
+	}
+
+	public static function isEditorMusicMuted():Bool
+	{
+		var save:FlxSave = bindEditorSave();
+		var muted:Bool = (save.data.editorMusicMuted == true);
+		save.close();
+		return muted;
+	}
+
+	public static function setEditorMusicMuted(value:Bool):Void
+	{
+		var save:FlxSave = bindEditorSave();
+		save.data.editorMusicMuted = value;
+		save.flush();
+		save.close();
+	}
+
+	public static function scheduleEditorMusic(delay:Float):Void
+	{
+		cancelEditorMusicTimer();
+		if(isEditorMusicMuted()) return;
+
+		_editorMusicTimer = new FlxTimer().start(delay, function(_) {
+			_editorMusicTimer = null;
+			FlxG.sound.playMusic(Paths.music('chartEditorLoop'), 0);
+			FlxG.sound.music.fadeIn(1.5, 0, 0.75);
+		});
+	}
+
+	public static function stopEditorMusic():Void
+	{
+		cancelEditorMusicTimer();
+		if(FlxG.sound.music == null) return;
+
+		if(FlxG.sound.music.fadeTween != null)
+		{
+			FlxG.sound.music.fadeTween.cancel();
+			FlxG.sound.music.fadeTween = null;
+		}
+		FlxG.sound.music.stop();
+	}
+
+	static function cancelEditorMusicTimer():Void
+	{
+		if(_editorMusicTimer == null) return;
+		_editorMusicTimer.cancel();
+		_editorMusicTimer = null;
+	}
+
+	public static function createEditorMusicCheckBox(x:Float, y:Float, ?textWid:Int = 150):PsychUICheckBox
+	{
+		var checkBox:PsychUICheckBox = new PsychUICheckBox(x, y, 'Mute Editor Music', textWid);
+		checkBox.checked = isEditorMusicMuted();
+		checkBox.onClick = function()
+		{
+			setEditorMusicMuted(checkBox.checked);
+			if(checkBox.checked) stopEditorMusic();
+			else if(FlxG.sound.music == null || !FlxG.sound.music.playing) scheduleEditorMusic(1);
+		};
+		return checkBox;
+	}
+
 	public static function saveCurrentState():Void
 	{
 		var currentState = Type.getClassName(Type.getClass(FlxG.state));
