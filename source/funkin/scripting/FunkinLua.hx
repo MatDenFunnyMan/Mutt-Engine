@@ -357,11 +357,25 @@ class FunkinLua extends FunkinLuaScript {
 			#end
 		});
 
-		Lua_helper.add_callback(lua, "loadSong", function(?name:String = null, ?difficultyNum:Int = -1) {
+		Lua_helper.add_callback(lua, "loadSong", function(?name:String = null, ?difficulty:Dynamic = -1) {
 			if(name == null || name.length < 1)
 				name = Song.loadedSongName;
-			if (difficultyNum == -1)
-				difficultyNum = PlayState.storyDifficulty;
+
+			var difficultyNum:Int = PlayState.storyDifficulty;
+			if(difficulty is String)
+			{
+				var wanted:String = cast(difficulty, String).trim().toLowerCase();
+				for(i in 0...funkin.data.Difficulty.list.length)
+				{
+					if(funkin.data.Difficulty.list[i].toLowerCase() == wanted)
+					{
+						difficultyNum = i;
+						break;
+					}
+				}
+			}
+			else if(difficulty != null && Std.int(difficulty) > -1)
+				difficultyNum = Std.int(difficulty);
 
 			var poop = Highscore.formatSong(name, difficultyNum);
 			Song.loadFromJson(poop, name);
@@ -1401,6 +1415,8 @@ class FunkinLua extends FunkinLuaScript {
 			if(func != null)
 				Lua_helper.add_callback(lua, name, func);
 		}
+
+		#if PSYCH modcharting.ModchartFuncs.registerLateScript(this); #end
 
 		try{
 			var isString:Bool = !FileSystem.exists(scriptName);

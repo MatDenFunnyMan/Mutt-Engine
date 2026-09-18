@@ -42,21 +42,26 @@ class ModchartFuncs
         #if PSYCH
         #if LUA_ALLOWED
         for (script in PlayState.instance.luaArray)
-        {
+            registerLuaScript(script);
+        #end
+
+        #elseif LEATHER
+
+        #end
+    }
+
+    #if (PSYCH && LUA_ALLOWED)
+    public static function registerLateScript(script:funkin.scripting.FunkinLua)
+    {
+        if (PlayState.instance != null && PlayState.instance.playfieldRenderer != null)
+            registerLuaScript(script);
+    }
+
+    static function registerLuaScript(script:funkin.scripting.FunkinLua)
+    {
             var funkin = script;
-            #if HSCRIPT_ALLOWED
-            HScript.initHaxeModule(script);
-            if (script.hscript != null)
-            {
-                script.hscript.set('Math', Math);
-                script.hscript.set('PlayfieldRenderer', PlayfieldRenderer);
-                script.hscript.set('ModchartUtil', ModchartUtil);
-                script.hscript.set('Modifier', Modifier);
-                script.hscript.set('NoteMovement', NoteMovement);
-                script.hscript.set('NotePositionData', NotePositionData);
-                script.hscript.set('ModchartFile', ModchartFile);
-            }
-            #end
+            if (funkin.lua == null) return;
+
             Lua_helper.add_callback(funkin.lua, 'startMod', function(name:String, modClass:String, type:String = '', pf:Int = -1){
                 startMod(name,modClass,type,pf);
 
@@ -95,16 +100,10 @@ class ModchartFuncs
             Lua_helper.add_callback(funkin.lua, 'ease', function(beat:Float, time:Float, easeStr:String, argsAsString:String){
 
                 ease(beat, time, easeStr, argsAsString);
-                
+
             });
-        }
-        #end
-
-
-        #elseif LEATHER
-
-        #end
     }
+    #end
 
     public static function startMod(name:String, modClass:String, type:String = '', pf:Int = -1, ?instance:ModchartMusicBeatState = null)
     {

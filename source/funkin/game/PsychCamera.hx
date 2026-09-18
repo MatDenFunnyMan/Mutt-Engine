@@ -13,6 +13,9 @@ import funkin.graphics.shaders.CustomBlendShader;
 import openfl.display.BitmapData;
 import openfl.display.BlendMode;
 import openfl.geom.ColorTransform;
+import openfl.geom.Point;
+import openfl.geom.Rectangle;
+import flixel.tweens.FlxEase.EaseFunction;
 
 // PsychCamera handles followLerp based on elapsed
 // and stops camera from snapping at higher framerates
@@ -30,6 +33,85 @@ class PsychCamera extends FlxCamera
 	var _capturing:Bool = false;
 	var _captureWidth:Int = 0;
 	var _captureHeight:Int = 0;
+
+	public var viewAngle:Float = 0;
+
+	var _rotating:Bool = false;
+	var _rotCos:Float = 1;
+	var _rotSin:Float = 0;
+	var _rotMatrix:FlxMatrix = new FlxMatrix();
+	var _rotVertices:DrawData<Float> = new DrawData<Float>();
+	var _rotPosition:FlxPoint = FlxPoint.get();
+	var _marginsExpanded:Bool = false;
+	var _savedMarginX:Float = 0;
+	var _savedMarginY:Float = 0;
+
+	public static function setRotation(camera:FlxCamera, angle:Float):Void
+	{
+		if (camera == null) return;
+		if (camera is PsychCamera) cast(camera, PsychCamera).viewAngle = angle;
+		else camera.angle = angle;
+	}
+
+	public static function getRotation(camera:FlxCamera):Float
+	{
+		if (camera == null) return 0;
+		return (camera is PsychCamera) ? cast(camera, PsychCamera).viewAngle : camera.angle;
+	}
+
+	public static function tweenRotation(camera:FlxCamera, angle:Float, duration:Float, ?ease:EaseFunction, ?onComplete:FlxTween->Void):FlxTween
+	{
+		if (camera == null) return null;
+		var values:Dynamic = (camera is PsychCamera) ? {viewAngle: angle} : {angle: angle};
+		return FlxTween.tween(camera, values, duration, {ease: ease, onComplete: onComplete});
+	}
+
+	function beginRotationFrame():Void
+	{
+		restoreMargins();
+		_rotating = !FlxG.renderBlit && viewAngle % 360 != 0;
+		if (!_rotating) return;
+
+		var radians:Float = viewAngle * Math.PI / 180;
+		_rotCos = Math.cos(radians);
+		_rotSin = Math.sin(radians);
+
+		var halfWidth:Float = (width - viewMarginX * 2) * 0.5;
+		var halfHeight:Float = (height - viewMarginY * 2) * 0.5;
+		var absCos:Float = Math.abs(_rotCos);
+		var absSin:Float = Math.abs(_rotSin);
+
+		_savedMarginX = viewMarginX;
+		_savedMarginY = viewMarginY;
+		_marginsExpanded = true;
+		viewMarginX = width * 0.5 - (absCos * halfWidth + absSin * halfHeight);
+		viewMarginY = height * 0.5 - (absSin * halfWidth + absCos * halfHeight);
+	}
+
+	function restoreMargins():Void
+	{
+		if (!_marginsExpanded) return;
+		viewMarginX = _savedMarginX;
+		viewMarginY = _savedMarginY;
+		_marginsExpanded = false;
+	}
+
+	function rotateMatrix(matrix:FlxMatrix):FlxMatrix
+	{
+		var centerX:Float = width * 0.5;
+		var centerY:Float = height * 0.5;
+		_rotMatrix.copyFrom(matrix);
+		_rotMatrix.translate(-centerX, -centerY);
+		_rotMatrix.rotateWithTrig(_rotCos, _rotSin);
+		_rotMatrix.translate(centerX, centerY);
+		return _rotMatrix;
+	}
+
+	override function clearDrawStack():Void
+	{
+		super.clearDrawStack();
+		if (!_capturing) beginRotationFrame();
+	}
 
 	inline function needsBlendShader(blend:BlendMode, shader:FlxShader):Bool
 		return blendShaderEnabled && !_blendBroken && blend != null && shader == null && !_capturing
@@ -85,10 +167,32 @@ class PsychCamera extends FlxCamera
 	override public function render():Void
 	{
 		super.render();
-		if (!_capturing) _blendIndex = 0;
+		if (!_capturing)
+		{
+			_blendIndex = 0;
+			restoreMargins();
+		}
 	}
 
 	override public function drawPixels(?frame:FlxFrame, ?pixels:BitmapData, matrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+		?smoothing:Bool = false, ?shader:FlxShader):Void
+	{
+		if (_rotating) matrix = rotateMatrix(matrix);
+		drawPixelsWithBlend(frame, pixels, matrix, transform, blend, smoothing, shader);
+	}
+
+	override public function copyPixels(?frame:FlxFrame, ?pixels:BitmapData, ?sourceRect:Rectangle, destPoint:Point, ?transform:ColorTransform,
+		?blend:BlendMode, ?smoothing:Bool = false, ?shader:FlxShader):Void
+	{
+		if (!_rotating || frame == null)
+			return super.copyPixels(frame, pixels, sourceRect, destPoint, transform, blend, smoothing, shader);
+
+		_rotMatrix.identity();
+		_rotMatrix.translate(destPoint.x + frame.offset.x, destPoint.y + frame.offset.y);
+		drawPixelsWithBlend(frame, pixels, rotateMatrix(_rotMatrix), transform, blend, smoothing, shader);
+	}
+
+	function drawPixelsWithBlend(?frame:FlxFrame, ?pixels:BitmapData, matrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 		?smoothing:Bool = false, ?shader:FlxShader):Void
 	{
 		if (FlxG.renderBlit || !needsBlendShader(blend, shader))
@@ -106,6 +210,12 @@ class PsychCamera extends FlxCamera
 		?colors:DrawData<Int>, ?position:FlxPoint, ?blend:BlendMode, repeat:Bool = false, smoothing:Bool = false, ?transform:ColorTransform,
 		?shader:FlxShader):Void
 	{
+		if (_rotating)
+		{
+			vertices = rotateVertices(vertices, position);
+			position = _rotPosition.set(0, 0);
+		}
+
 		if (FlxG.renderBlit || !needsBlendShader(blend, shader))
 			return super.drawTriangles(graphic, vertices, indices, uvtData, colors, position, blend, repeat, smoothing, transform, shader);
 
@@ -116,8 +226,30 @@ class PsychCamera extends FlxCamera
 		super.drawTriangles(graphic, vertices, indices, uvtData, colors, position, null, repeat, smoothing, transform, blendShader);
 	}
 
+	function rotateVertices(vertices:DrawData<Float>, ?position:FlxPoint):DrawData<Float>
+	{
+		var offsetX:Float = (position != null) ? position.x : 0;
+		var offsetY:Float = (position != null) ? position.y : 0;
+		var centerX:Float = width * 0.5;
+		var centerY:Float = height * 0.5;
+
+		_rotVertices.length = vertices.length;
+		var i:Int = 0;
+		while (i < vertices.length - 1)
+		{
+			var x:Float = vertices[i] + offsetX - centerX;
+			var y:Float = vertices[i + 1] + offsetY - centerY;
+			_rotVertices[i] = x * _rotCos - y * _rotSin + centerX;
+			_rotVertices[i + 1] = x * _rotSin + y * _rotCos + centerY;
+			i += 2;
+		}
+		return _rotVertices;
+	}
+
 	override public function destroy():Void
 	{
+		restoreMargins();
+		_rotPosition.put();
 		for (bmp in _blendCaptures) bmp.dispose();
 		_blendCaptures = [];
 		_blendShaders = [];
