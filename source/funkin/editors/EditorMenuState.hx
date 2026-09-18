@@ -33,7 +33,8 @@ class EditorMenuState extends MusicBeatState
 		{name: "Note Splash Editor", state: NoteSplashEditorState, loading: false},
 		{name: "Hold Cover Editor", state: HoldCoverEditorState, loading: false}
 		#if !DISABLE_MODCHART_EDITOR
-		, {name: "Modchart Editor", state: modcharting.ModchartEditorState, loading: false}
+		, {name: "Modchart Editor", state: funkin.editors.ModchartEditorState, loading: false}
+		, {name: "Modchart Editor (Old)", state: modcharting.ModchartEditorState, loading: false}
 		#end
 	];
 

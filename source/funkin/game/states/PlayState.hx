@@ -2694,7 +2694,7 @@ class PlayState extends MusicBeatState
 		#end
 		#end
 
-		MusicBeatState.switchState(new modcharting.ModchartEditorState());
+		MusicBeatState.switchState(new funkin.editors.ModchartEditorState());
 	}
 	#end
 

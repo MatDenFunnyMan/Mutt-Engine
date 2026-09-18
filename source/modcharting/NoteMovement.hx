@@ -96,6 +96,25 @@ class NoteMovement
         #end
     }
     #end
+    public static function getDefaultStrumPosFromGroup(strums:FlxTypedGroup<PlayfieldRenderer.StrumNoteType>, playerCount:Int)
+    {
+        defaultStrumX = [];
+        defaultStrumY = [];
+        defaultScale = [];
+        arrowSizes = [];
+        keyCount = strums.length - playerCount;
+        playerKeyCount = playerCount;
+
+        for (strum in strums.members)
+        {
+            defaultStrumX.push(strum.x);
+            defaultStrumY.push(strum.y);
+            defaultScale.push(0.7);
+            arrowSizes.push(160 * 0.7);
+        }
+        totalKeyCount = keyCount + playerKeyCount;
+    }
+
     public static function setNotePath(daNote:Note, lane:Int, scrollSpeed:Float, curPos:Float, noteDist:Float, incomingAngleX:Float, incomingAngleY:Float)
     {
         daNote.x = defaultStrumX[lane];
