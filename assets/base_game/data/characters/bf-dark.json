@@ -1,101 +1,144 @@
 {
 	"animations": [
 		{
-			"offsets": [-5, 0],
+			"offsets": [
+				10,
+				72
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "idle",
 			"indices": [],
-			"name": "BF idle dance"
+			"name": "Idle"
 		},
 		{
-			"offsets": [5, -6],
+			"offsets": [
+				9,
+				73
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singLEFT",
 			"indices": [],
-			"name": "BF NOTE LEFT0"
+			"name": "Left"
 		},
 		{
-			"offsets": [-20, -51],
+			"offsets": [
+				7,
+				71
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singDOWN",
 			"indices": [],
-			"name": "BF NOTE DOWN0"
+			"name": "Down"
 		},
 		{
-			"offsets": [-46, 27],
+			"offsets": [
+				7,
+				71
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singUP",
 			"indices": [],
-			"name": "BF NOTE UP0"
+			"name": "Up"
 		},
 		{
-			"offsets": [-48, -7],
+			"offsets": [
+				11,
+				71
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singRIGHT",
 			"indices": [],
-			"name": "BF NOTE RIGHT0"
+			"name": "Right"
 		},
 		{
-			"offsets": [7, 19],
+			"offsets": [
+				11,
+				72
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singLEFTmiss",
 			"indices": [],
-			"name": "BF NOTE LEFT MISS"
+			"name": "Left Miss"
 		},
 		{
-			"offsets": [-15, -19],
+			"offsets": [
+				12,
+				73
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singDOWNmiss",
 			"indices": [],
-			"name": "BF NOTE DOWN MISS"
+			"name": "Down Miss"
 		},
 		{
-			"offsets": [-46, 27],
+			"offsets": [
+				3,
+				71
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singUPmiss",
 			"indices": [],
-			"name": "BF NOTE UP MISS"
+			"name": "Up Miss"
 		},
 		{
-			"offsets": [-44, 22],
+			"offsets": [
+				9,
+				72
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singRIGHTmiss",
 			"indices": [],
-			"name": "BF NOTE RIGHT MISS"
+			"name": "Right Miss"
 		},
 		{
-			"offsets": [-3, 5],
+			"offsets": [
+				11,
+				72
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "hey",
 			"indices": [],
-			"name": "BF HEY"
+			"name": "Hey"
 		},
 		{
-			"offsets": [-4, 0],
+			"offsets": [
+				12,
+				71
+			],
 			"loop": true,
 			"fps": 24,
 			"anim": "scared",
 			"indices": [],
-			"name": "BF idle shaking"
+			"name": "Scared"
 		}
 	],
 	"no_antialiasing": false,
-	"image": "characters/dark/bf_dark",
-	"position": [0, 350],
+	"image": "characters/bf-dark",
+	"position": [
+		0,
+		350
+	],
 	"healthicon": "bf",
 	"flip_x": true,
-	"healthbar_colors": [49, 176, 209],
-	"camera_position": [0, 0],
+	"healthbar_colors": [
+		49,
+		176,
+		209
+	],
+	"camera_position": [
+		50.5,
+		-37.0
+	],
 	"sing_duration": 4,
 	"scale": 1,
 	"_editor_isPlayer": true

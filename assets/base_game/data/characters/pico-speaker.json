@@ -2,52 +2,52 @@
 	"animations": [
 		{
 			"offsets": [
-				0,
-				0
+				442,
+				16
 			],
 			"loop": false,
 			"fps": 24,
 			"anim": "shoot1",
 			"indices": [],
-			"name": "Pico shoot 1"
+			"name": "Shoot 1"
 		},
 		{
 			"offsets": [
-				-1,
-				-128
+				441,
+				17
 			],
 			"loop": false,
 			"fps": 24,
 			"anim": "shoot2",
 			"indices": [],
-			"name": "Pico shoot 2"
+			"name": "Shoot 2"
 		},
 		{
 			"offsets": [
-				412,
-				-64
+				441,
+				16
 			],
 			"loop": false,
 			"fps": 24,
 			"anim": "shoot3",
 			"indices": [],
-			"name": "Pico shoot 3"
+			"name": "Shoot 3"
 		},
 		{
 			"offsets": [
-				439,
-				-19
+				441,
+				16
 			],
 			"loop": false,
 			"fps": 24,
 			"anim": "shoot4",
 			"indices": [],
-			"name": "Pico shoot 4"
+			"name": "Shoot 4"
 		},
 		{
 			"offsets": [
-				412,
-				-64
+				441,
+				16
 			],
 			"loop": true,
 			"fps": 24,
@@ -57,12 +57,12 @@
 				51,
 				52
 			],
-			"name": "Pico shoot 3"
+			"name": "Shoot 3"
 		},
 		{
 			"offsets": [
-				0,
-				0
+				442,
+				16
 			],
 			"loop": true,
 			"fps": 24,
@@ -72,12 +72,12 @@
 				24,
 				25
 			],
-			"name": "Pico shoot 1"
+			"name": "Shoot 1"
 		},
 		{
 			"offsets": [
-				1,
-				-128
+				443,
+				16
 			],
 			"loop": true,
 			"fps": 24,
@@ -87,12 +87,12 @@
 				58,
 				59
 			],
-			"name": "Pico shoot 2"
+			"name": "Shoot 2"
 		},
 		{
 			"offsets": [
-				439,
-				-19
+				441,
+				16
 			],
 			"loop": true,
 			"fps": 24,
@@ -102,11 +102,11 @@
 				51,
 				52
 			],
-			"name": "Pico shoot 4"
+			"name": "Shoot 4"
 		}
 	],
 	"no_antialiasing": false,
-	"image": "characters/picoSpeaker",
+	"image": "characters/pico-speaker",
 	"position": [
 		120,
 		-125
@@ -119,8 +119,8 @@
 		85
 	],
 	"camera_position": [
-		-310,
-		100
+		-580.5,
+		91.5
 	],
 	"sing_duration": 4,
 	"scale": 1

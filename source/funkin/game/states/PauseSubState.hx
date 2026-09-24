@@ -13,6 +13,12 @@ import funkin.ui.options.OptionsState;
 #if HSCRIPT_ALLOWED
 import funkin.backend.HScriptStateLoader.HScriptState;
 #end
+
+import openfl.media.Sound;
+#if target.threaded
+import sys.thread.Deque;
+import sys.thread.Thread;
+#end
 class PauseSubState extends MusicBeatSubstate
 {
 	var grpMenuShit:FlxTypedGroup<Alphabet>;
@@ -23,6 +29,9 @@ class PauseSubState extends MusicBeatSubstate
 	var curSelected:Int = 0;
 
 	var pauseMusic:FlxSound;
+	#if target.threaded
+	var pauseMusicQueue:Deque<Sound> = new Deque<Sound>();
+	#end
 	var practiceText:FlxText;
 	var skipTimeText:FlxText;
 	var skipTimeTracker:Alphabet;
@@ -67,16 +76,9 @@ class PauseSubState extends MusicBeatSubstate
 		difficultyChoices.push('BACK');
 
 		pauseMusic = new FlxSound();
-		try
-		{
-			var pauseSong:String = getPauseSong();
-			if(pauseSong != null) pauseMusic.loadEmbedded(Paths.music(pauseSong), true, true);
-		}
-		catch(e:Dynamic) {}
 		pauseMusic.volume = 0;
-		pauseMusic.play(false, FlxG.random.int(0, Std.int(pauseMusic.length / 2)));
-
 		FlxG.sound.list.add(pauseMusic);
+		loadPauseMusic(getPauseSong());
 
 		var bg:FlxSprite = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
 		bg.scale.set(FlxG.width, FlxG.height);
@@ -270,6 +272,36 @@ class PauseSubState extends MusicBeatSubstate
 		super.create();
 	}
 	
+	function loadPauseMusic(song:String)
+	{
+		if(song == null) return;
+
+		#if target.threaded
+		var path:String = Paths.soundFilePath('music/$song');
+		if(path != null && !ClientPrefs.data.streamSongs && !Paths.currentTrackedSounds.exists(path))
+		{
+			var queue:Deque<Sound> = pauseMusicQueue;
+			Thread.create(function()
+			{
+				var sound:Sound = null;
+				try { sound = Sound.fromFile(path); } catch(e:Dynamic) {}
+				if(sound != null) queue.add(sound);
+			});
+			return;
+		}
+		#end
+
+		try { playPauseMusic(Paths.music(song)); } catch(e:Dynamic) {}
+	}
+
+	function playPauseMusic(sound:Sound)
+	{
+		if(sound == null || pauseMusic == null) return;
+		pauseMusic.loadEmbedded(sound, true, true);
+		pauseMusic.volume = 0;
+		pauseMusic.play(false, FlxG.random.int(0, Std.int(pauseMusic.length / 2)));
+	}
+
 	function getPauseSong()
 	{
 		var formattedSongName:String = (songName != null ? Paths.formatToSongPath(songName) : '');
@@ -284,6 +316,10 @@ class PauseSubState extends MusicBeatSubstate
 	override function update(elapsed:Float)
 	{
 		cantUnpause -= elapsed;
+		#if target.threaded
+		var loadedMusic:Sound = pauseMusicQueue.pop(false);
+		if(loadedMusic != null) playPauseMusic(loadedMusic);
+		#end
 		if (pauseMusic.volume < 0.5)
 			pauseMusic.volume += 0.01 * elapsed;
 

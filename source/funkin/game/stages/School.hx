@@ -101,7 +101,7 @@ class School extends BaseStage
 	function schoolIntro():Void
 	{
 		inCutscene = true;
-		var black:FlxSprite = new FlxSprite(-100, -100).makeGraphic(FlxG.width * 2, FlxG.height * 2, FlxColor.BLACK);
+		var black:FlxSprite = CoolUtil.makeSolid(new FlxSprite(-100, -100), FlxG.width * 2, FlxG.height * 2, FlxColor.BLACK);
 		black.scrollFactor.set();
 		if(songName == 'senpai') add(black);
 

@@ -29,7 +29,7 @@ class MallEvil extends BaseStage
 		FlxG.camera.focusOn(new FlxPoint(400, -2050));
 
 		// blackout at the start
-		var blackScreen:FlxSprite = new FlxSprite().makeGraphic(Std.int(FlxG.width * 2), Std.int(FlxG.height * 2), FlxColor.BLACK);
+		var blackScreen:FlxSprite = CoolUtil.makeSolid(new FlxSprite(), Std.int(FlxG.width * 2), Std.int(FlxG.height * 2), FlxColor.BLACK);
 		blackScreen.scrollFactor.set();
 		add(blackScreen);
 

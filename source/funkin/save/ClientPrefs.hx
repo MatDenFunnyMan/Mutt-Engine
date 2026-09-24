@@ -29,8 +29,9 @@ import funkin.ui.states.TitleState;
 	public var detailedRanking:Bool = false;
 	public var lowQuality:Bool = false;
 	public var shaders:Bool = true;
-	public var cacheOnGPU:Bool = #if !switch false #else true #end; // GPU Caching made by Raltyro
+	public var cacheOnGPU:Bool = true; // GPU Caching made by Raltyro
 	public var multithreadedCache:Bool = true;
+	public var streamSongs:Bool = true;
 	public var framerate:Int = 60;
 	public var camZooms:Bool = true;
 	public var hideHud:Bool = false;
@@ -199,6 +200,13 @@ class ClientPrefs {
 
 		data.noteSkin = defaultData.noteSkin;
 		data.splashSkin = defaultData.splashSkin;
+
+		if(FlxG.save.data.gpuCacheMigrated == null)
+		{
+			data.cacheOnGPU = true;
+			FlxG.save.data.cacheOnGPU = true;
+			FlxG.save.data.gpuCacheMigrated = true;
+		}
 
 		#if (!html5 && !switch)
 		FlxG.autoPause = ClientPrefs.data.autoPause;

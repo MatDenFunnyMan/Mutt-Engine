@@ -1,6 +1,6 @@
 package funkin.game;
 
-import funkin.graphics.PsychAnimationController;
+import funkin.graphics.PsychAnimateController;
 
 import flixel.util.FlxSort;
 import flixel.util.FlxDestroyUtil;
@@ -38,7 +38,7 @@ typedef AnimArray = {
 	var offsets:Array<Int>;
 }
 
-class Character extends FlxSprite
+class Character extends animate.FlxAnimate
 {
 	/**
 	 * In case a character is missing, it will use this on its place
@@ -85,8 +85,6 @@ class Character extends FlxSprite
 	{
 		super(x, y);
 
-		animation = new PsychAnimationController(this);
-
 		animOffsets = new Map<String, Array<Dynamic>>();
 		this.isPlayer = isPlayer;
 		changeCharacter(character);
@@ -95,6 +93,9 @@ class Character extends FlxSprite
 		{
 			case 'pico-speaker':
 				skipDance = true;
+				loadMappedAnims();
+				playAnim("shoot1");
+			case 'otis-speaker':
 				loadMappedAnims();
 				playAnim("shoot1");
 			case 'pico-blazin', 'darnell-blazin':
@@ -149,20 +150,31 @@ class Character extends FlxSprite
 		dance();
 	}
 
+	override function initVars()
+	{
+		super.initVars();
+		anim = new PsychAnimateController(this);
+	}
+
 	public function loadCharacterFile(json:Dynamic)
 	{
 		isAnimateAtlas = false;
+		var modernFrames:flixel.graphics.frames.FlxAtlasFrames = Paths.getModernAtlasFrames(json.image);
 
 		#if flxanimate
 		var animToFind:String = Paths.getPath('images/' + json.image + '/Animation.json', TEXT);
-		if (#if MODS_ALLOWED FileSystem.exists(animToFind) || #end Assets.exists(animToFind))
+		if (modernFrames == null && (#if MODS_ALLOWED FileSystem.exists(animToFind) || #end Assets.exists(animToFind)))
 			isAnimateAtlas = true;
 		#end
 
 		scale.set(1, 1);
 		updateHitbox();
 
-		if(!isAnimateAtlas)
+		if(modernFrames != null)
+		{
+			frames = modernFrames;
+		}
+		else if(!isAnimateAtlas)
 		{
 			frames = Paths.getMultiAtlas(json.image.split(','));
 		}
@@ -217,7 +229,11 @@ class Character extends FlxSprite
 				var animLoop:Bool = !!anim.loop; //Bruh
 				var animIndices:Array<Int> = anim.indices;
 
-				if(!isAnimateAtlas)
+				if(modernFrames != null)
+				{
+					funkin.util.AtlasUtil.ModernAtlasUtil.addAnimation(this, animAnim, animName, animIndices, animFps, animLoop);
+				}
+				else if(!isAnimateAtlas)
 				{
 					if(animIndices != null && animIndices.length > 0)
 						animation.addByIndices(animAnim, animName, animIndices, "", animFps, animLoop);
@@ -283,7 +299,7 @@ class Character extends FlxSprite
 
 		switch(curCharacter)
 		{
-			case 'pico-speaker':
+			case 'pico-speaker' | 'otis-speaker':
 				if(animationNotes.length > 0 && Conductor.songPosition > animationNotes[0][0])
 				{
 					var noteData:Int = 1;

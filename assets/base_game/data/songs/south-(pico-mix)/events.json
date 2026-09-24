@@ -1,0 +1,1055 @@
+{
+	"events": [
+		[
+			0,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			45,
+			[
+				[
+					"Set Camera Bopping",
+					"8",
+					"1"
+				]
+			]
+		],
+		[
+			2909,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			5727,
+			[
+				[
+					"Set Camera Bopping",
+					"8",
+					"3"
+				]
+			]
+		],
+		[
+			5818,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			5863,
+			[
+				[
+					"Set Camera Bopping",
+					"8",
+					"1"
+				]
+			]
+		],
+		[
+			8727,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			11545,
+			[
+				[
+					"Set Camera Bopping",
+					"4",
+					"0"
+				]
+			]
+		],
+		[
+			11636,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			14181.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1.0833",
+					"4"
+				]
+			]
+		],
+		[
+			14454,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.1"
+				]
+			]
+		],
+		[
+			14545,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			17090.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1",
+					"4"
+				]
+			]
+		],
+		[
+			17363,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"0"
+				]
+			]
+		],
+		[
+			17454,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			17500,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			20000.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1.0833",
+					"4"
+				]
+			]
+		],
+		[
+			20272,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.1"
+				]
+			]
+		],
+		[
+			20363,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			22545,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			22909.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1",
+					"4"
+				]
+			]
+		],
+		[
+			23181,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"0"
+				]
+			]
+		],
+		[
+			23272,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			25818.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1.0833",
+					"4"
+				]
+			]
+		],
+		[
+			26090,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.1"
+				]
+			]
+		],
+		[
+			26181,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			28727.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1",
+					"4"
+				]
+			]
+		],
+		[
+			29000,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"0"
+				]
+			]
+		],
+		[
+			29090,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			29136,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			30545,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.04",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			30909,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.08",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			31272,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			31636.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1.0833",
+					"4"
+				]
+			]
+		],
+		[
+			31909,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.1"
+				]
+			]
+		],
+		[
+			32000,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			34181,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.15",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			34909,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 300, 0",
+					""
+				]
+			]
+		],
+		[
+			34954,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.9",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			37818,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.95",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			40727,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			40772,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			42181,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.04",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			43636,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.08",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			44181,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.12",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			45000,
+			[
+				[
+					"Set Camera Bopping",
+					"1",
+					"1.2"
+				]
+			]
+		],
+		[
+			45090,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.16",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			45454,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.2",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			45818,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.24",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			46181,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			46454,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.1"
+				]
+			]
+		],
+		[
+			46545,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			51272,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 300, 0",
+					""
+				]
+			]
+		],
+		[
+			51317,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.9",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			52363,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			52408,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			53817,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.04",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			55272,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.08",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			55817,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.12",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			56636,
+			[
+				[
+					"Set Camera Bopping",
+					"1",
+					"1.2"
+				]
+			]
+		],
+		[
+			56726,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.16",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			57090,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.2",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			57454,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.24",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			57817,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			57818.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1",
+					"4"
+				]
+			]
+		],
+		[
+			58090,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"0"
+				]
+			]
+		],
+		[
+			58181,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			58227,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			60727.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1.0833",
+					"4"
+				]
+			]
+		],
+		[
+			61000,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.1"
+				]
+			]
+		],
+		[
+			61090,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			61454,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 300, 0",
+					""
+				]
+			]
+		],
+		[
+			61499,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.9",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			63636.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1",
+					"4"
+				]
+			]
+		],
+		[
+			63909,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"0"
+				]
+			]
+		],
+		[
+			64000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			64045,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			66545.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1.0833",
+					"4"
+				]
+			]
+		],
+		[
+			66818,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.1"
+				]
+			]
+		],
+		[
+			66909,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			69454.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1",
+					"4"
+				]
+			]
+		],
+		[
+			69727,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"0"
+				]
+			]
+		],
+		[
+			69818,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			69863,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			71272,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 300, 0",
+					""
+				]
+			]
+		],
+		[
+			71317,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.9",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			72363.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1.0833",
+					"4"
+				]
+			]
+		],
+		[
+			72636,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.1"
+				]
+			]
+		],
+		[
+			74909,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.95",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			75272.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1",
+					"4"
+				]
+			]
+		],
+		[
+			75545,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"0"
+				]
+			]
+		],
+		[
+			75636,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			75681,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			77090,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.04",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			77454,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.08",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			77817,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			78181.6363636364,
+			[
+				[
+					"Change Scroll Speed",
+					"1.0833",
+					"4"
+				]
+			]
+		],
+		[
+			78454,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.1"
+				]
+			]
+		],
+		[
+			78545,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1.1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			81454,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"1",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			84272,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"0"
+				]
+			]
+		],
+		[
+			85672.9090909091,
+			[
+				[
+					"Play Animation",
+					"burpShit",
+					"boyfriend"
+				]
+			]
+		],
+		[
+			85818,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.95",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			87854.6363636364,
+			[
+				[
+					"Play Animation",
+					"burpSmileLong",
+					"boyfriend"
+				]
+			]
+		],
+		[
+			88000,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.9",
+					"16, expoOut"
+				]
+			]
+		]
+	],
+	"format": "psych_v1_convert"
+}

@@ -14,17 +14,52 @@ typedef SongMeta =
     var ?pauseDisplayName:String;
 }
 
+typedef FreeplayMeta =
+{
+    var character:String;
+    var previewStart:Float;
+    var previewEnd:Float;
+}
+
 class MetaData
 {
+    static function findPath(song:String):String
+    {
+        for (path in ["data/songs/" + song + "/metadata.json", "data/" + song + "/metadata.json", "data/" + song + "/charts/metadata.json"])
+            if (Paths.fileExists(path, TEXT))
+                return path;
+        return null;
+    }
+
+    public static function getFreeplayMeta(song:String):FreeplayMeta
+    {
+        var meta:FreeplayMeta = {character: '', previewStart: 0, previewEnd: 0};
+        var path = findPath(song);
+        if (path == null)
+            return meta;
+
+        try
+        {
+            var jsonData:Dynamic = Json.parse(Paths.getTextFromFile(path));
+            if (jsonData.freeplayCharacter != null)
+                meta.character = Std.string(jsonData.freeplayCharacter);
+            if (jsonData.freeplayPrevStart != null)
+                meta.previewStart = jsonData.freeplayPrevStart;
+            if (jsonData.freeplayPrevEnd != null)
+                meta.previewEnd = jsonData.freeplayPrevEnd;
+        }
+        catch (e)
+        {
+            trace('Error parsing metadata: $e');
+        }
+        return meta;
+    }
+
     public static function parse(song:String):SongMeta
     {
-        var path = "data/songs/" + song + "/metadata.json";
-        if (!Paths.fileExists(path, TEXT))
-            path = "data/" + song + "/metadata.json";
-        if (!Paths.fileExists(path, TEXT))
-            path = "data/" + song + "/charts/metadata.json";
+        var path = findPath(song);
 
-        if (Paths.fileExists(path, TEXT))
+        if (path != null)
         {
             try
             {

@@ -54,6 +54,10 @@ class InitialState extends MusicBeatState
 		if(!loadedState)
 		{
 			loadedState = true;
+			#if MEMTEST
+			if(funkin.debug.CharAlign.start()) return;
+			if(funkin.debug.MemoryTest.start()) return;
+			#end
 
 			#if MODS_ALLOWED
 			var _saveForInit = FlxG.save;

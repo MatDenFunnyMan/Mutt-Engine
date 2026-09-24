@@ -1,5 +1,11 @@
 package funkin.util;
 
+#if (windows && cpp)
+@:cppFileCode('
+#include <Windows.h>
+#include <psapi.h>
+')
+#end
 class MemoryUtils
 {
 	public static function supportsTaskMem():Bool
@@ -23,9 +29,15 @@ class MemoryUtils
 	}
 
 	#if (windows && cpp)
+	@:functionCode('
+		PROCESS_MEMORY_COUNTERS_EX counters;
+		if (K32GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&counters, sizeof(counters)))
+			return (double)counters.WorkingSetSize;
+		return 0;
+	')
 	public static function getWindowsTaskMemory():Float
 	{
-		return openfl.system.System.totalMemory;
+		return 0;
 	}
 	#end
 

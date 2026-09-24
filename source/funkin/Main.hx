@@ -90,7 +90,7 @@ class Main extends Sprite
 	public static var screenshotCounter:Int = 1;
 	public static var engineName:String = "Mutt Engine";
 	public static var windowTitle:String = "Friday Night Funkin' Mutt Engine";
-	public static var engineVersion:String = "1.0.2";
+	public static var engineVersion:String = "1.0.3";
 	public static var audioDisconnected:Bool = false;
 	public static var changeID:Int = 0;
 
@@ -130,10 +130,6 @@ class Main extends Sprite
 		#elseif ios
 		Sys.setCwd(lime.system.System.applicationStorageDirectory);
 		#end
-		#if VIDEOS_ALLOWED
-		hxvlc.util.Handle.init(#if (hxvlc >= "1.8.0")  ['--no-lua'] #end);
-		#end
-
 		#if LUA_ALLOWED
 		Mods.pushGlobalMods();
 		#end

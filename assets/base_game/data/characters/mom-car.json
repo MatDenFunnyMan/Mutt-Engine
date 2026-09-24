@@ -61,10 +61,10 @@
 				0
 			],
 			"indices": [
+				9,
 				10,
 				11,
-				12,
-				13
+				12
 			],
 			"fps": 24,
 			"anim": "idle-loop",
@@ -77,10 +77,10 @@
 				-23
 			],
 			"indices": [
+				5,
 				6,
 				7,
-				8,
-				9
+				8
 			],
 			"fps": 24,
 			"anim": "singLEFT-loop",
@@ -93,10 +93,10 @@
 				71
 			],
 			"indices": [
+				10,
 				11,
 				12,
-				13,
-				14
+				13
 			],
 			"fps": 24,
 			"anim": "singUP-loop",
@@ -109,10 +109,10 @@
 				-60
 			],
 			"indices": [
+				5,
 				6,
 				7,
-				8,
-				9
+				8
 			],
 			"fps": 24,
 			"anim": "singRIGHT-loop",
@@ -125,10 +125,10 @@
 				-160
 			],
 			"indices": [
+				10,
 				11,
 				12,
-				13,
-				14
+				13
 			],
 			"fps": 24,
 			"anim": "singDOWN-loop",
@@ -150,8 +150,8 @@
 		142
 	],
 	"camera_position": [
-		0,
-		0
+		0.0,
+		0.0
 	],
 	"sing_duration": 4,
 	"scale": 1

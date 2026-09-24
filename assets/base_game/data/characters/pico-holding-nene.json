@@ -1,102 +1,145 @@
 {
 	"animations": [
 		{
-			"offsets": [-15, -3],
+			"offsets": [
+				81,
+				45
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "idle",
 			"indices": [],
-			"name": "Pico Idle Dance"
+			"name": "idle"
 		},
 		{
-			"offsets": [27, -16],
+			"offsets": [
+				98,
+				47
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singLEFT",
 			"indices": [],
-			"name": "Pico NOTE LEFT0"
+			"name": "left"
 		},
 		{
-			"offsets": [93, -70],
+			"offsets": [
+				100,
+				44
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singDOWN",
 			"indices": [],
-			"name": "Pico Down Note0"
+			"name": "down"
 		},
 		{
-			"offsets": [56, 3],
+			"offsets": [
+				96,
+				51
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singUP",
 			"indices": [],
-			"name": "pico Up note0"
+			"name": "up"
 		},
 		{
-			"offsets": [-48, -20],
+			"offsets": [
+				97,
+				48
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singRIGHT",
 			"indices": [],
-			"name": "Pico Note Right0"
+			"name": "right"
 		},
 		{
-			"offsets": [28, -11],
+			"offsets": [
+				95,
+				47
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singLEFTmiss",
 			"indices": [],
-			"name": "note miss left pico nene0"
+			"name": "left miss"
 		},
 		{
-			"offsets": [95, -74],
+			"offsets": [
+				96,
+				44
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singDOWNmiss",
 			"indices": [],
-			"name": "note miss down pico nene0"
+			"name": "down miss"
 		},
 		{
-			"offsets": [60, 2],
+			"offsets": [
+				95,
+				50
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singUPmiss",
 			"indices": [],
-			"name": "note miss up piconene0"
+			"name": "up miss"
 		},
 		{
-			"offsets": [-45, -19],
+			"offsets": [
+				93,
+				47
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singRIGHTmiss",
 			"indices": [],
-			"name": "note miss right pico nene0"
+			"name": "right miss"
 		},
 		{
 			"loop": false,
-			"offsets": [-2, 23],
+			"offsets": [
+				81,
+				44
+			],
 			"anim": "knifeToss",
 			"fps": 24,
-			"name": "pico nene knife toss0",
+			"name": "nene knife",
 			"indices": []
 		},
 		{
 			"loop": false,
-			"offsets": [-10, 4],
+			"offsets": [
+				81,
+				45
+			],
 			"anim": "laughEnd",
 			"fps": 24,
-			"name": "pico nene laughing full0",
+			"name": "laugh start",
 			"indices": []
 		}
 	],
 	"vocals_file": "",
 	"no_antialiasing": false,
-	"image": "characters/picoAndNene",
-	"position": [-20, 258],
+	"image": "characters/pico-holding-nene",
+	"position": [
+		-20,
+		258
+	],
 	"healthicon": "pico",
 	"flip_x": true,
-	"healthbar_colors": [183, 216, 85],
-	"camera_position": [90, 20],
+	"healthbar_colors": [
+		183,
+		216,
+		85
+	],
+	"camera_position": [
+		218.0,
+		-45.5
+	],
 	"sing_duration": 4,
 	"scale": 1,
 	"_editor_isPlayer": true

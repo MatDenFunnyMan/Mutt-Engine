@@ -12,7 +12,10 @@ import funkin.game.notes.StrumNote;
 import funkin.data.Song;
 import funkin.data.Song.SwagSection;
 import funkin.ui.psychui.PsychUIInputText.FilterMode;
+import funkin.editors.content.Prompt;
+import funkin.editors.content.FileDialogHandler;
 
+import modcharting.Modifier;
 import modcharting.PlayfieldRenderer;
 import modcharting.PlayfieldRenderer.StrumNoteType;
 import modcharting.NoteMovement;
@@ -44,10 +47,19 @@ typedef TimelineHit = {
 	var mod:String;
 }
 
+typedef EffectInfo = {
+	var desc:String;
+	var value:String;
+	var sub:String;
+}
+
 class ModchartEditorState extends MusicBeatState
 {
-	static inline final PREVIEW_Y:Int = 24;
-	static inline final PREVIEW_H:Int = 456;
+	static inline final PREVIEW_X:Int = 8;
+	static inline final PREVIEW_Y:Int = 28;
+	static inline final PREVIEW_H:Int = 452;
+	static inline final SIDE_X:Int = 820;
+	static inline final SIDE_W:Int = 452;
 	static inline final PANEL_X:Int = 8;
 	static inline final PANEL_Y:Int = 488;
 	static inline final PANEL_W:Int = 1004;
@@ -59,13 +71,13 @@ class ModchartEditorState extends MusicBeatState
 	static inline final PLAYBAR_H:Int = 14;
 	static inline final INFO_X:Int = 1020;
 	static inline final INFO_W:Int = 252;
-	static inline final PROP_X:Int = 1052;
-	static inline final PROP_W:Int = 222;
+	static inline final MAX_PLAYFIELDS:Int = 16;
 	static inline final PLAYHEAD_RATIO:Float = 0.2;
 	static inline final MIN_ZOOM:Float = 12;
 	static inline final MAX_ZOOM:Float = 240;
 	static inline final MAX_UNDO:Int = 100;
 	static inline final MAIN_VALUE:String = '(main value)';
+	public static inline final ALL_PLAYFIELDS:String = 'All playfields';
 
 	static inline final DRAG_NONE:Int = 0;
 	static inline final DRAG_MOVE:Int = 1;
@@ -78,6 +90,80 @@ class ModchartEditorState extends MusicBeatState
 
 	static final SNAP_LABELS:Array<String> = ['1 beat', '1/2 beat', '1/4 beat', '1/8 beat', '1/16 beat', 'None'];
 	static final SNAP_VALUES:Array<Float> = [1, 0.5, 0.25, 0.125, 0.0625, 0];
+
+	public static final TYPE_LABELS:Array<String> = ['All', 'Player', 'Opponent', 'Lane'];
+
+	static final BUILT_IN_MODIFIERS:Array<Class<Modifier>> = [
+		XModifier, YModifier, ZModifier, ConfusionModifier,
+		ScaleModifier, ScaleXModifier, ScaleYModifier, MiniModifier,
+		StealthModifier, NoteStealthModifier, ReverseModifier, InvertModifier, FlipModifier,
+		DrunkXModifier, DrunkYModifier, DrunkZModifier,
+		TipsyXModifier, TipsyYModifier, TipsyZModifier,
+		BeatXModifier, BeatYModifier, BeatZModifier, JumpModifier,
+		RotateModifier, StrumLineRotateModifier, IncomingAngleModifier,
+		SpeedModifier, BoostModifier, BrakeModifier, ShrinkModifier, BumpyModifier,
+		BounceXModifier, BounceYModifier, BounceZModifier, InvertSineModifier,
+		EaseCurveModifier, EaseCurveXModifier, EaseCurveYModifier, EaseCurveZModifier, EaseCurveAngleModifier
+	];
+
+	static final EFFECTS:Map<String, EffectInfo> = [
+		'X' => {desc: 'Moves arrows and notes left or right, in pixels.\nStarts at 0. 100 = 100 pixels to the right, -100 = to the left, 0 = back in place.', value: '100', sub: ''},
+		'Y' => {desc: 'Moves arrows and notes up or down, in pixels.\nStarts at 0. 100 = 100 pixels down, -100 = up, 0 = back in place.', value: '100', sub: ''},
+		'Z' => {desc: 'Moves arrows and notes closer or farther away, in pixels.\nStarts at 0. Positive = farther (smaller), negative = closer (bigger).', value: '200', sub: ''},
+		'Confusion' => {desc: 'Spins every arrow and note on itself, in degrees.\nStarts at 0. 360 = one full spin, 90 = a quarter turn.', value: '360', sub: ''},
+		'Scale' => {desc: 'Changes the size of arrows and notes.\nStarts at 1 (normal size). 2 = double, 0.5 = half.', value: '0.5', sub: ''},
+		'ScaleX' => {desc: 'Changes the width of arrows and notes.\nStarts at 1 (normal). 2 = twice as wide, 0.5 = half.', value: '2', sub: ''},
+		'ScaleY' => {desc: 'Changes the height of arrows and notes.\nStarts at 1 (normal). 2 = twice as tall, 0.5 = half.', value: '2', sub: ''},
+		'Mini' => {desc: 'Changes the size of arrows and notes, keeping them in their place.\nStarts at 1 (normal size). 0.5 = half, 2 = double.', value: '0.5', sub: ''},
+		'Stealth' => {desc: 'Makes arrows and notes invisible.\nStarts at 0 (visible). 1 = invisible, 0.5 = half visible.', value: '1', sub: ''},
+		'NoteStealth' => {desc: 'Makes only the notes invisible, the arrows stay visible.\nStarts at 0 (visible). 1 = invisible.', value: '1', sub: ''},
+		'Reverse' => {desc: 'Flips the scroll: the notes come from the other side of the screen.\nStarts at 0. 1 = fully flipped, 0.5 = arrows in the middle of the screen.', value: '1', sub: ''},
+		'Invert' => {desc: 'Swaps the arrows in pairs (left with down, up with right).\nStarts at 0. 1 = swapped.', value: '1', sub: ''},
+		'Flip' => {desc: 'Mirrors the order of the arrows (left becomes right).\nStarts at 0. 1 = mirrored.', value: '1', sub: ''},
+		'DrunkX' => {desc: 'Arrows and notes sway left and right, like they are drunk.\nStarts at 0. 1 = normal sway, 2 = double.\nSub value "speed": how fast they sway.', value: '1', sub: ''},
+		'DrunkY' => {desc: 'Arrows and notes sway up and down.\nStarts at 0. 1 = normal sway, 2 = double.\nSub value "speed": how fast they sway.', value: '1', sub: ''},
+		'DrunkZ' => {desc: 'Arrows and notes sway closer and farther.\nStarts at 0. 1 = normal sway, 2 = double.\nSub value "speed": how fast they sway.', value: '1', sub: ''},
+		'TipsyX' => {desc: 'Every arrow wobbles left and right on its own, the notes follow it.\nStarts at 0. 1 = normal wobble.', value: '1', sub: ''},
+		'TipsyY' => {desc: 'Every arrow wobbles up and down on its own, the notes follow it.\nStarts at 0. 1 = normal wobble.', value: '1', sub: ''},
+		'TipsyZ' => {desc: 'Every arrow wobbles closer and farther on its own.\nStarts at 0. 1 = normal wobble.', value: '1', sub: ''},
+		'BeatX' => {desc: 'Arrows and notes kick left and right on every beat.\nStarts at 0. 1 = small kick, 3 = big kick.', value: '2', sub: ''},
+		'BeatY' => {desc: 'Arrows and notes kick up and down on every beat.\nStarts at 0. 1 = small kick, 3 = big kick.', value: '2', sub: ''},
+		'BeatZ' => {desc: 'Arrows and notes kick closer and farther on every beat.\nStarts at 0. 1 = small kick, 3 = big kick.', value: '2', sub: ''},
+		'Jump' => {desc: 'Arrows and notes hop on every beat.\nStarts at 0. 1 = normal hop.', value: '1', sub: ''},
+		'Rotate' => {desc: 'Rotates all the arrows around the center of the screen, in 3D.\nLeave the main value at 1 and change the sub values "x" and "y" (degrees).\n"rotatePointX" / "rotatePointY" move the center of the rotation.', value: '45', sub: 'x'},
+		'StrumLineRotate' => {desc: 'Rotates each group of 4 arrows around its own center, in 3D.\nLeave the main value at 1 and change the sub values "x", "y" and "z" (degrees, "z" starts at 90).', value: '45', sub: 'x'},
+		'IncomingAngle' => {desc: 'Changes the direction the notes come from.\nLeave the main value at 1 and change the sub values "x" and "y" (degrees).', value: '45', sub: 'x'},
+		'Speed' => {desc: 'Changes how fast the notes scroll (only notes).\nStarts at 1 (normal). 2 = twice as fast, 0.5 = half speed.', value: '2', sub: ''},
+		'Boost' => {desc: 'The notes speed up when they get close to the arrows (only notes).\nStarts at 0. 1 = normal boost.', value: '1', sub: ''},
+		'Brake' => {desc: 'The notes slow down when they get close to the arrows (only notes).\nStarts at 0. 1 = normal brake.', value: '1', sub: ''},
+		'Shrink' => {desc: 'The notes change size while they come closer (only notes).\nStarts at 0. Positive = they shrink, negative = they grow.', value: '1', sub: ''},
+		'Bumpy' => {desc: 'The notes move closer and farther while they scroll (only notes).\nStarts at 0. 1 = normal.\nSub value "speed": how fast.', value: '1', sub: ''},
+		'BounceX' => {desc: 'The notes bounce sideways while they scroll (only notes).\nStarts at 0. 1 = normal bounce.\nSub value "speed": how fast.', value: '1', sub: ''},
+		'BounceY' => {desc: 'The notes bounce up and down while they scroll (only notes).\nStarts at 0. 1 = normal bounce.\nSub value "speed": how fast.', value: '1', sub: ''},
+		'BounceZ' => {desc: 'The notes bounce closer and farther while they scroll (only notes).\nStarts at 0. 1 = normal bounce.\nSub value "speed": how fast.', value: '1', sub: ''},
+		'InvertSine' => {desc: 'The notes zig-zag between their lane and the next one (only notes).\nStarts at 0. 1 = full zig-zag.', value: '1', sub: ''},
+		'EaseCurve' => {desc: 'Base of the EaseCurve effects: on its own it does nothing.\nUse EaseCurveX, EaseCurveY, EaseCurveZ or EaseCurveAngle.', value: '1', sub: ''},
+		'EaseCurveX' => {desc: 'The notes bend sideways along a curve while they scroll (only notes).\nStarts at 0. Try 100.', value: '100', sub: ''},
+		'EaseCurveY' => {desc: 'The notes bend up and down along a curve while they scroll (only notes).\nStarts at 0. Try 100.', value: '100', sub: ''},
+		'EaseCurveZ' => {desc: 'The notes bend closer and farther along a curve while they scroll (only notes).\nStarts at 0. Try 100.', value: '100', sub: ''},
+		'EaseCurveAngle' => {desc: 'The notes turn along a curve while they scroll (only notes).\nStarts at 0. Try 100.', value: '100', sub: ''}
+	];
+
+	static final EXAMPLE_MODCHART:String = '{"modifiers":['
+		+ '["slide","XModifier","player",-1],'
+		+ '["spin","ConfusionModifier","all",-1],'
+		+ '["drunk","DrunkXModifier","opponent",-1],'
+		+ '["reverse","ReverseModifier","player",-1]'
+		+ '],"events":['
+		+ '["ease",[4,2,"cubeInOut","-200,slide"],[false,1,0]],'
+		+ '["ease",[8,2,"cubeInOut","0,slide"],[false,1,0]],'
+		+ '["ease",[12,4,"quadInOut","360,spin"],[false,1,0]],'
+		+ '["set",[16,"0,spin"],[false,1,0]],'
+		+ '["ease",[16,1,"sineOut","1,drunk"],[false,1,0]],'
+		+ '["ease",[20,2,"expoOut","1,reverse"],[false,1,0]],'
+		+ '["ease",[24,1,"sineIn","0,drunk"],[false,1,0]],'
+		+ '["ease",[28,2,"expoOut","0,reverse"],[false,1,0]]'
+		+ '],"playfields":1}';
 
 	static final EASES:Array<String> = [
 		'backIn', 'backInOut', 'backOut',
@@ -94,6 +180,18 @@ class ModchartEditorState extends MusicBeatState
 		'smoothStepIn', 'smoothStepInOut', 'smoothStepOut',
 		'smootherStepIn', 'smootherStepInOut', 'smootherStepOut'
 	];
+
+	static final GUIDE_TEXT:String = 'GETTING STARTED\n\n'
+		+ '1.  Press "New" at the top left of the timeline to create a MODIFIER.\n'
+		+ '     Pick an effect (for example X, it moves the arrows sideways) and which arrows it moves.\n\n'
+		+ '2.  Right click on its row, at the beat where the effect should start.\n'
+		+ '     A mark appears: that is an EVENT.\n\n'
+		+ '3.  Click the mark: its settings open in this panel. Set the Value\n'
+		+ '     (X: 100 -> Move arrows 100 pixels to the right).\n\n'
+		+ '4.  Space: Modchart Preview.\n\n'
+		+ '5.  Add a second event later with value 0 to bring them back, then press Ctrl + S to save.\n\n'
+		+ 'Want an example? "Open File > Load Example" and try it out.\n\n'
+		+ 'Press F1 for more info!';
 
 	var camPreview:FlxCamera;
 	var camUI:FlxCamera;
@@ -138,6 +236,7 @@ class ModchartEditorState extends MusicBeatState
 	var upperBox:PsychUIBox;
 	var playfieldDropDown:PsychUIDropDownMenu;
 	var snapDropDown:PsychUIDropDownMenu;
+	var playfieldCountText:FlxText;
 	var knownPlayfields:Int = -1;
 
 	var rowLabels:Array<FlxText> = [];
@@ -155,9 +254,11 @@ class ModchartEditorState extends MusicBeatState
 	var playbarHead:FlxSprite;
 	var infoText:FlxText;
 
+	var interactiveWidgets:Array<FlxSprite> = [];
 	var propsEmptyText:FlxText;
 	var propsWidgets:Array<FlxSprite> = [];
 	var easeWidgets:Array<FlxSprite> = [];
+	var subWidgets:Array<FlxSprite> = [];
 	var typeDropDown:PsychUIDropDownMenu;
 	var beatStepper:PsychUINumericStepper;
 	var lengthStepper:PsychUINumericStepper;
@@ -170,11 +271,21 @@ class ModchartEditorState extends MusicBeatState
 	var targetSubDropDown:PsychUIDropDownMenu;
 	var targetValueInput:PsychUIInputText;
 	var targetsListText:FlxText;
+	var effectTitleText:FlxText;
+	var effectDescText:FlxText;
 	var knownModNames:String = null;
 	var knownSubMod:String = null;
 
+	var fileDialog:FileDialogHandler = new FileDialogHandler();
+	var hasUnsaved:Bool = false;
+	var loadedModifiers:String = null;
+	var loadedPlayfields:Int = -1;
+	var statusText:FlxText;
+	var messageTime:Float = 0;
+
 	var helpBg:FlxSprite;
 	var helpText:FlxText;
+	var helpPageText:FlxText;
 	var helpPage:Int = 0;
 
 	override function create()
@@ -182,7 +293,7 @@ class ModchartEditorState extends MusicBeatState
 		initPsychCamera().bgColor = 0xFF1B1B22;
 
 		var previewZoom:Float = PREVIEW_H / FlxG.height;
-		camPreview = new FlxCamera(Std.int((FlxG.width - FlxG.width * previewZoom) / 2), PREVIEW_Y, FlxG.width, FlxG.height, previewZoom);
+		camPreview = new FlxCamera(PREVIEW_X, PREVIEW_Y, FlxG.width, FlxG.height, previewZoom);
 		camPreview.bgColor = FlxColor.BLACK;
 		FlxG.cameras.add(camPreview, false);
 
@@ -215,6 +326,10 @@ class ModchartEditorState extends MusicBeatState
 		generateStrums(0);
 		generateStrums(1);
 		NoteMovement.getDefaultStrumPosFromGroup(strumLineNotes, playerStrums.length);
+
+		loadedModifiers = Json.stringify(modchartData().modifiers);
+		loadedPlayfields = modchartData().playfields;
+		hasUnsaved = (ModchartFile.editorData != null && ModchartFile.editorDataSong == songKey());
 
 		createTimeline();
 		createPlaybar();
@@ -375,16 +490,21 @@ class ModchartEditorState extends MusicBeatState
 			add(value);
 		}
 
-		rowsInfoText = new FlxText(PANEL_X + 6, PANEL_Y + 3, LABEL_W - 10, '', 9);
+		rowsInfoText = new FlxText(PANEL_X + 6, PANEL_Y + 3, LABEL_W - 66, '', 9);
 		rowsInfoText.color = 0xFFBBBBBB;
 		rowsInfoText.cameras = [camUI];
 		add(rowsInfoText);
+
+		var newButton:PsychUIButton = new PsychUIButton(PANEL_X + LABEL_W - 58, PANEL_Y + 1, 'New', function() openModifierPopup(-1), 54, 16);
+		newButton.cameras = [camUI];
+		interactiveWidgets.push(newButton);
+		add(newButton);
 
 		timelineLayer = new FlxTypedGroup<FlxSprite>();
 		timelineLayer.cameras = [camUI];
 		add(timelineLayer);
 
-		emptyText = new FlxText(gridX(), rowY(3), gridW(), 'This modchart has no modifiers yet.', 14);
+		emptyText = new FlxText(gridX(), rowY(3), gridW(), 'This modchart has no modifiers.\nPress "New" to create one.', 14);
 		emptyText.alignment = CENTER;
 		emptyText.color = 0xFF888888;
 		emptyText.cameras = [camUI];
@@ -417,134 +537,168 @@ class ModchartEditorState extends MusicBeatState
 		panel.cameras = [camUI];
 		add(panel);
 
-		var title:FlxText = new FlxText(INFO_X, PANEL_Y + 4, INFO_W, 'Information', 12);
+		var title:FlxText = new FlxText(INFO_X, PANEL_Y + 4, INFO_W, 'Info', 12);
 		title.alignment = CENTER;
 		title.cameras = [camUI];
 		add(title);
 
-		infoText = new FlxText(INFO_X + 10, PANEL_Y + 78, INFO_W - 20, '', 10);
-		infoText.cameras = [camUI];
-		add(infoText);
+		playfieldCountText = new FlxText(INFO_X + 10, PANEL_Y + 29, 150, '', 10);
+		playfieldCountText.cameras = [camUI];
+		add(playfieldCountText);
 
-		var playfieldLabel:FlxText = new FlxText(INFO_X + 10, PANEL_Y + 27, 70, 'Playfield:', 10);
-		playfieldLabel.cameras = [camUI];
-		add(playfieldLabel);
+		var removeButton:PsychUIButton = new PsychUIButton(INFO_X + INFO_W - 60, PANEL_Y + 26, '-', function() changePlayfields(-1), 22);
+		removeButton.cameras = [camUI];
+		interactiveWidgets.push(removeButton);
+		add(removeButton);
 
-		var snapLabel:FlxText = new FlxText(INFO_X + 10, PANEL_Y + 51, 70, 'Snap:', 10);
+		var addButton:PsychUIButton = new PsychUIButton(INFO_X + INFO_W - 34, PANEL_Y + 26, '+', function() changePlayfields(1), 22);
+		addButton.cameras = [camUI];
+		interactiveWidgets.push(addButton);
+		add(addButton);
+
+		var showLabel:FlxText = new FlxText(INFO_X + 10, PANEL_Y + 55, 70, 'Show:', 10);
+		showLabel.cameras = [camUI];
+		add(showLabel);
+
+		var snapLabel:FlxText = new FlxText(INFO_X + 10, PANEL_Y + 81, 70, 'Snap:', 10);
 		snapLabel.cameras = [camUI];
 		add(snapLabel);
 
-		snapDropDown = new PsychUIDropDownMenu(INFO_X + 80, PANEL_Y + 48, SNAP_LABELS, function(index:Int, _) {
+		infoText = new FlxText(INFO_X + 10, PANEL_Y + 108, INFO_W - 20, '', 10);
+		infoText.cameras = [camUI];
+		add(infoText);
+
+		snapDropDown = new PsychUIDropDownMenu(INFO_X + 80, PANEL_Y + 78, SNAP_LABELS, function(index:Int, _) {
 			snap = SNAP_VALUES[index];
-		}, 100);
+		}, 140);
 		snapDropDown.selectedLabel = '1/4 beat';
 		snapDropDown.cameras = [camUI];
+		interactiveWidgets.push(snapDropDown);
 		add(snapDropDown);
 
-		playfieldDropDown = new PsychUIDropDownMenu(INFO_X + 80, PANEL_Y + 24, ['All'], function(_, label:String) {
-			playfieldFilter = (label == 'All') ? -1 : Std.parseInt(label);
+		playfieldDropDown = new PsychUIDropDownMenu(INFO_X + 80, PANEL_Y + 52, [ALL_PLAYFIELDS], function(_, label:String) {
+			playfieldFilter = playfieldFromLabel(label);
 			rowScroll = 0;
 			refreshTimelineData();
-		}, 100);
+		}, 140);
 		playfieldDropDown.cameras = [camUI];
+		interactiveWidgets.push(playfieldDropDown);
 		add(playfieldDropDown);
+	}
+
+	public static function playfieldFromLabel(label:String):Int
+	{
+		if(label == null || label == ALL_PLAYFIELDS) return -1;
+		return parseIntSafe(label.replace('Playfield ', ''), -1);
+	}
+
+	public function playfieldLabels():Array<String>
+	{
+		var labels:Array<String> = [ALL_PLAYFIELDS];
+		for (i in 0...modchartData().playfields) labels.push('Playfield ' + i);
+		return labels;
 	}
 
 	function createPropertiesPanel()
 	{
-		var panel:FlxSprite = new FlxSprite(PROP_X, PREVIEW_Y).makeGraphic(PROP_W, PREVIEW_H, 0xFF26262F);
+		var panel:FlxSprite = new FlxSprite(SIDE_X, PREVIEW_Y).makeGraphic(SIDE_W, PREVIEW_H, 0xFF26262F);
 		panel.cameras = [camUI];
 		add(panel);
 
-		var title:FlxText = new FlxText(PROP_X, PREVIEW_Y + 4, PROP_W, 'Event', 12);
+		var title:FlxText = new FlxText(SIDE_X, PREVIEW_Y + 4, SIDE_W, 'Event', 12);
 		title.alignment = CENTER;
 		title.cameras = [camUI];
 		add(title);
 
-		propsEmptyText = new FlxText(PROP_X + 10, PREVIEW_Y + 34, PROP_W - 20, 'No event selected.\n\n'
-			+ 'Click on a mark of the timeline to select it.\n\n'
-			+ 'Right click on an empty spot of a row to create a new event for that modifier.', 10);
-		propsEmptyText.color = 0xFFBBBBBB;
+		propsEmptyText = new FlxText(SIDE_X + 14, PREVIEW_Y + 30, SIDE_W - 28, GUIDE_TEXT, 10);
+		propsEmptyText.color = 0xFFDDDDDD;
 		propsEmptyText.cameras = [camUI];
 		add(propsEmptyText);
 
-		var fx:Float = PROP_X + 76;
+		var left:Float = SIDE_X + 10;
+		var col1:Float = SIDE_X + 80;
+		var col2Label:Float = SIDE_X + 236;
+		var col2:Float = SIDE_X + 306;
 
-		propLabel(30, 'Type:');
-		typeDropDown = propWidget(new PsychUIDropDownMenu(fx, PREVIEW_Y + 30, ['set', 'ease'], function(_, label:String) setEventType(label), 100));
+		propLabel(left, 30, 'Type:');
+		typeDropDown = propWidget(new PsychUIDropDownMenu(col1, PREVIEW_Y + 30, ['set', 'ease'], function(_, label:String) setEventType(label), 100));
 
-		propLabel(56, 'Beat:');
-		beatStepper = propWidget(new PsychUINumericStepper(fx, PREVIEW_Y + 56, 0.25, 0, 0, 9999, 3, 80));
+		propLabel(col2Label, 30, 'Beat:');
+		beatStepper = propWidget(new PsychUINumericStepper(col2, PREVIEW_Y + 30, 0.25, 0, 0, 9999, 3, 70));
 		beatStepper.onValueChange = function() {
 			editSelected('beat', function(ev:Array<Dynamic>) {
 				ev[ModchartFile.EVENT_DATA][ModchartFile.EVENT_TIME] = beatStepper.value;
 			});
 		};
 
-		propLabel(82, 'Length:', easeWidgets);
-		lengthStepper = propWidget(new PsychUINumericStepper(fx, PREVIEW_Y + 82, 0.25, 1, 0, 999, 3, 80), easeWidgets);
+		propLabel(left, 56, 'Length:', easeWidgets);
+		lengthStepper = propWidget(new PsychUINumericStepper(col1, PREVIEW_Y + 56, 0.25, 1, 0, 999, 3, 70), easeWidgets);
 		lengthStepper.onValueChange = function() {
 			editSelected('length', function(ev:Array<Dynamic>) {
 				ev[ModchartFile.EVENT_DATA][ModchartFile.EVENT_EASETIME] = lengthStepper.value;
 			});
 		};
 
-		propLabel(108, 'Ease:', easeWidgets);
-		easeDropDown = propWidget(new PsychUIDropDownMenu(fx, PREVIEW_Y + 108, EASES, function(_, label:String) {
+		propLabel(col2Label, 56, 'Ease:', easeWidgets);
+		easeDropDown = propWidget(new PsychUIDropDownMenu(col2, PREVIEW_Y + 56, EASES, function(_, label:String) {
 			editSelected(null, function(ev:Array<Dynamic>) {
 				ev[ModchartFile.EVENT_DATA][ModchartFile.EVENT_EASE] = label;
 			});
-		}, 136), easeWidgets);
+		}, 110), easeWidgets);
 
-		repeatCheckBox = propWidget(new PsychUICheckBox(PROP_X + 10, PREVIEW_Y + 138, 'Repeat this event', 150));
+		repeatCheckBox = propWidget(new PsychUICheckBox(left, PREVIEW_Y + 85, 'Repeat', 60));
 		repeatCheckBox.onClick = function() {
 			editSelected(null, function(ev:Array<Dynamic>) {
 				repeatData(ev)[ModchartFile.EVENT_REPEATBOOL] = repeatCheckBox.checked;
 			});
 		};
 
-		propLabel(160, 'Repeats:');
-		repeatCountStepper = propWidget(new PsychUINumericStepper(fx, PREVIEW_Y + 160, 1, 1, 1, 999, 0, 60));
+		propLabel(SIDE_X + 100, 84, 'Times:');
+		repeatCountStepper = propWidget(new PsychUINumericStepper(SIDE_X + 150, PREVIEW_Y + 84, 1, 1, 1, 999, 0, 40));
 		repeatCountStepper.onValueChange = function() {
 			editSelected('repeatCount', function(ev:Array<Dynamic>) {
 				repeatData(ev)[ModchartFile.EVENT_REPEATCOUNT] = Std.int(repeatCountStepper.value);
 			});
 		};
 
-		propLabel(186, 'Every:');
-		repeatGapStepper = propWidget(new PsychUINumericStepper(fx, PREVIEW_Y + 186, 0.25, 1, 0, 999, 3, 60));
+		propLabel(col2Label, 84, 'Every:');
+		repeatGapStepper = propWidget(new PsychUINumericStepper(col2, PREVIEW_Y + 84, 0.25, 1, 0, 999, 3, 50));
 		repeatGapStepper.onValueChange = function() {
 			editSelected('repeatGap', function(ev:Array<Dynamic>) {
 				repeatData(ev)[ModchartFile.EVENT_REPEATBEATGAP] = repeatGapStepper.value;
 			});
 		};
-		var beatsLabel:FlxText = propLabel(186, 'beats');
-		beatsLabel.x = fx + 98;
+		propLabel(col2 + 88, 84, 'beats');
 
-		propWidget(new FlxSprite(PROP_X + 10, PREVIEW_Y + 216).makeGraphic(PROP_W - 20, 1, 0xFF4A4A5A));
+		propWidget(new FlxSprite(left, PREVIEW_Y + 114).makeGraphic(SIDE_W - 20, 1, 0xFF4A4A5A));
 
-		targetCountText = propLabel(222, '');
-		targetCountText.fieldWidth = 140;
-		propWidget(new PsychUIButton(PROP_X + PROP_W - 58, PREVIEW_Y + 222, '<', function() changeTarget(-1), 22));
-		propWidget(new PsychUIButton(PROP_X + PROP_W - 32, PREVIEW_Y + 222, '>', function() changeTarget(1), 22));
+		var header:FlxText = propLabel(left, 120, 'What the event does');
+		header.fieldWidth = 200;
+		header.color = COLOR_SELECTED;
 
-		propLabel(250, 'Modifier:');
-		targetModDropDown = propWidget(new PsychUIDropDownMenu(fx, PREVIEW_Y + 250, [], function(_, label:String) {
+		targetCountText = propLabel(SIDE_X + SIDE_W - 200, 120, '');
+		targetCountText.fieldWidth = 136;
+		targetCountText.alignment = RIGHT;
+		propWidget(new PsychUIButton(SIDE_X + SIDE_W - 58, PREVIEW_Y + 118, '<', function() changeTarget(-1), 22));
+		propWidget(new PsychUIButton(SIDE_X + SIDE_W - 32, PREVIEW_Y + 118, '>', function() changeTarget(1), 22));
+
+		propLabel(left, 146, 'Modifier:');
+		targetModDropDown = propWidget(new PsychUIDropDownMenu(col1, PREVIEW_Y + 146, [], function(_, label:String) {
 			editTarget(null, function(target:TimelineTarget) {
 				target.mod = label;
 				target.sub = '';
 			});
-		}, 136));
+		}, 130));
 
-		propLabel(276, 'Sub value:');
-		targetSubDropDown = propWidget(new PsychUIDropDownMenu(fx, PREVIEW_Y + 276, [MAIN_VALUE], function(_, label:String) {
+		propLabel(col2Label, 146, 'Sub value:', subWidgets);
+		targetSubDropDown = propWidget(new PsychUIDropDownMenu(col2, PREVIEW_Y + 146, [MAIN_VALUE], function(_, label:String) {
 			editTarget(null, function(target:TimelineTarget) {
 				target.sub = (label == MAIN_VALUE) ? '' : label;
 			});
-		}, 136));
+		}, 110), subWidgets);
 
-		propLabel(302, 'Value:');
-		targetValueInput = propWidget(new PsychUIInputText(fx, PREVIEW_Y + 302, 136, '', 8));
+		propLabel(left, 172, 'Value:');
+		targetValueInput = propWidget(new PsychUIInputText(col1, PREVIEW_Y + 172, 100, '', 8));
 		targetValueInput.customFilterPattern = ~/[^0-9.\-]*/g;
 		targetValueInput.filterMode = FilterMode.CUSTOM_FILTER;
 		targetValueInput.onChange = function(_, cur:String) {
@@ -554,16 +708,27 @@ class ModchartEditorState extends MusicBeatState
 			});
 		};
 
-		propWidget(new PsychUIButton(PROP_X + 10, PREVIEW_Y + 330, 'Add modifier', addTarget, 98));
-		propWidget(new PsychUIButton(PROP_X + 114, PREVIEW_Y + 330, 'Remove modifier', removeTarget, 98));
+		propWidget(new PsychUIButton(SIDE_X + 196, PREVIEW_Y + 170, 'Add modifier', addTarget, 124));
+		propWidget(new PsychUIButton(SIDE_X + 326, PREVIEW_Y + 170, 'Remove current', removeTarget, 116));
 
-		targetsListText = propLabel(358, '');
-		targetsListText.fieldWidth = PROP_W - 20;
+		targetsListText = propLabel(left, 200, '');
+		targetsListText.fieldWidth = SIDE_W - 20;
 		targetsListText.size = 9;
 		targetsListText.color = 0xFFBBBBBB;
 
-		var hint:FlxText = propLabel(420, 'Delete: delete event\nCtrl + C / V: copy / paste at the playhead');
-		hint.fieldWidth = PROP_W - 20;
+		propWidget(new FlxSprite(left, PREVIEW_Y + 250).makeGraphic(SIDE_W - 20, 1, 0xFF4A4A5A));
+
+		effectTitleText = propLabel(left, 256, '');
+		effectTitleText.fieldWidth = SIDE_W - 20;
+		effectTitleText.color = COLOR_SELECTED;
+
+		effectDescText = propLabel(left, 276, '');
+		effectDescText.fieldWidth = SIDE_W - 20;
+		effectDescText.color = 0xFFDDDDDD;
+
+		var hint:FlxText = propLabel(left, 404, 'Right click on a mark: remove modifier from event\n'
+			+ 'Delete: delete event      Ctrl + C / V: copy / paste');
+		hint.fieldWidth = SIDE_W - 20;
 		hint.size = 9;
 		hint.color = 0xFF9A9AB0;
 
@@ -571,9 +736,9 @@ class ModchartEditorState extends MusicBeatState
 		while(i-- > 0) add(propsWidgets[i]);
 	}
 
-	function propLabel(y:Float, text:String, ?group:Array<FlxSprite>):FlxText
+	function propLabel(x:Float, y:Float, text:String, ?group:Array<FlxSprite>):FlxText
 	{
-		var label:FlxText = new FlxText(PROP_X + 10, PREVIEW_Y + y + 3, 64, text, 10);
+		var label:FlxText = new FlxText(x, PREVIEW_Y + y + 3, 70, text, 10);
 		return propWidget(label, group);
 	}
 
@@ -581,6 +746,7 @@ class ModchartEditorState extends MusicBeatState
 	{
 		widget.cameras = [camUI];
 		propsWidgets.push(widget);
+		interactiveWidgets.push(widget);
 		if(group != null) group.push(widget);
 		return widget;
 	}
@@ -596,19 +762,25 @@ class ModchartEditorState extends MusicBeatState
 		upperBox.bg.visible = false;
 		add(upperBox);
 
+		var entries:Array<Array<Dynamic>> = [
+			['  Save (Ctrl+S)', function() saveModchart(false)],
+			['  Save As... (Ctrl+Shift+S)', function() saveModchart(true)],
+			['  Open File... (Ctrl+O)', openModchartFile],
+			['  Reload', reloadFromFile],
+			['  Load Example', loadExample],
+			['  Clear', clearModchart],
+			['  Playtest (Enter)', goToPlayState],
+			['  Exit to Editor Menu', exitToMenu]
+		];
+
 		var menu = upperBox.getTab('File').menu;
-		var panel:FlxSprite = new FlxSprite().makeGraphic(150, 62, FlxColor.BLACK);
+		var panel:FlxSprite = new FlxSprite().makeGraphic(200, entries.length * 20 + 2, FlxColor.BLACK);
 		panel.alpha = 0.8;
 		menu.add(panel);
 
-		var entries:Array<Array<Dynamic>> = [
-			['  Play / Pause (Space)', function() setPlaying(!FlxG.sound.music.playing)],
-			['  Playtest (Enter)', goToPlayState],
-			['  Exit (Esc)', goToPlayState]
-		];
 		for (i => entry in entries)
 		{
-			var btn:PsychUIButton = new PsychUIButton(0, i * 20, entry[0], entry[1], 150);
+			var btn:PsychUIButton = new PsychUIButton(0, i * 20, entry[0], entry[1], 200);
 			btn.text.alignment = LEFT;
 			menu.add(btn);
 		}
@@ -616,6 +788,11 @@ class ModchartEditorState extends MusicBeatState
 
 	function createHelp()
 	{
+		statusText = new FlxText(160, 4, 860, '', 12);
+		statusText.setFormat(null, 12, FlxColor.WHITE, LEFT, OUTLINE_FAST, FlxColor.BLACK);
+		statusText.cameras = [camUI];
+		add(statusText);
+
 		var hint:FlxText = new FlxText(0, 4, FlxG.width - 10, 'Press F1 for Help', 12);
 		hint.setFormat(null, 12, FlxColor.WHITE, RIGHT, OUTLINE_FAST, FlxColor.BLACK);
 		hint.cameras = [camUI];
@@ -625,63 +802,79 @@ class ModchartEditorState extends MusicBeatState
 		helpBg = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
 		helpBg.scale.set(FlxG.width, FlxG.height);
 		helpBg.updateHitbox();
-		helpBg.alpha = 0.8;
+		helpBg.alpha = 0.85;
 		helpBg.cameras = [camUI];
 		helpBg.visible = false;
 		add(helpBg);
 
-		helpText = new FlxText(0, 0, FlxG.width - 160, '', 14);
+		helpText = new FlxText(0, 0, FlxG.width - 140, '', 14);
 		helpText.setFormat(null, 14, FlxColor.WHITE, LEFT, OUTLINE_FAST, FlxColor.BLACK);
 		helpText.borderSize = 1;
 		helpText.cameras = [camUI];
 		helpText.visible = false;
 		add(helpText);
+
+		helpPageText = new FlxText(0, FlxG.height - 44, FlxG.width, '', 16);
+		helpPageText.setFormat(null, 16, FlxColor.WHITE, CENTER, OUTLINE_FAST, FlxColor.BLACK);
+		helpPageText.cameras = [camUI];
+		helpPageText.visible = false;
+		add(helpPageText);
 	}
 
 	static final HELP_PAGES:Array<String> = [
-		"CONTROLS  (page 1/2 - Left/Right to change page)\n\n"
-		+ "PLAYBACK\n"
-		+ "Space - Play / Pause\n"
-		+ "A / D  or  Left / Right - Go back / forward 1 beat (hold Shift: 1 measure)\n"
-		+ "Mouse Wheel over the timeline - Scroll through the song (hold Shift: faster)\n"
-		+ "Home / End - Go to the start / end of the song\n"
-		+ "[ / ] - Change playback speed (Alt + [ or ]: reset)\n"
-		+ "Click or drag the bar at the bottom - Jump to any point of the song\n\n"
-		+ "TIMELINE\n"
-		+ "Ctrl + Mouse Wheel - Zoom the timeline\n"
-		+ "Mouse Wheel over the modifier names - Scroll the rows\n"
-		+ "Click on an empty spot of the timeline - Jump there\n\n"
-		+ "EDITING\n"
-		+ "Click on an event - Select it (its settings appear in the Event panel on the right)\n"
-		+ "Right click on an empty spot of a row - Create an event for that modifier\n"
-		+ "Right click on an event - Remove that modifier from the event (the last one deletes it)\n"
-		+ "Drag an event - Move it (hold Alt to ignore the Snap)\n"
-		+ "Drag the yellow handle at the end of a selected ease - Change how long it lasts\n"
-		+ "Delete / Backspace - Delete the selected event\n"
-		+ "Ctrl + C / Ctrl + V - Copy the selected event / Paste it at the playhead\n"
-		+ "Ctrl + Z / Ctrl + Y - Undo / Redo\n\n"
-		+ "OTHER\n"
-		+ "Enter - Playtest the song\n"
-		+ "Esc - Deselect the event (with nothing selected: exit the editor)\n"
-		+ "F1 - Show / Hide this help",
+		"HOW IT WORKS\n\n"
+		+ "A modchart moves the arrows during the song. It's made of 3 things:\n\n"
+		+ "MODIFIERS -> the rows of the timeline.\n"
+		+ "An effect with a name and a value (e.g. \"slide\" with the X effect).\n"
+		+ "At 0 it does nothing (at 1 for size and speed effects).\n"
+		+ "ALL / OPP / PLR / L0-L7 -> which arrows it moves. The number on the right -> its value right now.\n\n"
+		+ "EVENTS -> the marks on the rows. They change the value of a modifier at a certain beat.\n"
+		+ "SET (blue) -> changes instantly.\n"
+		+ "EASE (white + bar) -> changes gradually, the bar is how long it takes.\n"
+		+ "e.g. EASE on \"slide\", beat 8, length 2, value 200 -> the arrows move 200 pixels right from beat 8 to 10,\n"
+		+ "and stay there until another event brings the value back to 0.\n\n"
+		+ "PLAYFIELDS -> copies of the 8 arrows (add them with + in Information).\n"
+		+ "Set a modifier to a playfield to move only that copy.\n\n"
+		+ "Some effects only move the notes: press Space to see them!",
 
-		"HOW A MODCHART WORKS  (page 2/2 - Left/Right to change page)\n\n"
-		+ "A modchart is made of MODIFIERS and EVENTS.\n\n"
-		+ "MODIFIERS are the rows of the timeline.\n"
-		+ "Each one is an effect with its own name, for example \"drunk\" using the DrunkX effect.\n"
-		+ "Next to the name you can see which arrows it affects:\n"
-		+ "ALL = every arrow, OPP = opponent (0-3), PLR = player (4-7), L0...L7 = a single arrow.\n"
-		+ "The number on the right is the value the modifier has right now.\n\n"
-		+ "EVENTS are the marks on each row. They change the value of a modifier at a certain beat.\n"
-		+ "A blue diamond is a SET: the value changes instantly.\n"
-		+ "A white diamond with a bar is an EASE: the value changes gradually,\n"
-		+ "and the bar shows how many beats it takes.\n"
-		+ "Faded marks are repeats of the same event.\n\n"
-		+ "One event can change more than one modifier at the same time: its mark appears on every row it changes.\n"
-		+ "In the Event panel use < and > to go through them, and Add / Remove modifier to change the list.\n"
-		+ "Some modifiers have sub values (like the speed of \"drunk\"): pick them from Sub value.\n\n"
-		+ "The preview on top always shows the modchart at the current point of the song:\n"
-		+ "move through the song to see every effect exactly as it will look in game."
+		"CONTROLS\n\n"
+		+ "PLAYBACK\n"
+		+ "Space -> Play / Pause\n"
+		+ "A / D or Left / Right -> 1 beat back / forward (Shift: 1 measure)\n"
+		+ "Mouse Wheel -> Scroll the song (Shift: faster)\n"
+		+ "Home / End -> Start / End of the song\n"
+		+ "[ / ] -> Playback speed (Alt: reset)\n"
+		+ "Bottom bar -> Click or drag to jump around\n\n"
+		+ "TIMELINE\n"
+		+ "Ctrl + Mouse Wheel -> Zoom\n"
+		+ "Mouse Wheel on the names -> Scroll the rows\n"
+		+ "Click on an empty spot -> Jump there\n\n"
+		+ "FILE\n"
+		+ "Ctrl + S -> Save\n"
+		+ "Ctrl + Shift + S -> Save as\n"
+		+ "Ctrl + O -> Open\n\n"
+		+ "OTHER\n"
+		+ "Enter -> Playtest (unsaved changes are kept)\n"
+		+ "Esc -> Deselect / Back to the song\n"
+		+ "F1 -> Show / Hide this help",
+
+		"EDITING\n\n"
+		+ "MODIFIERS\n"
+		+ "New -> Create a modifier\n"
+		+ "Click on a name -> Edit or delete it\n"
+		+ "- / + in Information -> Remove / Add a playfield\n\n"
+		+ "EVENTS\n"
+		+ "Right click on a row -> New event\n"
+		+ "Click on an event -> Select it (settings on the right)\n"
+		+ "Drag an event -> Move it (Shift: free movement)\n"
+		+ "Shift + the +/- of Beat, Length and Every -> Steps of 0.01\n"
+		+ "Drag the yellow handle -> Change how long an ease lasts\n"
+		+ "Right click on an event -> Remove that modifier from it\n"
+		+ "Delete / Backspace -> Delete the event\n"
+		+ "Ctrl + C / V -> Copy / Paste at the red line\n\n"
+		+ "One event can change more modifiers:\n"
+		+ "use \"Add modifier\" and < > in the Event panel.\n\n"
+		+ "Ctrl + Z / Ctrl + Y -> Undo / Redo"
 	];
 
 	inline function modchartData():ModchartJson
@@ -709,11 +902,19 @@ class ModchartEditorState extends MusicBeatState
 		if(data.playfields != knownPlayfields)
 		{
 			knownPlayfields = data.playfields;
-			var playfields:Array<String> = ['All'];
-			for (i in 0...data.playfields) playfields.push(Std.string(i));
+			var labels:Array<String> = playfieldLabels();
 			var lastLabel:String = playfieldDropDown.selectedLabel;
-			playfieldDropDown.list = playfields;
-			playfieldDropDown.selectedLabel = (lastLabel != null && playfields.contains(lastLabel)) ? lastLabel : 'All';
+			playfieldDropDown.list = labels;
+			playfieldDropDown.selectedLabel = (lastLabel != null && labels.contains(lastLabel)) ? lastLabel : ALL_PLAYFIELDS;
+			playfieldCountText.text = 'Playfields: ' + data.playfields;
+
+			if(playfieldFilter >= data.playfields)
+			{
+				playfieldFilter = -1;
+				playfieldDropDown.selectedLabel = ALL_PLAYFIELDS;
+				refreshTimelineData();
+				return;
+			}
 		}
 
 		rowScroll = Std.int(FlxMath.bound(rowScroll, 0, Math.max(0, visibleMods.length - VISIBLE_ROWS)));
@@ -790,6 +991,12 @@ class ModchartEditorState extends MusicBeatState
 		return ev[ModchartFile.EVENT_REPEAT];
 	}
 
+	static function isEditableEvent(ev:Array<Dynamic>):Bool
+	{
+		var type:Dynamic = ev[ModchartFile.EVENT_TYPE];
+		return (type == 'set' || type == 'ease');
+	}
+
 	static function parseFloatSafe(value:Dynamic):Float
 	{
 		var result:Float = Std.parseFloat(Std.string(value));
@@ -800,6 +1007,20 @@ class ModchartEditorState extends MusicBeatState
 	{
 		var result:Null<Int> = Std.parseInt(Std.string(value));
 		return (result == null) ? fallback : result;
+	}
+
+	public static function effectInfo(effect:String):EffectInfo
+	{
+		var key:String = (effect != null) ? effect.replace('Modifier', '') : '';
+		var info:EffectInfo = EFFECTS.get(key);
+		if(info != null) return info;
+		return {desc: 'Custom effect loaded.', value: '1', sub: ''};
+	}
+
+	function effectOfModifier(name:String):String
+	{
+		var index:Int = modIndex(name);
+		return (index >= 0) ? Std.string(modchartData().modifiers[index][ModchartFile.MOD_CLASS]) : null;
 	}
 
 	inline function gridX():Float return PANEL_X + LABEL_W;
@@ -813,7 +1034,7 @@ class ModchartEditorState extends MusicBeatState
 	function snapBeat(beat:Float):Float
 	{
 		beat = Math.max(0, beat);
-		if(snap <= 0 || FlxG.keys.pressed.ALT) return FlxMath.roundDecimal(beat, 3);
+		if(snap <= 0 || FlxG.keys.pressed.SHIFT) return FlxMath.roundDecimal(beat, 3);
 		return FlxMath.roundDecimal(Math.round(beat / snap) * snap, 4);
 	}
 
@@ -826,15 +1047,20 @@ class ModchartEditorState extends MusicBeatState
 		var bpm:Float = (bpmChange.songTime <= 0) ? PlayState.SONG.bpm : bpmChange.bpm;
 		if(bpm != Conductor.bpm) Conductor.bpm = bpm;
 
+		var fineStep:Float = FlxG.keys.pressed.SHIFT ? 0.01 : 0.25;
+		beatStepper.step = lengthStepper.step = repeatGapStepper.step = fineStep;
+
+		lockUnderDropDown(interactiveWidgets);
 		super.update(elapsed);
 
 		if(PsychUIInputText.focusOn != lastFocus) editTag = null;
+		updateStatus(elapsed);
 
 		if(helpBg.visible) updateHelpInput();
 		else
 		{
 			if(PsychUIInputText.focusOn == null && lastFocus == null) updateKeys();
-			updateMouse();
+			if(!Std.isOfType(lastFocus, PsychUIDropDownMenu)) updateMouse();
 		}
 		lastFocus = PsychUIInputText.focusOn;
 
@@ -885,6 +1111,16 @@ class ModchartEditorState extends MusicBeatState
 
 		if(FlxG.keys.pressed.CONTROL)
 		{
+			if(FlxG.keys.justPressed.S)
+			{
+				saveModchart(FlxG.keys.pressed.SHIFT);
+				return;
+			}
+			if(FlxG.keys.justPressed.O)
+			{
+				openModchartFile();
+				return;
+			}
 			if(dragMode == DRAG_NONE)
 			{
 				if(FlxG.keys.justPressed.Z)
@@ -984,6 +1220,11 @@ class ModchartEditorState extends MusicBeatState
 					selectEvent(-1);
 					seekToBeat(Math.max(0, xToBeat(mx)));
 				}
+			}
+			else if(overLabels && my >= rowY(0))
+			{
+				var mod:Array<Dynamic> = visibleMods[rowScroll + Math.floor((my - rowY(0)) / ROW_H)];
+				if(mod != null) openModifierPopup(modchartData().modifiers.indexOf(mod));
 			}
 		}
 		else if(FlxG.mouse.justPressedRight && overRows)
@@ -1124,9 +1365,31 @@ class ModchartEditorState extends MusicBeatState
 
 	function commit()
 	{
+		var modchart:ModchartFile = playfieldRenderer.modchart;
+		if(modchart.data.playfields != loadedPlayfields)
+		{
+			loadedPlayfields = modchart.data.playfields;
+			modchart.loadPlayfields();
+		}
+
+		var modifiers:String = Json.stringify(modchart.data.modifiers);
+		if(modifiers != loadedModifiers)
+		{
+			loadedModifiers = modifiers;
+			modchart.loadModifiers();
+			knownSubMod = null;
+		}
+
+		hasUnsaved = true;
 		refreshTimelineData();
 		refreshProps();
 		dirtyEvents = true;
+	}
+
+	function defaultTarget(mod:String):TimelineTarget
+	{
+		var info:EffectInfo = effectInfo(effectOfModifier(mod));
+		return {mod: mod, sub: info.sub, value: info.value};
 	}
 
 	function createEvent(beat:Float, mod:String)
@@ -1148,7 +1411,7 @@ class ModchartEditorState extends MusicBeatState
 
 		var repeat:Array<Dynamic> = [false, 1, 1];
 		var ev:Array<Dynamic> = [type, eventData, repeat];
-		writeTargets(ev, [{mod: mod, sub: '', value: '1'}]);
+		writeTargets(ev, [defaultTarget(mod)]);
 
 		var events:Array<Array<Dynamic>> = modchartData().events;
 		applyEdit(null, function() { events.push(ev); });
@@ -1213,7 +1476,7 @@ class ModchartEditorState extends MusicBeatState
 			break;
 		}
 
-		targets.push({mod: name, sub: '', value: '1'});
+		targets.push(defaultTarget(name));
 		curTarget = targets.length - 1;
 		applyEdit(null, function() writeTargets(ev, targets));
 	}
@@ -1284,16 +1547,9 @@ class ModchartEditorState extends MusicBeatState
 
 	function restoreData(state:String)
 	{
-		var modchart:ModchartFile = playfieldRenderer.modchart;
-		var oldModifiers:String = Json.stringify(modchart.data.modifiers);
-		var oldPlayfields:Int = modchart.data.playfields;
-
-		modchart.data = cast Json.parse(state);
-		if(modchart.data.playfields != oldPlayfields) modchart.loadPlayfields();
-		if(Json.stringify(modchart.data.modifiers) != oldModifiers) modchart.loadModifiers();
-
+		playfieldRenderer.modchart.data = cast Json.parse(state);
 		editTag = null;
-		if(selectedEvent >= modchart.data.events.length) selectedEvent = -1;
+		if(selectedEvent >= modchartData().events.length) selectedEvent = -1;
 		commit();
 	}
 
@@ -1331,8 +1587,9 @@ class ModchartEditorState extends MusicBeatState
 
 		var targets:Array<TimelineTarget> = readTargets(ev);
 		curTarget = Std.int(FlxMath.bound(curTarget, 0, Math.max(0, targets.length - 1)));
-		targetCountText.text = (targets.length > 0) ? 'Modifier ${curTarget + 1} of ${targets.length}' : 'No modifiers';
+		targetCountText.text = (targets.length > 1) ? '${curTarget + 1} of ${targets.length}' : '';
 
+		var hasSubs:Bool = false;
 		var target:TimelineTarget = targets[curTarget];
 		if(target != null)
 		{
@@ -1346,14 +1603,27 @@ class ModchartEditorState extends MusicBeatState
 					for (key in live.subValues.keys()) subs.push(key);
 				targetSubDropDown.list = subs;
 			}
+			hasSubs = (targetSubDropDown.list.length > 1);
 			setDropDown(targetSubDropDown, (target.sub.length > 0) ? target.sub : MAIN_VALUE);
 			if(PsychUIInputText.focusOn != targetValueInput) targetValueInput.text = target.value;
+
+			var effect:String = effectOfModifier(target.mod);
+			effectTitleText.text = (effect != null) ? 'About "${target.mod}" (${effect.replace('Modifier', '')} effect)' : 'The modifier "${target.mod}" does not exist';
+			effectDescText.text = (effect != null) ? effectInfo(effect).desc : 'Pick an existing modifier in the list, or make a new one with "New".';
 		}
+		for (widget in subWidgets) setWidgetShown(widget, hasSubs);
 
 		var lines:Array<String> = [];
 		for (i => entry in targets)
 			lines.push(((i == curTarget) ? '> ' : '   ') + entry.mod + ((entry.sub.length > 0) ? ':' + entry.sub : '') + ' = ' + entry.value);
-		targetsListText.text = lines.join('\n');
+		targetsListText.text = (targets.length > 1) ? lines.join('\n') : '';
+	}
+
+	public static function lockUnderDropDown(widgets:Array<FlxSprite>)
+	{
+		var openDropDown:PsychUIInputText = Std.isOfType(PsychUIInputText.focusOn, PsychUIDropDownMenu) ? PsychUIInputText.focusOn : null;
+		for (widget in widgets)
+			widget.active = widget.visible && (openDropDown == null || widget == openDropDown);
 	}
 
 	static function setWidgetShown(widget:FlxSprite, shown:Bool)
@@ -1372,24 +1642,290 @@ class ModchartEditorState extends MusicBeatState
 		if(PsychUIInputText.focusOn != dropDown) dropDown.selectedLabel = label;
 	}
 
+	function openModifierPopup(index:Int)
+	{
+		PsychUIInputText.focusOn = null;
+		if(FlxG.sound.music.playing) setPlaying(false);
+		openSubState(new ModifierPopup(this, index));
+	}
+
+	public function effectList():Array<String>
+	{
+		var list:Array<String> = [for (cls in BUILT_IN_MODIFIERS) Type.getClassName(cls).replace('modcharting.', '')];
+		for (name in playfieldRenderer.modchart.customModifiers.keys()) list.push(name);
+		return list;
+	}
+
+	public function modifierEntry(index:Int):Array<Dynamic>
+	{
+		var mods:Array<Array<Dynamic>> = modchartData().modifiers;
+		return (index >= 0 && index < mods.length) ? mods[index] : null;
+	}
+
+	public function modIndex(name:String):Int
+	{
+		for (i => mod in modchartData().modifiers)
+			if(Std.string(mod[ModchartFile.MOD_NAME]) == name) return i;
+		return -1;
+	}
+
+	public function uniqueModName(effect:String, ignoreIndex:Int):String
+	{
+		var base:String = effect.replace('Modifier', '');
+		base = base.charAt(0).toLowerCase() + base.substr(1);
+		var name:String = base;
+		var n:Int = 2;
+		while(modIndex(name) >= 0 && modIndex(name) != ignoreIndex) name = base + (n++);
+		return name;
+	}
+
+	public function submitModifier(index:Int, entry:Array<Dynamic>):String
+	{
+		var mods:Array<Array<Dynamic>> = modchartData().modifiers;
+		var name:String = entry[ModchartFile.MOD_NAME];
+		var other:Int = modIndex(name);
+		if(other >= 0 && other != index) return 'Modifier "$name" already exists.';
+
+		if(index < 0 || index >= mods.length)
+		{
+			applyEdit(null, function() { mods.push(entry); });
+			rowScroll = Std.int(Math.max(0, visibleMods.length - VISIBLE_ROWS));
+			showMessage('Added "$name": Right Click on its row to add event');
+			return null;
+		}
+
+		var oldName:String = Std.string(mods[index][ModchartFile.MOD_NAME]);
+		applyEdit(null, function() {
+			mods[index] = entry;
+			if(name != oldName) renameInEvents(oldName, name);
+		});
+		showMessage('Modifier "$name" updated');
+		return null;
+	}
+
+	public function deleteModifierAt(index:Int)
+	{
+		var mods:Array<Array<Dynamic>> = modchartData().modifiers;
+		if(index < 0 || index >= mods.length) return;
+		var name:String = Std.string(mods[index][ModchartFile.MOD_NAME]);
+
+		applyEdit(null, function() {
+			mods.splice(index, 1);
+			var events:Array<Array<Dynamic>> = modchartData().events;
+			var i:Int = events.length;
+			while(i-- > 0)
+			{
+				var ev:Array<Dynamic> = events[i];
+				if(!isEditableEvent(ev)) continue;
+
+				var targets:Array<TimelineTarget> = readTargets(ev);
+				var remaining:Array<TimelineTarget> = [for (target in targets) if(target.mod != name) target];
+				if(remaining.length == targets.length) continue;
+
+				if(remaining.length == 0) events.splice(i, 1);
+				else writeTargets(ev, remaining);
+			}
+			selectedEvent = -1;
+		});
+		selectEvent(-1);
+		showMessage('Deleted "$name" and removed events.');
+	}
+
+	function renameInEvents(oldName:String, newName:String)
+	{
+		for (ev in modchartData().events)
+		{
+			if(!isEditableEvent(ev)) continue;
+
+			var targets:Array<TimelineTarget> = readTargets(ev);
+			var changed:Bool = false;
+			for (target in targets)
+			{
+				if(target.mod != oldName) continue;
+				target.mod = newName;
+				changed = true;
+			}
+			if(changed) writeTargets(ev, targets);
+		}
+	}
+
+	function changePlayfields(change:Int)
+	{
+		var data:ModchartJson = modchartData();
+		var count:Int = Std.int(FlxMath.bound(data.playfields + change, 1, MAX_PLAYFIELDS));
+		if(count == data.playfields) return;
+		applyEdit(null, function() { data.playfields = count; });
+		showMessage((change > 0) ? 'Playfield added: set a modifier to "Playfield ${count - 1}" to move it' : 'Playfield removed');
+	}
+
+	inline function songKey():String
+		return Paths.formatToSongPath(PlayState.SONG.song.toLowerCase());
+
+	function savePath():String
+	{
+		var current:String = playfieldRenderer.modchart.filePath;
+		if(current != null) current = current.replace('\\', '/');
+		if(current != null && current.startsWith('mods/')) return current;
+
+		#if MODS_ALLOWED
+		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
+			return Paths.mods(Mods.currentModDirectory + '/data/songs/' + songKey() + '/modchart.json');
+		#end
+
+		return (current != null) ? current : Paths.json('songs/' + songKey() + '/modchart');
+	}
+
+	function saveModchart(saveAs:Bool)
+	{
+		var content:String = Json.stringify(modchartData(), '\t');
+
+		#if sys
+		if(!saveAs)
+		{
+			var path:String = savePath();
+			try
+			{
+				var folder:String = haxe.io.Path.directory(path);
+				if(folder.length > 0 && !FileSystem.exists(folder)) FileSystem.createDirectory(folder);
+				File.saveContent(path, content);
+				playfieldRenderer.modchart.filePath = path;
+				markSaved();
+				showMessage('Saved: ' + path);
+				return;
+			}
+			catch(e:Dynamic)
+			{
+				showMessage('Could not save to ' + path + ', choose another path!', true);
+			}
+		}
+		#end
+
+		if(!fileDialog.completed) return;
+		fileDialog.save('modchart.json', content, function() {
+			markSaved();
+			showMessage('Saved: ' + fileDialog.path);
+		}, null, function() showMessage('Error while saving modchart!', true));
+	}
+
+	function markSaved()
+	{
+		hasUnsaved = false;
+		ModchartFile.editorData = null;
+	}
+
+	function replaceData(json:String)
+	{
+		pushUndoState(Json.stringify(modchartData()));
+		selectedEvent = -1;
+		restoreData(json);
+		selectEvent(-1);
+	}
+
+	function openModchartFile()
+	{
+		if(!fileDialog.completed) return;
+		fileDialog.open('modchart.json', 'Open modchart', null, function() {
+			var parsed:Dynamic = null;
+			try
+			{
+				parsed = Json.parse(fileDialog.data);
+			}
+			catch(e:Dynamic) {}
+
+			if(parsed == null || !Std.isOfType(parsed.modifiers, Array) || !Std.isOfType(parsed.events, Array))
+			{
+				showMessage('File is not a valid modchart json file', true);
+				return;
+			}
+			if(parsed.playfields == null) parsed.playfields = 1;
+
+			replaceData(Json.stringify(parsed));
+			showMessage('Opened: ' + fileDialog.path + '  (Ctrl+S to save)');
+		});
+	}
+
+	function reloadFromFile()
+	{
+		var reload = function() {
+			ModchartFile.editorData = null;
+			var fresh:ModchartJson = playfieldRenderer.modchart.loadFromJson(PlayState.SONG.song.toLowerCase());
+			replaceData(Json.stringify(fresh));
+			hasUnsaved = false;
+			showMessage('Modchart reloaded');
+		};
+
+		if(hasUnsaved) openSubState(new Prompt('Reload the modchart?\nUnsaved changes will be lost!', reload, null, 'Reload'));
+		else reload();
+	}
+
+	function loadExample()
+	{
+		var load = function() {
+			replaceData(EXAMPLE_MODCHART);
+			seekTo(0);
+			showMessage('Example loaded: press Space to Preview');
+		};
+
+		var data:ModchartJson = modchartData();
+		if(data.modifiers.length > 0 || data.events.length > 0)
+			openSubState(new Prompt('Replace modchart with example?', load, null, 'Replace'));
+		else load();
+	}
+
+	function clearModchart()
+	{
+		var clear = function() {
+			var data:ModchartJson = modchartData();
+			applyEdit(null, function() {
+				data.modifiers = [];
+				data.events = [];
+				data.playfields = 1;
+				selectedEvent = -1;
+			});
+			selectEvent(-1);
+			showMessage('Modchart cleared');
+		};
+		openSubState(new Prompt('Delete all modifiers, events\nand playfields?', clear, null, 'Clear'));
+	}
+
+	function showMessage(text:String, ?isError:Bool = false)
+	{
+		statusText.text = text;
+		statusText.color = isError ? 0xFFFF6A6A : 0xFF7CFF8A;
+		messageTime = 5;
+	}
+
+	function updateStatus(elapsed:Float)
+	{
+		if(messageTime > 0)
+		{
+			messageTime -= elapsed;
+			return;
+		}
+
+		statusText.text = PlayState.SONG.song + (hasUnsaved ? '  -  UNSAVED CHANGES' : '  -  SAVED');
+		statusText.color = hasUnsaved ? 0xFFFFB84A : 0xFFBBBBBB;
+	}
+
 	function updateHelpInput()
 	{
 		if(FlxG.keys.justPressed.F1 || FlxG.keys.justPressed.ESCAPE)
 			showHelp(false);
 		else if(FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.RIGHT)
 		{
-			helpPage = (helpPage + 1) % HELP_PAGES.length;
+			helpPage = FlxMath.wrap(helpPage + (FlxG.keys.justPressed.LEFT ? -1 : 1), 0, HELP_PAGES.length - 1);
 			showHelp(true);
 		}
 	}
 
 	function showHelp(show:Bool)
 	{
-		helpBg.visible = helpText.visible = show;
+		helpBg.visible = helpText.visible = helpPageText.visible = show;
 		if(!show) return;
 
 		helpText.text = HELP_PAGES[helpPage];
 		helpText.screenCenter();
+		helpPageText.text = '<' + (helpPage + 1) + '/' + HELP_PAGES.length + '>';
 	}
 
 	function setPlaying(play:Bool)
@@ -1514,6 +2050,11 @@ class ModchartEditorState extends MusicBeatState
 			}
 		}
 
+		var selectedMods:Array<String> = [];
+		for (ev in timelineEvents)
+			if(ev.index == selectedEvent)
+				for (target in ev.targets) selectedMods.push(target.mod);
+
 		var rowByName:Map<String, Int> = [];
 		for (i in 0...VISIBLE_ROWS)
 		{
@@ -1528,13 +2069,14 @@ class ModchartEditorState extends MusicBeatState
 			var name:String = Std.string(mod[ModchartFile.MOD_NAME]);
 			rowByName.set(name, i);
 			rowLabels[i].text = name + '  ' + targetLabel(mod);
+			rowLabels[i].color = selectedMods.contains(name) ? COLOR_SELECTED : FlxColor.WHITE;
 
 			var live = playfieldRenderer.modifierTable.modifiers.get(name);
 			rowValues[i].text = (live != null) ? Std.string(FlxMath.roundDecimal(live.currentValue, 2)) : '';
 		}
 
 		var total:Int = visibleMods.length;
-		rowsInfoText.text = (total > VISIBLE_ROWS) ? 'Modifiers ${rowScroll + 1}-${Std.int(Math.min(total, rowScroll + VISIBLE_ROWS))} of $total' : 'Modifiers: $total';
+		rowsInfoText.text = (total > VISIBLE_ROWS) ? '${rowScroll + 1}-${Std.int(Math.min(total, rowScroll + VISIBLE_ROWS))} of $total' : 'Modifiers: $total';
 
 		for (ev in timelineEvents)
 		{
@@ -1634,9 +2176,8 @@ class ModchartEditorState extends MusicBeatState
 		if(index >= rulerPool.length)
 		{
 			var text:FlxText = new FlxText(0, PANEL_Y + 2, 0, '', 10);
-			text.cameras = [camUI];
 			rulerPool.push(text);
-			add(text);
+			timelineLayer.add(text);
 		}
 		var text:FlxText = rulerPool[index];
 		text.visible = true;
@@ -1691,25 +2232,257 @@ class ModchartEditorState extends MusicBeatState
 		var beat:Float = currentBeat();
 		infoText.text = [
 			FlxStringUtil.formatTime(Conductor.songPosition / 1000, true) + ' / ' + FlxStringUtil.formatTime(FlxG.sound.music.length / 1000, true),
-			'',
-			'Section: ' + Math.floor(beat / 4),
-			'Beat: ' + FlxMath.roundDecimal(beat, 2),
-			'Step: ' + Math.floor(beat * 4),
-			'BPM: ' + Conductor.bpm,
-			'Speed: ' + playbackSpeed + 'x   Zoom: ' + Math.round(pixelsPerBeat) + ' px/beat',
-			'',
-			'Events: ' + modchartData().events.length,
-			'Undo: ' + undoStack.length + '   Redo: ' + redoStack.length
+			'Beat: ' + FlxMath.roundDecimal(beat, 2) + '   Step: ' + Math.floor(beat * 4) + '   Section: ' + Math.floor(beat / 4),
+			'BPM: ' + Conductor.bpm + '   Speed: ' + playbackSpeed + 'x',
+			'Zoom: ' + Math.round(pixelsPerBeat) + ' px',
+			'Events: ' + modchartData().events.length + '   Undo: ' + undoStack.length + '   Redo: ' + redoStack.length
 		].join('\n');
 	}
 
 	function goToPlayState()
 	{
+		if(hasUnsaved)
+		{
+			ModchartFile.editorData = cast Json.parse(Json.stringify(modchartData()));
+			ModchartFile.editorDataSong = songKey();
+		}
+		else ModchartFile.editorData = null;
+
+		stopAudio();
 		FlxG.mouse.visible = false;
+		funkin.data.StageData.loadDirectory(PlayState.SONG);
+		LoadingState.loadAndSwitchState(new PlayState());
+	}
+
+	function exitToMenu()
+	{
+		var leave = function() {
+			ModchartFile.editorData = null;
+			stopAudio();
+			FlxG.mouse.visible = false;
+			MusicBeatState.switchState(new EditorMenuState());
+			FlxG.sound.playMusic(Paths.music('freakyMenu'));
+		};
+
+		if(hasUnsaved) openSubState(new Prompt('There\'s unsaved progress,\nare you sure you want to exit?', leave, null, 'Exit'));
+		else leave();
+	}
+
+	function stopAudio()
+	{
+		FlxG.sound.music.onComplete = null;
 		FlxG.sound.music.stop();
 		vocals.stop();
 		opponentVocals.stop();
-		funkin.data.StageData.loadDirectory(PlayState.SONG);
-		LoadingState.loadAndSwitchState(new PlayState());
+	}
+}
+
+class ModifierPopup extends MusicBeatSubstate
+{
+	static inline final W:Int = 560;
+	static inline final H:Int = 380;
+
+	var editor:ModchartEditorState;
+	var index:Int;
+	var widgets:Array<FlxSprite> = [];
+
+	var nameInput:PsychUIInputText;
+	var effectDropDown:PsychUIDropDownMenu;
+	var typeDropDown:PsychUIDropDownMenu;
+	var laneLabel:FlxText;
+	var laneStepper:PsychUINumericStepper;
+	var playfieldDropDown:PsychUIDropDownMenu;
+	var descText:FlxText;
+	var errorText:FlxText;
+
+	public function new(editor:ModchartEditorState, index:Int)
+	{
+		super();
+		this.editor = editor;
+		this.index = (editor.modifierEntry(index) != null) ? index : -1;
+	}
+
+	override function create()
+	{
+		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
+
+		var shade:FlxSprite = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
+		shade.scale.set(FlxG.width, FlxG.height);
+		shade.updateHitbox();
+		shade.alpha = 0.6;
+		shade.cameras = cameras;
+		add(shade);
+
+		var bg:FlxSprite = new FlxSprite().makeGraphic(W, H, 0xFF26262F);
+		bg.screenCenter();
+		bg.cameras = cameras;
+		add(bg);
+
+		var x0:Float = bg.x + 20;
+		var y0:Float = bg.y;
+		var fx:Float = bg.x + 110;
+		var entry:Array<Dynamic> = editor.modifierEntry(index);
+
+		var title:FlxText = new FlxText(bg.x, y0 + 12, W, (entry != null) ? 'Edit modifier' : 'New modifier', 16);
+		title.alignment = CENTER;
+		widget(title);
+
+		widget(new FlxText(x0, y0 + 53, 90, 'Name:', 10));
+		nameInput = widget(new PsychUIInputText(fx, y0 + 50, 200, '', 8));
+		nameInput.customFilterPattern = ~/[^a-zA-Z0-9_]*/g;
+		nameInput.filterMode = FilterMode.CUSTOM_FILTER;
+		hint(fx, y0 + 72, 'Letters, numbers and _ only. Leave it empty for automatic name.');
+
+		widget(new FlxText(x0, y0 + 101, 90, 'Effect:', 10));
+		effectDropDown = widget(new PsychUIDropDownMenu(fx, y0 + 98, editor.effectList(), function(_, label:String) refreshDescription(), 180));
+
+		var descBg:FlxSprite = widget(new FlxSprite(x0, y0 + 126).makeGraphic(W - 40, 70, 0xFF1B1B22));
+		descBg.alpha = 0.8;
+		descText = widget(new FlxText(x0 + 8, y0 + 132, W - 56, '', 10));
+		descText.color = 0xFFDDDDDD;
+
+		widget(new FlxText(x0, y0 + 215, 90, 'Moves:', 10));
+		typeDropDown = widget(new PsychUIDropDownMenu(fx, y0 + 212, ModchartEditorState.TYPE_LABELS, function(_, label:String) refreshLane(), 110));
+		laneLabel = widget(new FlxText(fx + 160, y0 + 215, 50, 'Lane:', 10));
+		laneStepper = widget(new PsychUINumericStepper(fx + 210, y0 + 212, 1, 0, 0, 7, 0, 40));
+		hint(fx, y0 + 234, 'All = Both strumlines, Player/Opponent = 1 strumline, Lane = 1 strum arrow (0-3 OPP, 4-7 PLAYER)');
+
+		widget(new FlxText(x0, y0 + 263, 90, 'Playfield:', 10));
+		playfieldDropDown = widget(new PsychUIDropDownMenu(fx, y0 + 260, editor.playfieldLabels(), null, 140));
+		hint(fx, y0 + 282, 'Keep "All playfields" unless you added more.');
+
+		errorText = widget(new FlxText(x0, y0 + 306, W - 40, '', 10));
+		errorText.alignment = CENTER;
+		errorText.color = 0xFFFF6A6A;
+
+		var buttons:Array<PsychUIButton> = [];
+		var confirmButton:PsychUIButton = new PsychUIButton(0, y0 + H - 44, (entry != null) ? 'Save' : 'Create', confirm, 100, 24);
+		confirmButton.normalStyle.bgColor = 0xFF3A7A3A;
+		confirmButton.normalStyle.textColor = FlxColor.WHITE;
+		buttons.push(confirmButton);
+		if(entry != null)
+		{
+			var deleteButton:PsychUIButton = new PsychUIButton(0, y0 + H - 44, 'Delete', deleteModifier, 100, 24);
+			deleteButton.normalStyle.bgColor = FlxColor.RED;
+			deleteButton.normalStyle.textColor = FlxColor.WHITE;
+			buttons.push(deleteButton);
+		}
+		buttons.push(new PsychUIButton(0, y0 + H - 44, 'Cancel', close, 100, 24));
+
+		var rowWidth:Float = buttons.length * 100 + (buttons.length - 1) * 20;
+		for (i => button in buttons)
+		{
+			button.x = bg.x + (W - rowWidth) / 2 + i * 120;
+			widget(button);
+		}
+
+		var i:Int = widgets.length;
+		while(i-- > 0) add(widgets[i]);
+
+		loadEntry(entry);
+		super.create();
+	}
+
+	function hint(x:Float, y:Float, text:String):FlxText
+	{
+		var label:FlxText = widget(new FlxText(x, y, W - (x - FlxG.width / 2 + W / 2) - 20, text, 9));
+		label.color = 0xFF9A9AB0;
+		return label;
+	}
+
+	function widget<T:FlxSprite>(item:T):T
+	{
+		item.cameras = cameras;
+		widgets.push(item);
+		return item;
+	}
+
+	function loadEntry(entry:Array<Dynamic>)
+	{
+		var effects:Array<String> = effectDropDown.list;
+		if(entry == null)
+		{
+			nameInput.text = '';
+			effectDropDown.selectedLabel = effects[0];
+			typeDropDown.selectedLabel = 'All';
+			laneStepper.value = 0;
+			playfieldDropDown.selectedLabel = ModchartEditorState.ALL_PLAYFIELDS;
+		}
+		else
+		{
+			nameInput.text = Std.string(entry[ModchartFile.MOD_NAME]);
+
+			var effect:String = Std.string(entry[ModchartFile.MOD_CLASS]);
+			if(!effects.contains(effect) && effects.contains(effect + 'Modifier')) effect += 'Modifier';
+			effectDropDown.selectedLabel = effect;
+
+			typeDropDown.selectedLabel = switch(Std.string(entry[ModchartFile.MOD_TYPE]).toLowerCase())
+			{
+				case 'player': 'Player';
+				case 'opponent': 'Opponent';
+				case 'lane' | 'lanespecific': 'Lane';
+				default: 'All';
+			}
+
+			var lane:Null<Int> = Std.parseInt(Std.string(entry[ModchartFile.MOD_LANE]));
+			laneStepper.value = (lane != null) ? lane : 0;
+
+			var pf:Null<Int> = Std.parseInt(Std.string(entry[ModchartFile.MOD_PF]));
+			playfieldDropDown.selectedLabel = (pf != null && pf >= 0) ? 'Playfield ' + pf : ModchartEditorState.ALL_PLAYFIELDS;
+		}
+		refreshDescription();
+		refreshLane();
+	}
+
+	function refreshDescription()
+	{
+		var effect:String = effectDropDown.selectedLabel;
+		descText.text = (effect != null) ? ModchartEditorState.effectInfo(effect).desc : '';
+	}
+
+	function refreshLane()
+	{
+		var shown:Bool = (typeDropDown.selectedLabel == 'Lane');
+		laneLabel.visible = laneStepper.visible = shown;
+	}
+
+	function confirm()
+	{
+		var effect:String = effectDropDown.selectedLabel;
+		if(effect == null || effect.length < 1)
+		{
+			errorText.text = 'Choose an effect first.';
+			return;
+		}
+
+		var name:String = nameInput.text.trim();
+		if(name.length < 1) name = editor.uniqueModName(effect, index);
+
+		var type:String = (typeDropDown.selectedLabel != null) ? typeDropDown.selectedLabel.toLowerCase() : 'all';
+		var pf:Int = ModchartEditorState.playfieldFromLabel(playfieldDropDown.selectedLabel);
+
+		var entry:Array<Dynamic> = [name, effect, type, pf];
+		if(type == 'lane') entry.push(Std.int(laneStepper.value));
+
+		var error:String = editor.submitModifier(index, entry);
+		if(error != null)
+		{
+			errorText.text = error;
+			return;
+		}
+		close();
+	}
+
+	function deleteModifier()
+	{
+		editor.deleteModifierAt(index);
+		close();
+	}
+
+	override function update(elapsed:Float)
+	{
+		ModchartEditorState.lockUnderDropDown(widgets);
+		super.update(elapsed);
+		if(PsychUIInputText.focusOn == null && FlxG.keys.justPressed.ESCAPE) close();
 	}
 }

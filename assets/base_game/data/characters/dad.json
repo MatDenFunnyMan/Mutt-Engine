@@ -2,126 +2,126 @@
 	"animations": [
 		{
 			"offsets": [
-				-9,
-				10
+				41,
+				73
 			],
 			"loop": false,
 			"anim": "singLEFT",
 			"fps": 24,
-			"name": "Dad Sing Note LEFT",
+			"name": "Left",
 			"indices": []
 		},
 		{
 			"offsets": [
-				0,
-				-30
+				41,
+				73
 			],
 			"loop": false,
 			"anim": "singDOWN",
 			"fps": 24,
-			"name": "Dad Sing Note DOWN",
+			"name": "Down",
 			"indices": []
 		},
 		{
 			"offsets": [
-				-6,
-				50
+				46,
+				70
 			],
 			"loop": false,
 			"anim": "singUP",
 			"fps": 24,
-			"name": "Dad Sing Note UP",
+			"name": "Up",
 			"indices": []
 		},
 		{
 			"offsets": [
-				0,
-				27
+				47,
+				75
 			],
 			"loop": false,
 			"anim": "singRIGHT",
 			"fps": 24,
-			"name": "Dad Sing Note RIGHT",
+			"name": "Right",
 			"indices": []
 		},
 		{
 			"offsets": [
-				0,
-				0
+				44,
+				70
 			],
 			"loop": false,
 			"anim": "idle",
 			"fps": 24,
-			"name": "Dad idle dance",
+			"name": "Idle",
 			"indices": []
 		},
 		{
 			"offsets": [
-				0,
-				0
+				45,
+				71
 			],
 			"loop": true,
 			"fps": 24,
 			"anim": "idle-loop",
 			"indices": [
+				9,
 				10,
 				11,
-				12,
-				12
+				11
 			],
-			"name": "Dad idle dance"
+			"name": "Idle"
 		},
 		{
 			"offsets": [
-				-9,
-				10
+				41,
+				73
 			],
 			"loop": true,
 			"fps": 24,
 			"anim": "singLEFT-loop",
 			"indices": [
-				12,
-				13,
-				14,
-				15
+				2,
+				3,
+				4,
+				5
 			],
-			"name": "Dad Sing Note LEFT"
+			"name": "Left"
 		},
 		{
 			"offsets": [
-				0,
-				27
+				47,
+				75
 			],
 			"loop": true,
 			"fps": 24,
 			"anim": "singRIGHT-loop",
 			"indices": [
-				15,
-				16,
-				17,
-				18
+				2,
+				3,
+				4,
+				5
 			],
-			"name": "Dad Sing Note RIGHT"
+			"name": "Right"
 		},
 		{
 			"offsets": [
-				-6,
-				50
+				46,
+				70
 			],
 			"loop": true,
 			"fps": 24,
 			"anim": "singUP-loop",
 			"indices": [
-				56,
-				57,
-				58,
-				59
+				2,
+				3,
+				4,
+				5
 			],
-			"name": "Dad Sing Note UP"
+			"name": "Up"
 		}
 	],
 	"no_antialiasing": false,
-	"image": "characters/DADDY_DEAREST",
+	"image": "characters/dad",
 	"position": [
 		0,
 		0
@@ -134,8 +134,8 @@
 		206
 	],
 	"camera_position": [
-		0,
-		0
+		-48.0,
+		-53.0
 	],
 	"sing_duration": 6.1,
 	"scale": 1

@@ -322,7 +322,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		if(character == null || character.imageFile == null || character.imageFile.length < 1) return null;
 
 		var key:String = character.imageFile.split(',')[0].trim();
-		if(character.isAnimateAtlas) key = '$key/spritemap1';
+		if(character.isAnimateAtlas || character.library != null) key = '$key/spritemap1';
 		return Paths.fileExists('images/$key.png', IMAGE) ? key : null;
 	}
 
@@ -360,7 +360,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	function updateSheetFrames()
 	{
 		clearSheetFrames();
-		if(character == null || character.isAnimateAtlas || character.frames == null) return;
+		if(character == null || character.isAnimateAtlas || character.library != null || character.frames == null) return;
 
 		var animName:String = (anims != null && anims[curAnim] != null) ? anims[curAnim].anim : null;
 		if(animName == null) return;
@@ -387,7 +387,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 	function updateSheetCursor()
 	{
-		var show:Bool = (viewMode == 'spritesheet' && character != null && !character.isAnimateAtlas && character.frame != null);
+		var show:Bool = (viewMode == 'spritesheet' && character != null && !character.isAnimateAtlas && character.library == null && character.frame != null);
 		for (line in sheetCursor) line.visible = show;
 		if(!show) return;
 
@@ -863,7 +863,24 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		var wasUpdated:Bool = (existing != null);
 		var layer:GhostLayer = {anim: myAnim.anim, sprite: null, animate: null, label: ''};
 
-		if(!character.isAnimateAtlas)
+		if(character.library != null)
+		{
+			var spr:animate.FlxAnimate = new animate.FlxAnimate();
+			spr.frames = Paths.getModernAtlasFrames(character.imageFile);
+			if(spr.frames == null)
+			{
+				spr.destroy();
+				showOutput('Could not load the atlas for this ghost.', true);
+				return;
+			}
+			funkin.util.AtlasUtil.ModernAtlasUtil.addAnimation(spr, 'anim', myAnim.name, myAnim.indices, 0, false);
+			spr.animation.play('anim', true, false, character.animation.curAnim.curFrame);
+			spr.animation.pause();
+			spr.active = false;
+			layer.sprite = spr;
+			layer.label = myAnim.anim + ' (' + character.animation.curAnim.curFrame + ')';
+		}
+		else if(!character.isAnimateAtlas)
 		{
 			var spr:FlxSprite = new FlxSprite();
 			spr.loadGraphic(character.graphic);
@@ -1167,6 +1184,15 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			for (symbol in AtlasUtil.getSymbolNames(character.atlas, exclude)) list.push(symbol);
 			sourceDropDownText.text = 'Atlas Symbols/Labels:';
 		}
+		else if(character.library != null)
+		{
+			var exclude:Array<String> = ['anim'];
+			for (anim in character.animationsArray) exclude.push(anim.anim);
+
+			for (label in funkin.util.AtlasUtil.ModernAtlasUtil.getFrameLabelNames(character.library)) list.push(LABEL_TAG + label);
+			for (symbol in funkin.util.AtlasUtil.ModernAtlasUtil.getSymbolNames(character.library, exclude)) list.push(symbol);
+			sourceDropDownText.text = 'Atlas Symbols/Labels:';
+		}
 		else if(character.frames != null)
 		{
 			var digits:EReg = ~/\d+$/;
@@ -1189,7 +1215,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	function sourceToAnimationName(label:String):String
 	{
 		if(label.startsWith(LABEL_TAG)) return label.substr(LABEL_TAG.length);
-		if(character.isAnimateAtlas) return label;
+		if(character.isAnimateAtlas || character.library != null) return label;
 
 		for (other in sourcePrefixes)
 			if(other != label && other.startsWith(label))
@@ -1765,7 +1791,12 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		character.color = FlxColor.WHITE;
 		character.alpha = 1;
 
-		if(Paths.fileExists('images/' + character.imageFile + '/Animation.json', TEXT))
+		var modernFrames:flixel.graphics.frames.FlxAtlasFrames = Paths.getModernAtlasFrames(character.imageFile);
+		if(modernFrames != null)
+		{
+			character.frames = modernFrames;
+		}
+		else if(Paths.fileExists('images/' + character.imageFile + '/Animation.json', TEXT))
 		{
 			character.atlas = new FlxAnimate();
 			character.atlas.showPivot = false;
@@ -2357,7 +2388,11 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 	function addAnimation(anim:String, name:String, fps:Float, loop:Bool, indices:Array<Int>)
 	{
-		if(!character.isAnimateAtlas)
+		if(character.library != null)
+		{
+			funkin.util.AtlasUtil.ModernAtlasUtil.addAnimation(character, anim, name, indices, fps, loop);
+		}
+		else if(!character.isAnimateAtlas)
 		{
 			if(indices != null && indices.length > 0)
 				character.animation.addByIndices(anim, name, indices, "", fps, loop);

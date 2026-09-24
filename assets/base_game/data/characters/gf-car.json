@@ -3,18 +3,18 @@
 		{
 			"loop": false,
 			"offsets": [
-				2,
+				7,
 				0
 			],
 			"anim": "singUP",
 			"fps": 24,
-			"name": "GF Dancing Beat Hair blowing CAR",
+			"name": "Idle",
 			"indices": []
 		},
 		{
 			"loop": false,
 			"offsets": [
-				0,
+				5,
 				0
 			],
 			"fps": 24,
@@ -36,18 +36,17 @@
 				28,
 				29
 			],
-			"name": "GF Dancing Beat Hair blowing CAR"
+			"name": "Idle"
 		},
 		{
 			"loop": false,
 			"offsets": [
-				0,
+				5,
 				0
 			],
 			"fps": 24,
 			"anim": "danceLeft",
 			"indices": [
-				30,
 				0,
 				1,
 				2,
@@ -64,7 +63,7 @@
 				13,
 				14
 			],
-			"name": "GF Dancing Beat Hair blowing CAR"
+			"name": "Idle"
 		}
 	],
 	"no_antialiasing": false,
@@ -81,8 +80,8 @@
 		77
 	],
 	"camera_position": [
-		0,
-		0
+		0.0,
+		0.0
 	],
 	"sing_duration": 4,
 	"scale": 1

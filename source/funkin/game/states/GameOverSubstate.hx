@@ -86,7 +86,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		PlayState.instance.callOnScripts('onGameOverStart', []);
 		FlxG.sound.music.loadEmbedded(Paths.music(loopSoundName), true);
 
-		if(characterName == 'pico-dead')
+		if(characterName == 'pico-dead' || characterName == 'pico-christmas-dead')
 		{
 			overlay = new FlxSprite(boyfriend.x + 205, boyfriend.y - 80);
 			overlay.frames = Paths.getSparrowAtlas('Pico_Death_Retry');
@@ -113,12 +113,21 @@ class GameOverSubstate extends MusicBeatSubstate
 				}
 			}
 
-			if(PlayState.instance.gf != null && PlayState.instance.gf.curCharacter == 'nene')
+			if(PlayState.instance.gf != null && funkin.game.stages.PicoCapableStage.NENE_LIST.contains(PlayState.instance.gf.curCharacter))
 			{
 				var neneKnife:FlxSprite = new FlxSprite(boyfriend.x - 450, boyfriend.y - 250);
-				neneKnife.frames = Paths.getSparrowAtlas('NeneKnifeToss');
-				neneKnife.animation.addByPrefix('anim', 'knife toss', 24, false);
-				neneKnife.antialiasing = ClientPrefs.data.antialiasing;
+				if(PlayState.isPixelStage)
+				{
+					neneKnife.frames = Paths.getSparrowAtlas('nenePixelKnifeToss');
+					neneKnife.animation.addByPrefix('anim', 'knifetosscolor', 24, false);
+					neneKnife.antialiasing = false;
+				}
+				else
+				{
+					neneKnife.frames = Paths.getSparrowAtlas('NeneKnifeToss');
+					neneKnife.animation.addByPrefix('anim', 'knife toss', 24, false);
+					neneKnife.antialiasing = ClientPrefs.data.antialiasing;
+				}
 				neneKnife.animation.finishCallback = function(_)
 				{
 					remove(neneKnife);
@@ -178,13 +187,19 @@ class GameOverSubstate extends MusicBeatSubstate
 			{
 				switch(PlayState.SONG.stage)
 				{
-					case 'tank':
+					case 'tank' | 'tankmanBattlefieldErect':
 						coolStartDeath(0.2);
 						
 						var exclude:Array<Int> = [];
 						//if(!ClientPrefs.cursing) exclude = [1, 3, 8, 13, 17, 21];
 	
-						FlxG.sound.play(Paths.sound('jeffGameover/jeffGameover-' + FlxG.random.int(1, 25, exclude)), 1, false, null, true, function() {
+						var jeffLine:String = switch(PlayState.SONG.player1)
+						{
+							case 'pico-playable' | 'pico-holding-nene': 'jeffGameover-pico/jeffGameover-' + FlxG.random.int(1, 9);
+							case 'bf' | 'bf-holding-gf': 'jeffGameover/jeffGameover-' + FlxG.random.int(1, 25, exclude);
+							default: PlayState.SONG.player1.startsWith('pico') ? 'jeffGameover-pico/jeffGameover-10' : 'jeffGameover/jeffGameover-' + FlxG.random.int(1, 25, exclude);
+						}
+						FlxG.sound.play(Paths.sound(jeffLine), 1, false, null, true, function() {
 							if(!isEnding)
 							{
 								FlxG.sound.music.fadeIn(0.2, 1, 4);

@@ -1071,7 +1071,8 @@ class FunkinLua extends FunkinLuaScript {
 				spr = LuaUtils.getVarInArray(LuaUtils.getPropertyLoop(split), split[split.length-1]);
 			}
 
-			if(spr != null) return spr.pixels.getPixel32(x, y);
+			var pixels:BitmapData = (spr != null) ? Paths.readablePixels(spr.graphic) : null;
+			if(pixels != null) return pixels.getPixel32(x, y);
 			return FlxColor.BLACK;
 		});
 		Lua_helper.add_callback(lua, "startDialogue", function(dialogueFile:String, ?music:String = null) {

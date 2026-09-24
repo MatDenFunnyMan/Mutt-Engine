@@ -1,0 +1,835 @@
+{
+	"events": [
+		[
+			0,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			46,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			93.1621621621634,
+			[
+				[
+					"Set Camera Bopping",
+					"1",
+					"0.8"
+				]
+			]
+		],
+		[
+			1500,
+			[
+				[
+					"Play Animation",
+					"augh",
+					"dad"
+				]
+			]
+		],
+		[
+			1546,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			3000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			4500,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			5625,
+			[
+				[
+					"Play Animation",
+					"ugh",
+					"dad"
+				]
+			]
+		],
+		[
+			5906.16216216216,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.5"
+				]
+			]
+		],
+		[
+			6000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 320, -10",
+					""
+				]
+			]
+		],
+		[
+			6046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.665",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			10312.1621621622,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"0"
+				]
+			]
+		],
+		[
+			10453,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			10500,
+			[
+				[
+					"Play Animation",
+					"laugh",
+					"dad"
+				]
+			]
+		],
+		[
+			10546,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			13875,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 320, -10",
+					""
+				]
+			]
+		],
+		[
+			13921,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.665",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			14859.1621621622,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.5"
+				]
+			]
+		],
+		[
+			15000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			15046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			16875,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 320, -10",
+					""
+				]
+			]
+		],
+		[
+			16921,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.665",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			18000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			18046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			21000,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.77",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			24000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			24046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			30375,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 320, -10",
+					""
+				]
+			]
+		],
+		[
+			30421,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.665",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			33000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			33046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			35906.1621621622,
+			[
+				[
+					"Set Camera Bopping",
+					"1",
+					"0.8"
+				]
+			]
+		],
+		[
+			36000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			37500,
+			[
+				[
+					"Play Animation",
+					"ugh",
+					"dad"
+				]
+			]
+		],
+		[
+			37687,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			39000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			42000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			43500,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.77",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			44625,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			45000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 320, -10",
+					""
+				]
+			]
+		],
+		[
+			45046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.665",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			47906.1621621622,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.5"
+				]
+			]
+		],
+		[
+			48000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
+				]
+			]
+		],
+		[
+			48046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.728",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			49078,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf, 50, 0",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			49080,
+			[
+				[
+					"Play Animation",
+					"burpSmile",
+					"boyfriend"
+				]
+			]
+		],
+		[
+			49125,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.756",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			49453,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.728",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			49500,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad",
+					"16, expoOut"
+				]
+			]
+		],
+		[
+			49500,
+			[
+				[
+					"Play Animation",
+					"augh",
+					"dad"
+				]
+			]
+		],
+		[
+			50203,
+			[
+				[
+					"Play Animation",
+					"beat it",
+					"dad"
+				]
+			]
+		],
+		[
+			50250,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.77",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			51000,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			53906.1621621622,
+			[
+				[
+					"Set Camera Bopping",
+					"1",
+					"0.8"
+				]
+			]
+		],
+		[
+			54000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 320, -10",
+					""
+				]
+			]
+		],
+		[
+			54046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.665",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			55406.1621621622,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.5"
+				]
+			]
+		],
+		[
+			55500,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			55546,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			57000,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.77",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			58500,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			59906.1621621622,
+			[
+				[
+					"Set Camera Bopping",
+					"1",
+					"0.8"
+				]
+			]
+		],
+		[
+			60000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 320, -10",
+					""
+				]
+			]
+		],
+		[
+			60046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.665",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			62906.1621621622,
+			[
+				[
+					"Set Camera Bopping",
+					"2",
+					"1.5"
+				]
+			]
+		],
+		[
+			66000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			66046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			66750,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.7",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			67500,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.728",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			68250,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.756",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			69000,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.784",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			69750,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.812",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			70500,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.875",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			71906.1621621622,
+			[
+				[
+					"Set Camera Bopping",
+					"1",
+					"0.8"
+				]
+			]
+		],
+		[
+			72000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"dad, 320, -10",
+					""
+				]
+			]
+		],
+		[
+			72046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.665",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			77625,
+			[
+				[
+					"Play Animation",
+					"ugh",
+					"dad"
+				]
+			]
+		],
+		[
+			78000,
+			[
+				[
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
+				]
+			]
+		],
+		[
+			78046,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			79500,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.77",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			81000,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.735",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			82500,
+			[
+				[
+					"(STEPS) Set Cam Zoom",
+					"0.77",
+					"32, expoOut"
+				]
+			]
+		],
+		[
+			83906.1621621622,
+			[
+				[
+					"Set Camera Bopping",
+					"1",
+					"0"
+				]
+			]
+		]
+	],
+	"format": "psych_v1_convert"
+}

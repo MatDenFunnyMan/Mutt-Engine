@@ -57,7 +57,11 @@ class ModchartFile
     public static final EVENT_REPEATBEATGAP = 2; //how many beats in between each repeat
 
 
+    public static var editorData:ModchartJson = null;
+    public static var editorDataSong:String = null;
+
     public var data:ModchartJson = null;
+    public var filePath:String = null;
     private var renderer:PlayfieldRenderer;
     public var scriptListen:Bool = false;
     public var customModifiers:Map<String, CustomModifierScript> = new Map<String, CustomModifierScript>();
@@ -96,6 +100,7 @@ class ModchartFile
             {
                 rawJson = File.getContent(filePath).trim();
                 folderShit = filePath.replace("modchart.json", "customMods/");
+                this.filePath = filePath;
                 break;
             }
             #end
@@ -104,6 +109,7 @@ class ModchartFile
             {
                 rawJson = Assets.getText(filePath).trim();
                 folderShit = filePath.replace("modchart.json", "customMods/");
+                this.filePath = filePath;
                 break;
             }
         }
@@ -132,10 +138,12 @@ class ModchartFile
             }
             #end
         }
-        else 
-        {
+
+        if (editorData != null && editorDataSong == song)
+            json = cast Json.parse(Json.stringify(editorData));
+
+        if (json == null)
             json = {modifiers: [], events: [], playfields: 1};
-        }
         return json;
     }
     public function loadEmpty()

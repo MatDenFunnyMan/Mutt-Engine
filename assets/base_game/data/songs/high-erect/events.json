@@ -4,9 +4,9 @@
 			0,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
 				]
 			]
 		],
@@ -24,9 +24,9 @@
 			3840,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
 				]
 			]
 		],
@@ -34,9 +34,9 @@
 			11520,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
 				]
 			]
 		],
@@ -54,9 +54,9 @@
 			19200,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
 				]
 			]
 		],
@@ -64,9 +64,9 @@
 			26880,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
 				]
 			]
 		],
@@ -74,9 +74,9 @@
 			34560,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
 				]
 			]
 		],
@@ -94,9 +94,9 @@
 			42240,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
+					"(STEPS) Target Follow Pos",
+					"gf, -100, 210",
+					"32, expoOut"
 				]
 			]
 		],
@@ -104,9 +104,9 @@
 			42360,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"(STEPS) Set Cam Zoom",
+					"0.855",
+					"32, expoOut"
 				]
 			]
 		],
@@ -114,9 +114,9 @@
 			45960,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"smoothStepInOut"
+					"(STEPS) Set Cam Zoom",
+					"0.9",
+					"32, smoothStepInOut"
 				]
 			]
 		],
@@ -124,9 +124,9 @@
 			46080,
 			[
 				[
-					"Target Camera",
-					0,
-					"60,0,32,smoothStepInOut"
+					"(STEPS) Target Follow Pos",
+					"bf, 60, 0",
+					"32, smoothStepInOut"
 				]
 			]
 		],
@@ -134,9 +134,9 @@
 			48960,
 			[
 				[
-					"Zoom Camera",
-					"6,1.1",
-					"quadOut"
+					"(STEPS) Set Cam Zoom",
+					"0.99",
+					"6, quadOut"
 				]
 			]
 		],
@@ -144,9 +144,9 @@
 			49440,
 			[
 				[
-					"Zoom Camera",
-					"6,1.2",
-					"quadOut"
+					"(STEPS) Set Cam Zoom",
+					"1.08",
+					"6, quadOut"
 				]
 			]
 		],
@@ -154,9 +154,9 @@
 			49920,
 			[
 				[
-					"Zoom Camera",
-					"8,1",
-					"quadOut"
+					"(STEPS) Set Cam Zoom",
+					"0.9",
+					"8, quadOut"
 				]
 			]
 		],
@@ -164,9 +164,9 @@
 			50640,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
 				]
 			]
 		],
@@ -174,9 +174,9 @@
 			57600,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"(STEPS) Target Follow Pos",
+					"bf",
+					""
 				]
 			]
 		],
@@ -194,9 +194,9 @@
 			65280,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"(STEPS) Target Follow Pos",
+					"dad",
+					""
 				]
 			]
 		],
@@ -204,9 +204,9 @@
 			72960,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
+					"(STEPS) Target Follow Pos",
+					"gf, -100, 210",
+					"32, expoOut"
 				]
 			]
 		],
@@ -214,9 +214,9 @@
 			73080,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"(STEPS) Set Cam Zoom",
+					"0.855",
+					"32, expoOut"
 				]
 			]
 		],
@@ -224,9 +224,9 @@
 			76680,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"smoothStepInOut"
+					"(STEPS) Set Cam Zoom",
+					"0.9",
+					"32, smoothStepInOut"
 				]
 			]
 		],
@@ -234,9 +234,9 @@
 			76800,
 			[
 				[
-					"Target Camera",
-					0,
-					"60,0,32,smoothStepInOut"
+					"(STEPS) Target Follow Pos",
+					"bf, 60, 0",
+					"32, smoothStepInOut"
 				]
 			]
 		],
@@ -244,9 +244,9 @@
 			79680,
 			[
 				[
-					"Zoom Camera",
-					"6,1.1",
-					"quadOut"
+					"(STEPS) Set Cam Zoom",
+					"0.99",
+					"6, quadOut"
 				]
 			]
 		],
@@ -254,9 +254,9 @@
 			80160,
 			[
 				[
-					"Zoom Camera",
-					"6,1.2",
-					"quadOut"
+					"(STEPS) Set Cam Zoom",
+					"1.08",
+					"6, quadOut"
 				]
 			]
 		],
@@ -274,9 +274,9 @@
 			80640,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
+					"(STEPS) Target Follow Pos",
+					"gf, -100, 210",
+					"32, expoOut"
 				]
 			]
 		],
@@ -284,9 +284,9 @@
 			80760,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"(STEPS) Set Cam Zoom",
+					"0.855",
+					"32, expoOut"
 				]
 			]
 		],
@@ -294,9 +294,9 @@
 			84480,
 			[
 				[
-					"Target Camera",
-					2,
-					"-220,170,32,sineOut"
+					"(STEPS) Target Follow Pos",
+					"gf, -220, 170",
+					"32, sineOut"
 				]
 			]
 		],
@@ -304,9 +304,9 @@
 			84600,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"sineOut"
+					"(STEPS) Set Cam Zoom",
+					"0.99",
+					"32, sineOut"
 				]
 			]
 		],
@@ -314,9 +314,9 @@
 			88320,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
+					"(STEPS) Target Follow Pos",
+					"gf, -100, 210",
+					"32, expoOut"
 				]
 			]
 		],
@@ -324,9 +324,9 @@
 			88440,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"(STEPS) Set Cam Zoom",
+					"0.855",
+					"32, expoOut"
 				]
 			]
 		],
@@ -334,9 +334,9 @@
 			92160,
 			[
 				[
-					"Target Camera",
-					2,
-					"90,120,32,sineOut"
+					"(STEPS) Target Follow Pos",
+					"gf, 90, 120",
+					"32, sineOut"
 				]
 			]
 		],
@@ -344,9 +344,9 @@
 			92280,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"sineOut"
+					"(STEPS) Set Cam Zoom",
+					"0.99",
+					"32, sineOut"
 				]
 			]
 		],
@@ -364,9 +364,9 @@
 			96000,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
+					"(STEPS) Target Follow Pos",
+					"gf, -100, 210",
+					"32, expoOut"
 				]
 			]
 		],
@@ -374,9 +374,9 @@
 			96120,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"(STEPS) Set Cam Zoom",
+					"0.855",
+					"32, expoOut"
 				]
 			]
 		]

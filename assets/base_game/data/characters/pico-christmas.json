@@ -1,82 +1,123 @@
 {
 	"animations": [
 		{
-			"offsets": [3, 0],
+			"offsets": [
+				172,
+				261
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "idle",
 			"indices": [],
-			"name": "Pico Idle Dance xmas0"
+			"name": "Idle"
 		},
 		{
-			"offsets": [21, 27],
+			"offsets": [
+				175,
+				265
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singUP",
 			"indices": [],
-			"name": "pico Up note xmas0"
+			"name": "Up"
 		},
 		{
-			"offsets": [84, -80],
+			"offsets": [
+				206,
+				270
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singDOWN",
 			"indices": [],
-			"name": "Pico Down Note xmas0"
+			"name": "Down"
 		},
 		{
-			"offsets": [80, -38],
+			"offsets": [
+				201,
+				269
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singDOWNmiss",
-			"name": "Pico Down Note MISS xmas0"
+			"name": "Down Miss",
+			"indices": []
 		},
 		{
-			"offsets": [28, 67],
+			"offsets": [
+				185,
+				268
+			],
 			"loop": false,
 			"fps": 24,
 			"anim": "singUPmiss",
-			"name": "pico Up note miss xmas0"
+			"name": "Up Miss",
+			"indices": []
 		},
 		{
 			"loop": false,
-			"offsets": [-48, 2],
+			"offsets": [
+				217,
+				267
+			],
 			"anim": "singRIGHT",
 			"fps": 24,
-			"name": "Pico Note Right xmas0",
+			"name": "Right",
 			"indices": []
 		},
 		{
 			"loop": false,
-			"offsets": [85, -10],
+			"offsets": [
+				188,
+				266
+			],
 			"anim": "singLEFT",
 			"fps": 24,
-			"name": "Pico NOTE LEFT xmas0",
+			"name": "Left",
 			"indices": []
 		},
 		{
 			"loop": false,
-			"offsets": [-45, 50],
+			"offsets": [
+				213,
+				269
+			],
 			"anim": "singRIGHTmiss",
 			"fps": 24,
-			"name": "Pico Note Right Miss xmas0"
+			"name": "Right Miss",
+			"indices": []
 		},
 		{
 			"loop": false,
-			"offsets": [83, 28],
+			"offsets": [
+				186,
+				269
+			],
 			"anim": "singLEFTmiss",
 			"fps": 24,
-			"name": "Pico NOTE LEFT miss xmas0"
+			"name": "Left Miss",
+			"indices": []
 		}
 	],
 	"vocals_file": "",
 	"no_antialiasing": false,
-	"image": "characters/mallPico/picoChristmas",
-	"position": [0, 300],
+	"image": "characters/pico-christmas",
+	"position": [
+		0,
+		300
+	],
 	"healthicon": "pico",
 	"flip_x": true,
-	"healthbar_colors": [183, 216, 85],
-	"camera_position": [100, 40],
+	"healthbar_colors": [
+		183,
+		216,
+		85
+	],
+	"camera_position": [
+		378.0,
+		-145.5
+	],
 	"sing_duration": 4,
 	"scale": 1,
 	"_editor_isPlayer": true

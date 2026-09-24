@@ -498,7 +498,8 @@ class LuaCallbacks
 			var spr:FlxSprite = LuaUtils.getObjectDirectly(split[0]);
 			if(split.length > 1)
 				spr = LuaUtils.getVarInArray(LuaUtils.getPropertyLoop(split), split[split.length - 1]);
-			if(spr != null) return spr.pixels.getPixel32(x, y);
+			var pixels:openfl.display.BitmapData = (spr != null) ? Paths.readablePixels(spr.graphic) : null;
+			if(pixels != null) return pixels.getPixel32(x, y);
 			return FlxColor.BLACK;
 		});
 		Lua_helper.add_callback(lua, "getMidpointX", function(variable:String) {

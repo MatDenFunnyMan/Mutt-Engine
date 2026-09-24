@@ -37,6 +37,7 @@
 	<set name="BUILD_DIR" value="export/32bit" if="32bits" />
 
 	<classpath name="source" />
+	<classpath name="libs/flixel-animate/src" />
 
 	<define name="CRASH_HANDLER" if="desktop " />
 
@@ -80,7 +81,6 @@
 
 	<haxelib name="flixel" version="5.6.1"/>
 	<haxelib name="flixel-addons" version="3.2.2"/>
-	<haxelib name="flixel-ui" version="2.5.0" unless="DISABLE_MODCHART_EDITOR"/>
 	<haxelib name="tjson" version="1.4.0"/>
 	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>
 	<haxelib name="hscript-iris" if="HSCRIPT_ALLOWED" version="1.1.3"/>

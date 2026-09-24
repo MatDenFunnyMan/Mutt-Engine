@@ -52,6 +52,15 @@ class Paths
 			}
 		}
 
+		for (key in currentTrackedSounds.keys())
+		{
+			if (!localTrackedAssets.contains(key) && !dumpExclusions.contains(key))
+			{
+				Assets.cache.clear(key);
+				currentTrackedSounds.remove(key);
+			}
+		}
+
 		#if cpp
 		cpp.vm.Gc.compact();
 		#else
@@ -85,6 +94,10 @@ class Paths
 				currentTrackedSounds.remove(key);
 			}
 		}
+		for (bitmap in readableBitmaps)
+			if(bitmap != null) bitmap.dispose();
+		readableBitmaps.clear();
+
 		// flags everything to be cleared out next unused memory clear
 		localTrackedAssets = [];
 		#if !html5 openfl.Assets.cache.clear("songs"); #end
@@ -141,6 +154,18 @@ class Paths
 					currentTrackedAssets.remove(key); // and remove the key from local cache map
 					//trace('deleted $key');
 				}
+			}
+		}
+	}
+
+	public static function releaseGraphicsExcept(keep:Array<String>)
+	{
+		for (key in currentTrackedAssets.keys())
+		{
+			if (!keep.contains(key) && !dumpExclusions.contains(key))
+			{
+				destroyGraphic(currentTrackedAssets.get(key));
+				currentTrackedAssets.remove(key);
 			}
 		}
 	}
@@ -329,7 +354,7 @@ class Paths
 		return returnSound('sounds/$key', modsAllowed);
 
 	inline static public function music(key:String, ?modsAllowed:Bool = true):Sound
-		return returnSound('music/$key', modsAllowed);
+		return returnSound('music/$key', null, modsAllowed, true, ClientPrefs.data.streamSongs);
 
 	public static var VARIANT_FIRST_WORD_ONLY:Bool = true;
 
@@ -349,40 +374,83 @@ class Paths
 		return '-' + value;
 	}
 
-	static function findSongSound(formattedSong:String, fileName:String, modsAllowed:Bool, beepOnNull:Bool = false):Sound
+	static function findSongSound(formattedSong:String, fileName:String, modsAllowed:Bool, beepOnNull:Bool = false, stream:Bool = false):Sound
 	{
 		#if MODS_ALLOWED
 		if(modsAllowed)
 		{
 			if(FileSystem.exists(getPath('data/songs/$formattedSong/song/$fileName.$SOUND_EXT', SOUND, null, true)))
-				return returnSound('songs/$formattedSong/song/$fileName', 'data', modsAllowed, beepOnNull);
+				return returnSound('songs/$formattedSong/song/$fileName', 'data', modsAllowed, beepOnNull, stream);
 
 			if(FileSystem.exists(getPath('data/$formattedSong/song/$fileName.$SOUND_EXT', SOUND, null, true)))
-				return returnSound('$formattedSong/song/$fileName', 'data', modsAllowed, beepOnNull);
+				return returnSound('$formattedSong/song/$fileName', 'data', modsAllowed, beepOnNull, stream);
 
 			if(FileSystem.exists(getPath('data/$formattedSong/songs/$fileName.$SOUND_EXT', SOUND, null, true)))
-				return returnSound('$formattedSong/songs/$fileName', 'data', modsAllowed, beepOnNull);
+				return returnSound('$formattedSong/songs/$fileName', 'data', modsAllowed, beepOnNull, stream);
 		}
 		#end
 
-		return returnSound('$formattedSong/$fileName', 'songs', modsAllowed, beepOnNull);
+		return returnSound('$formattedSong/$fileName', 'songs', modsAllowed, beepOnNull, stream);
 	}
 
-	static public function inst(song:String, ?difficulty:String, ?modsAllowed:Bool = true):Sound
+	static public function inst(song:String, ?difficulty:String, ?modsAllowed:Bool = true, ?stream:Bool = false):Sound
 	{
 		var formattedSong = formatToSongPath(song);
 		var suffix:String = variantSuffix(difficulty);
 
 		if(suffix.length > 0)
 		{
-			var variant:Sound = findSongSound(formattedSong, 'Inst$suffix', modsAllowed);
+			var variant:Sound = findSongSound(formattedSong, 'Inst$suffix', modsAllowed, false, stream);
 			if(variant != null) return variant;
 		}
 
-		return findSongSound(formattedSong, 'Inst', modsAllowed, true);
+		return findSongSound(formattedSong, 'Inst', modsAllowed, true, stream);
 	}
 
-	static public function voices(song:String, postfix:String = null, ?difficulty:String, ?modsAllowed:Bool = true):Sound
+	static public function instPath(song:String, ?difficulty:String, ?modsAllowed:Bool = true):String
+	{
+		var formattedSong = formatToSongPath(song);
+		var suffix:String = variantSuffix(difficulty);
+
+		if(suffix.length > 0)
+		{
+			var variant:String = findSongSoundPath(formattedSong, 'Inst$suffix', modsAllowed);
+			if(variant != null) return variant;
+		}
+
+		return findSongSoundPath(formattedSong, 'Inst', modsAllowed);
+	}
+
+	static function findSongSoundPath(formattedSong:String, fileName:String, modsAllowed:Bool):String
+	{
+		#if MODS_ALLOWED
+		if(modsAllowed)
+		{
+			if(FileSystem.exists(getPath('data/songs/$formattedSong/song/$fileName.$SOUND_EXT', SOUND, null, true)))
+				return soundFilePath('songs/$formattedSong/song/$fileName', 'data', modsAllowed);
+
+			if(FileSystem.exists(getPath('data/$formattedSong/song/$fileName.$SOUND_EXT', SOUND, null, true)))
+				return soundFilePath('$formattedSong/song/$fileName', 'data', modsAllowed);
+
+			if(FileSystem.exists(getPath('data/$formattedSong/songs/$fileName.$SOUND_EXT', SOUND, null, true)))
+				return soundFilePath('$formattedSong/songs/$fileName', 'data', modsAllowed);
+		}
+		#end
+
+		return soundFilePath('$formattedSong/$fileName', 'songs', modsAllowed);
+	}
+
+	public static function soundFilePath(key:String, ?path:String, ?modsAllowed:Bool = true):String
+	{
+		var file:String = getPath(Language.getFileTranslation(key) + '.$SOUND_EXT', SOUND, path, modsAllowed);
+		#if sys
+		return FileSystem.exists(file) ? file : null;
+		#else
+		return OpenFlAssets.exists(file, SOUND) ? file : null;
+		#end
+	}
+
+	static public function voices(song:String, postfix:String = null, ?difficulty:String, ?modsAllowed:Bool = true, ?stream:Bool = false):Sound
 	{
 		var formattedSong = formatToSongPath(song);
 		var base:String = 'Voices' + (postfix != null ? '-' + postfix : '');
@@ -390,15 +458,18 @@ class Paths
 
 		if(suffix.length > 0)
 		{
-			var variant:Sound = findSongSound(formattedSong, base + suffix, modsAllowed);
+			var variant:Sound = findSongSound(formattedSong, base + suffix, modsAllowed, false, stream);
 			if(variant != null) return variant;
 		}
 
-		return findSongSound(formattedSong, base, modsAllowed);
+		return findSongSound(formattedSong, base, modsAllowed, false, stream);
 	}
 
 	inline static public function soundRandom(key:String, min:Int, max:Int, ?modsAllowed:Bool = true)
 		return sound(key + FlxG.random.int(min, max), modsAllowed);
+
+	public static var COLLECT_AFTER_UPLOAD:Float = 8388608;
+	static var uploadedSinceCollect:Float = 0;
 
 	public static var currentTrackedAssets:Map<String, FlxGraphic> = [];
 	static public function image(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxGraphic
@@ -411,6 +482,25 @@ class Paths
 			return currentTrackedAssets.get(key);
 		}
 		return cacheBitmap(key, parentFolder, bitmap, allowGPU);
+	}
+
+	static var readableBitmaps:Map<String, BitmapData> = [];
+	public static function readablePixels(graphic:FlxGraphic):BitmapData
+	{
+		if(graphic == null || graphic.bitmap == null) return null;
+		if(graphic.bitmap.image != null || graphic.key == null) return graphic.bitmap;
+		if(readableBitmaps.exists(graphic.key)) return readableBitmaps.get(graphic.key);
+
+		var bitmap:BitmapData = null;
+		var file:String = getPath(graphic.key, IMAGE, null, true);
+		#if MODS_ALLOWED
+		if (FileSystem.exists(file))
+			bitmap = BitmapData.fromFile(file);
+		else #end if (OpenFlAssets.exists(file, IMAGE))
+			bitmap = OpenFlAssets.getBitmapData(file, false);
+
+		readableBitmaps.set(graphic.key, bitmap);
+		return bitmap;
 	}
 
 	public static function cacheBitmap(key:String, ?parentFolder:String = null, ?bitmap:BitmapData, ?allowGPU:Bool = true):FlxGraphic
@@ -445,6 +535,15 @@ class Paths
 			bitmap.image.data = null;
 			bitmap.image = null;
 			bitmap.readable = true;
+
+			uploadedSinceCollect += bitmap.width * bitmap.height * 4;
+			if (uploadedSinceCollect >= COLLECT_AFTER_UPLOAD)
+			{
+				uploadedSinceCollect = 0;
+				#if cpp
+				cpp.vm.Gc.run(true);
+				#end
+			}
 		}
 
 		var existing:FlxGraphic = FlxG.bitmap.get(key);
@@ -614,9 +713,25 @@ class Paths
 	}
 
 	public static var currentTrackedSounds:Map<String, Sound> = [];
-	public static function returnSound(key:String, ?path:String, ?modsAllowed:Bool = true, ?beepOnNull:Bool = true)
+	public static function returnSound(key:String, ?path:String, ?modsAllowed:Bool = true, ?beepOnNull:Bool = true, ?stream:Bool = false)
 	{
 		var file:String = getPath(Language.getFileTranslation(key) + '.$SOUND_EXT', SOUND, path, modsAllowed);
+
+		#if (sys && lime_vorbis)
+		if (stream && file.toLowerCase().endsWith('.ogg') && FileSystem.exists(file))
+		{
+			var vorbis:lime.media.vorbis.VorbisFile = lime.media.vorbis.VorbisFile.fromFile(file);
+			if (vorbis != null)
+			{
+				var buffer:lime.media.AudioBuffer = lime.media.AudioBuffer.fromVorbisFile(vorbis);
+				if (buffer != null)
+				{
+					@:privateAccess buffer.__srcCustom = file;
+					return Sound.fromAudioBuffer(buffer);
+				}
+			}
+		}
+		#end
 
 		if (!currentTrackedSounds.exists(file))
 		{
@@ -776,7 +891,73 @@ class Paths
 		//trace(folderOrImg);
 		//trace(spriteJson);
 		//trace(animationJson);
+		if(Std.isOfType(animationJson, String)) animationJson = convertBTAMatrices(animationJson);
 		spr.loadAtlasEx(folderOrImg, spriteJson, animationJson);
+	}
+
+	public static function getModernAtlasFrames(image:String, ?parentFolder:String):FlxAtlasFrames
+	{
+		if(image == null) return null;
+
+		var parts:Array<String> = [for (part in image.split(',')) part.trim()];
+		var collections:Array<FlxAtlasFrames> = [];
+		var hasModern:Bool = false;
+		for (part in parts)
+		{
+			var animation:String = getTextFromFile('images/$part/Animation.json');
+			if(animation != null)
+			{
+				if(animation.indexOf('"MX"') < 0) return null;
+				var atlas:animate.FlxAnimateFrames = loadModernAtlas(part, animation, parentFolder);
+				if(atlas == null) return null;
+				collections.push(atlas);
+				hasModern = true;
+			}
+			else
+			{
+				var sparrow:FlxAtlasFrames = getAtlas(part, parentFolder);
+				if(sparrow != null) collections.push(sparrow);
+			}
+		}
+		if(!hasModern) return null;
+
+		var modern:Array<FlxAtlasFrames> = [for (frames in collections) if(frames is animate.FlxAnimateFrames) frames];
+		for (frames in collections) if(!modern.contains(frames)) modern.push(frames);
+		return animate.FlxAnimateFrames.combineAtlas(modern);
+	}
+
+	static function loadModernAtlas(folder:String, animation:String, ?parentFolder:String):animate.FlxAnimateFrames
+	{
+		var spritemaps:Array<animate.FlxAnimateFrames.SpritemapInput> = [];
+		for (i in 0...10)
+		{
+			var suffix:String = (i == 0) ? '' : '$i';
+			var json:String = getTextFromFile('images/$folder/spritemap$suffix.json');
+			if(json == null) continue;
+
+			var graphic:FlxGraphic = image('$folder/spritemap$suffix', parentFolder);
+			if(graphic != null) spritemaps.push({source: graphic, json: removeBOM(json)});
+		}
+		if(spritemaps.length < 1) return null;
+
+		var atlas:animate.FlxAnimateFrames = animate.FlxAnimateFrames.fromAnimate(removeBOM(animation), spritemaps, null, 'animate:$folder', true);
+		if(atlas != null && atlas.parent != null) atlas.parent.destroyOnNoUse = false;
+		return atlas;
+	}
+
+	inline static function removeBOM(text:String):String
+		return text.replace(String.fromCharCode(0xFEFF), '');
+
+	static final btaMatrix:EReg = ~/"MX"\s*:\s*\[([^\]]*)\]/g;
+	public static function convertBTAMatrices(json:String):String
+	{
+		if(json == null || json.indexOf('"MX"') < 0) return json;
+		return btaMatrix.map(json, function(found:EReg):String
+		{
+			var m:Array<String> = [for (value in found.matched(1).split(',')) value.trim()];
+			if(m.length < 6) return found.matched(0);
+			return '"M3D":[${m[0]},${m[1]},0,0,${m[2]},${m[3]},0,0,0,0,1,0,${m[4]},${m[5]},0,1]';
+		});
 	}
 	#end
 }

@@ -15,7 +15,7 @@ class StageWeek1 extends BaseStage
 		{
 			case "Dadbattle Spotlight":
 				dadbattleBlack = new BGSprite(null, -800, -400, 0, 0);
-				dadbattleBlack.makeGraphic(Std.int(FlxG.width * 2), Std.int(FlxG.height * 2), FlxColor.BLACK);
+				CoolUtil.makeSolid(dadbattleBlack, Std.int(FlxG.width * 2), Std.int(FlxG.height * 2), FlxColor.BLACK);
 				dadbattleBlack.alpha = 0.25;
 				dadbattleBlack.visible = false;
 				add(dadbattleBlack);

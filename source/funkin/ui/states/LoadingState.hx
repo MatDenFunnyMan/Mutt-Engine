@@ -47,7 +47,12 @@ class LoadingState extends MusicBeatState
 
 	static var originalBitmapKeys:Map<String, String> = [];
 	static var requestedBitmaps:Map<String, BitmapData> = [];
+	static var requestedSizes:Map<String, Float> = [];
 	static var mutex:Mutex;
+
+	public static var DECODE_BUDGET:Float = 33554432;
+	static var pendingBytes:Float = 0;
+	static var loadGeneration:Int = 0;
 	static var threadPool:FixedThreadPool = null;
 
 	function new(target:FlxState, stopMusic:Bool)
@@ -98,6 +103,7 @@ class LoadingState extends MusicBeatState
 	#end
 	override function create()
 	{
+		releaseUnusedGraphics();
 		persistentUpdate = true;
 		loadTimeout = 0;
 		barGroup = new FlxSpriteGroup();
@@ -407,15 +413,44 @@ class LoadingState extends MusicBeatState
 		mutex = null;
 	}
 
+	static function releaseUnusedGraphics()
+	{
+		if(imagesToPrepare.length < 1) return;
+
+		var needed:Array<String> = [];
+		for (image in imagesToPrepare)
+		{
+			var key:String = 'images/$image';
+			#if TRANSLATIONS_ALLOWED key = Language.getFileTranslation(key); #end
+			if(key.lastIndexOf('.') < 0) key += '.png';
+			needed.push(key);
+		}
+		Paths.releaseGraphicsExcept(needed);
+		#if cpp
+		cpp.vm.Gc.run(true);
+		cpp.vm.Gc.compact();
+		#end
+	}
+
 	public static function checkLoaded():Bool
 	{
-		for (key => bitmap in requestedBitmaps)
-		{
-			if (bitmap != null && Paths.cacheBitmap(originalBitmapKeys.get(key), bitmap) != null) {} //trace('finished preloading image $key');
-			else trace('failed to cache image $key');
-		}
+		var lock:Mutex = mutex;
+		if(lock != null) lock.acquire();
+		var bitmaps:Array<{key:String, bitmap:BitmapData, size:Float}> = [for (key => bitmap in requestedBitmaps) {key: originalBitmapKeys.get(key), bitmap: bitmap, size: requestedSizes.exists(key) ? requestedSizes.get(key) : 0}];
 		requestedBitmaps.clear();
 		originalBitmapKeys.clear();
+		requestedSizes.clear();
+		if(lock != null) lock.release();
+
+		var released:Float = 0;
+		for (entry in bitmaps)
+		{
+			if (entry.bitmap != null && Paths.cacheBitmap(entry.key, entry.bitmap) != null) {} //trace('finished preloading image $key');
+			else trace('failed to cache image ${entry.key}');
+			released += entry.size;
+		}
+
+		if (released > 0) releaseBudget(released);
 		// trace('we checked if loaded');
 		return ((loaded >= loadMax || loadMax <= 0) && initialThreadCompleted);
 	}
@@ -760,6 +795,10 @@ class LoadingState extends MusicBeatState
 	public static function startThreads()
 	{
 		mutex = new Mutex();
+		#if MEMTEST funkin.debug.MemoryTest.phase = 'preload'; #end
+		loadGeneration++;
+		pendingBytes = 0;
+		if (ClientPrefs.data.streamSongs) songsToPrepare = [];
 		loadMax = imagesToPrepare.length + soundsToPrepare.length + musicToPrepare.length + songsToPrepare.length;
 		loaded = 0;
 
@@ -914,6 +953,7 @@ class LoadingState extends MusicBeatState
 	// thread safe sound loader
 	static function preloadGraphic(key:String):Null<BitmapData>
 	{
+		var size:Float = 0;
 		try {
 			var requestKey:String = 'images/$key';
 			#if TRANSLATIONS_ALLOWED requestKey = Language.getFileTranslation(requestKey); #end
@@ -925,14 +965,23 @@ class LoadingState extends MusicBeatState
 				if (#if sys FileSystem.exists(file) || #end OpenFlAssets.exists(file, IMAGE))
 				{
 					#if sys
+					size = imageSize(file);
+					waitForBudget(size);
 					var bitmap:BitmapData = BitmapData.fromFile(file);
 					#else
 					var bitmap:BitmapData = OpenFlAssets.getBitmapData(file, false);
 					#end
 
+					if (bitmap == null)
+					{
+						releaseBudget(size);
+						return null;
+					}
+
 					mutex.acquire();
 					requestedBitmaps.set(file, bitmap);
 					originalBitmapKeys.set(file, requestKey);
+					requestedSizes.set(file, size);
 					mutex.release();
 					return bitmap;
 				}
@@ -943,10 +992,58 @@ class LoadingState extends MusicBeatState
 		}
 		catch(e:haxe.Exception)
 		{
+			releaseBudget(size);
 			trace('ERROR! fail on preloading image $key');
 		}
 
 		return null;
+	}
+
+	static function imageSize(file:String):Float
+	{
+		#if sys
+		try
+		{
+			var input = sys.io.File.read(file, true);
+			var header = input.read(24);
+			input.close();
+			if (header.get(1) == 'P'.code && header.get(2) == 'N'.code && header.get(3) == 'G'.code)
+			{
+				var width:Float = (header.get(16) << 24) | (header.get(17) << 16) | (header.get(18) << 8) | header.get(19);
+				var height:Float = (header.get(20) << 24) | (header.get(21) << 16) | (header.get(22) << 8) | header.get(23);
+				return width * height * 4;
+			}
+		}
+		catch(e:Dynamic) {}
+		#end
+		return 0;
+	}
+
+	static function waitForBudget(size:Float)
+	{
+		var generation:Int = loadGeneration;
+		while (true)
+		{
+			var lock:Mutex = mutex;
+			if (lock == null || generation != loadGeneration) return;
+
+			lock.acquire();
+			var fits:Bool = pendingBytes <= 0 || pendingBytes + size <= DECODE_BUDGET;
+			if (fits) pendingBytes += size;
+			lock.release();
+
+			if (fits) return;
+			Sys.sleep(0.005);
+		}
+	}
+
+	static function releaseBudget(size:Float)
+	{
+		if (size <= 0) return;
+		var lock:Mutex = mutex;
+		if (lock != null) lock.acquire();
+		pendingBytes = Math.max(0, pendingBytes - size);
+		if (lock != null) lock.release();
 	}
 	
 	#if cpp

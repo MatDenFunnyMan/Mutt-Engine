@@ -3,105 +3,105 @@
 		{
 			"loop": false,
 			"offsets": [
-				0,
-				0
+				190,
+				64
 			],
 			"fps": 24,
 			"anim": "idle",
 			"indices": [],
-			"name": "Pico Idle Dance"
+			"name": "Idle"
 		},
 		{
 			"loop": false,
 			"offsets": [
-				65,
-				9
+				197,
+				73
 			],
 			"fps": 24,
 			"anim": "singLEFT",
 			"indices": [],
-			"name": "Pico Note Right0"
+			"name": "Right"
 		},
 		{
 			"loop": false,
 			"offsets": [
-				-68,
-				-7
+				208,
+				68
 			],
 			"fps": 24,
 			"anim": "singRIGHT",
 			"indices": [],
-			"name": "Pico NOTE LEFT0"
+			"name": "Left"
 		},
 		{
 			"loop": false,
 			"offsets": [
-				-60,
-				41
+				274,
+				249
 			],
 			"fps": 24,
 			"anim": "singRIGHTmiss",
 			"indices": [],
-			"name": "Pico NOTE LEFT miss"
+			"name": "Left Miss"
 		},
 		{
 			"loop": false,
 			"offsets": [
-				62,
-				64
+				258,
+				250
 			],
 			"fps": 24,
 			"anim": "singLEFTmiss",
 			"indices": [],
-			"name": "Pico Note Right Miss"
+			"name": "Right Miss"
 		},
 		{
 			"loop": false,
 			"offsets": [
-				-29,
-				27
+				194,
+				64
 			],
 			"fps": 24,
 			"anim": "singUP",
 			"indices": [],
-			"name": "pico Up note0"
+			"name": "Up"
 		},
 		{
 			"loop": false,
 			"offsets": [
-				200,
-				-70
+				201,
+				79
 			],
 			"fps": 24,
 			"anim": "singDOWN",
 			"indices": [],
-			"name": "Pico Down Note0"
+			"name": "Down"
 		},
 		{
 			"loop": false,
 			"offsets": [
-				210,
-				-28
+				272,
+				246
 			],
 			"fps": 24,
 			"anim": "singDOWNmiss",
 			"indices": [],
-			"name": "Pico Down Note MISS"
+			"name": "Down Miss"
 		},
 		{
 			"loop": false,
 			"offsets": [
-				-19,
-				67
+				258,
+				235
 			],
 			"fps": 24,
 			"anim": "singUPmiss",
 			"indices": [],
-			"name": "pico Up note miss"
+			"name": "Up Miss"
 		}
 	],
 	"no_antialiasing": false,
-	"image": "characters/Pico_FNF_assetss",
+	"image": "characters/pico/basic-animations, characters/pico/playable-animations",
 	"position": [
 		0,
 		300
@@ -114,8 +114,8 @@
 		85
 	],
 	"camera_position": [
-		0,
-		0
+		-11.5,
+		-75.0
 	],
 	"sing_duration": 4,
 	"scale": 1

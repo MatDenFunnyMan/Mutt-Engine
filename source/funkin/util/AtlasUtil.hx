@@ -66,3 +66,75 @@ class AtlasUtil
 	}
 }
 #end
+
+class ModernAtlasUtil
+{
+	public static function addAnimation(sprite:animate.FlxAnimate, anim:String, name:String, indices:Array<Int>, fps:Float, loop:Bool)
+	{
+		if(sprite == null || sprite.anim == null) return;
+
+		var hasIndices:Bool = (indices != null && indices.length > 0);
+		if(sprite.library != null && hasFrameLabel(sprite.library, name))
+		{
+			if(hasIndices) sprite.anim.addByFrameLabelIndices(anim, name, indices, fps, loop);
+			else sprite.anim.addByFrameLabel(anim, name, fps, loop);
+		}
+		else if(sprite.library != null && sprite.library.existsSymbol(name))
+		{
+			if(hasIndices) sprite.anim.addBySymbolIndices(anim, name, indices, fps, loop);
+			else sprite.anim.addBySymbol(anim, name, fps, loop);
+		}
+		else if(hasIndices)
+			sprite.animation.addByIndices(anim, name, indices, '', fps, loop);
+		else
+			sprite.animation.addByPrefix(anim, name, fps, loop);
+	}
+
+	@:access(animate.FlxAnimateFrames)
+	public static function getFrameLabelNames(library:animate.FlxAnimateFrames):Array<String>
+	{
+		var result:Array<String> = [];
+		var timelines:Array<animate.internal.Timeline> = [library.timeline];
+		if(library.addedCollections != null)
+			for (collection in library.addedCollections) timelines.push(collection.timeline);
+
+		for (timeline in timelines)
+		{
+			if(timeline == null) continue;
+			for (layer in timeline.layers)
+				for (frame in layer.frames)
+					if(frame != null && frame.name != null && frame.name.rtrim().length > 0 && !result.contains(frame.name.rtrim()))
+						result.push(frame.name.rtrim());
+		}
+		return result;
+	}
+
+	@:access(animate.FlxAnimateFrames)
+	public static function getSymbolNames(library:animate.FlxAnimateFrames, ?exclude:Array<String>):Array<String>
+	{
+		var result:Array<String> = [];
+		var libraries:Array<animate.FlxAnimateFrames> = [library];
+		if(library.addedCollections != null)
+			for (collection in library.addedCollections) libraries.push(collection);
+
+		for (item in libraries)
+		{
+			if(item._symbolDictionary == null) continue;
+			for (symbol in item._symbolDictionary)
+				if(symbol != null && symbol.SN != null && !result.contains(symbol.SN) && (exclude == null || !exclude.contains(symbol.SN)))
+					result.push(symbol.SN);
+		}
+		return result;
+	}
+
+	@:access(animate.FlxAnimateFrames)
+	public static function hasFrameLabel(library:animate.FlxAnimateFrames, name:String):Bool
+	{
+		if(library.timeline != null && library.timeline.findFrameLabelIndices(name).length > 0) return true;
+		if(library.addedCollections != null)
+			for (collection in library.addedCollections)
+				if(collection.timeline != null && collection.timeline.findFrameLabelIndices(name).length > 0)
+					return true;
+		return false;
+	}
+}

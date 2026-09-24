@@ -41,6 +41,9 @@ class VideoSprite extends FlxSpriteGroup {
 		}
 
 		// initialize sprites
+			#if hxvlc
+			hxvlc.util.Handle.init(#if (hxvlc >= "1.8.0") ['--no-lua'] #end);
+			#end
 			videoSprite = new FlxVideoSprite();
 			var finalAntialiasing:Bool = antialiasing != null ? antialiasing : ClientPrefs.data.antialiasing;
 			videoSprite.antialiasing = finalAntialiasing;

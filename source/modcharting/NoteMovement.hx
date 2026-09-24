@@ -65,37 +65,6 @@ class NoteMovement
         #end
         totalKeyCount = keyCount + playerKeyCount;
     }
-    #if !DISABLE_MODCHART_EDITOR
-    public static function getDefaultStrumPosEditor(game:ModchartEditorState)
-    {
-        #if ((PSYCH || LEATHER) && !DISABLE_MODCHART_EDITOR)
-        defaultStrumX = []; //reset
-        defaultStrumY = []; 
-        defaultScale = [];
-        arrowSizes = [];
-        keyCount = game.strumLineNotes.length-game.playerStrums.length; //base game doesnt have opponent strums as group
-        playerKeyCount = game.playerStrums.length;
-
-        for (i in 0...game.strumLineNotes.members.length)
-        {
-            var strum = game.strumLineNotes.members[i];
-            defaultStrumX.push(strum.x);
-            defaultStrumY.push(strum.y);
-            #if LEATHER
-            var localKeyCount = (i < keyCount ? keyCount : playerKeyCount);
-            var s = Std.parseFloat(game.ui_settings[0]) * (Std.parseFloat(game.ui_settings[2]) - (Std.parseFloat(game.mania_size[localKeyCount-1])));
-            #else
-            var s = 0.7;
-            #end
-            defaultScale.push(s);
-            arrowSizes.push(160*s);
-        }
-        #end
-        #if LEATHER
-        leatherEngineOffsetStuff.clear();
-        #end
-    }
-    #end
     public static function getDefaultStrumPosFromGroup(strums:FlxTypedGroup<PlayfieldRenderer.StrumNoteType>, playerCount:Int)
     {
         defaultStrumX = [];

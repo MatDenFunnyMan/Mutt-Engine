@@ -22,7 +22,6 @@ typedef ResultsLayer = {
 
 class RankData
 {
-	public static var PERFECT_THRESHOLD:Float = 1;
 	public static var EXCELLENT_THRESHOLD:Float = 0.9;
 	public static var GREAT_THRESHOLD:Float = 0.8;
 	public static var GOOD_THRESHOLD:Float = 0.6;
@@ -30,7 +29,7 @@ class RankData
 	public static function calculate(percent:Float, misses:Int, sicks:Int, totalHits:Int):ResultsRank
 	{
 		if(misses < 1 && totalHits > 0 && sicks >= totalHits) return PERFECT_GOLD;
-		if(misses < 1 && percent >= PERFECT_THRESHOLD) return PERFECT;
+		if(misses < 1 && totalHits > 0) return PERFECT;
 		if(percent >= EXCELLENT_THRESHOLD) return EXCELLENT;
 		if(percent >= GREAT_THRESHOLD) return GREAT;
 		if(percent >= GOOD_THRESHOLD) return GOOD;

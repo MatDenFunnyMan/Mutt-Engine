@@ -15,9 +15,11 @@ class ABotSpeaker extends FlxSpriteGroup
 	public var eyeBg:FlxSprite;
 	public var eyes:FlxAnimate;
 	public var speaker:FlxAnimate;
+	public var speakerAlt:FlxAnimate;
 
 	#if funkin.vis
 	var analyzer:SpectralAnalyzer;
+	var analysis:funkin.audio.AnalysisSource;
 	#end
 	var volumes:Array<Float> = [];
 
@@ -31,7 +33,7 @@ class ABotSpeaker extends FlxSpriteGroup
 		return snd;
 	}
 
-	public function new(x:Float = 0, y:Float = 0)
+	public function new(x:Float = 0, y:Float = 0, useDark:Bool = false)
 	{
 		super(x, y);
 
@@ -74,13 +76,24 @@ class ABotSpeaker extends FlxSpriteGroup
 		eyes.anim.curFrame = eyes.anim.length - 1;
 		add(eyes);
 
-		speaker = new FlxAnimate(-65, -10);
-		Paths.loadAnimateAtlas(speaker, 'abot/abotSystem');
-		speaker.anim.addBySymbol('anim', 'Abot System', 24, false);
-		speaker.anim.play('anim', true);
-		speaker.anim.curFrame = speaker.anim.length - 1;
-		speaker.antialiasing = antialias;
-		add(speaker);
+		speaker = makeSpeaker(useDark);
+		if(useDark)
+		{
+			speakerAlt = makeSpeaker(false);
+			speakerAlt.alpha = 0;
+		}
+	}
+
+	function makeSpeaker(useDark:Bool):FlxAnimate
+	{
+		var spr:FlxAnimate = new FlxAnimate(-65, -10);
+		Paths.loadAnimateAtlas(spr, useDark ? 'abot/dark/abotSystem' : 'abot/abotSystem');
+		spr.anim.addBySymbol('anim', 'Abot System', 24, false);
+		spr.anim.play('anim', true);
+		spr.anim.curFrame = spr.anim.length - 1;
+		spr.antialiasing = ClientPrefs.data.antialiasing;
+		add(spr);
+		return spr;
 	}
 
 	#if funkin.vis
@@ -89,6 +102,7 @@ class ABotSpeaker extends FlxSpriteGroup
 	override function update(elapsed:Float):Void
 	{
 		super.update(elapsed);
+		checkAnalyzer();
 		if(analyzer == null) return;
 
 		levels = analyzer.getLevels(levels);
@@ -115,13 +129,25 @@ class ABotSpeaker extends FlxSpriteGroup
 	public function beatHit()
 	{
 		speaker.anim.play('anim', true);
+		if(speakerAlt != null) speakerAlt.anim.play('anim', true);
 	}
 
 	#if funkin.vis
 	public function initAnalyzer()
 	{
-		@:privateAccess
-		analyzer = new SpectralAnalyzer(snd._channel.__audioSource, 7, 0.1, 40);
+		analyzer = null;
+		analysis = new funkin.audio.AnalysisSource(snd);
+		checkAnalyzer();
+	}
+
+	function checkAnalyzer()
+	{
+		if(analyzer != null || analysis == null) return;
+		var source:lime.media.AudioSource = analysis.poll();
+		if(source == null) return;
+
+		analysis = null;
+		analyzer = new SpectralAnalyzer(source, 7, 0.1, 40);
 	
 		#if desktop
 		// On desktop it uses FFT stuff that isn't as optimized as the direct browser stuff we use on HTML5

@@ -452,8 +452,28 @@ class PsychUIInputText extends FlxSpriteGroup
             blockFocusOnClick = false;
             return focusOn;
         }
+        toggleVolumeKeysForTyping(v != null);
         return (focusOn = v);
     }
+
+	static var _savedVolumeKeys:Array<Array<FlxKey>> = null;
+	static function toggleVolumeKeysForTyping(typing:Bool)
+	{
+		if(typing && _savedVolumeKeys == null)
+		{
+			_savedVolumeKeys = [FlxG.sound.muteKeys, FlxG.sound.volumeDownKeys, FlxG.sound.volumeUpKeys];
+			FlxG.sound.muteKeys = [];
+			FlxG.sound.volumeDownKeys = [];
+			FlxG.sound.volumeUpKeys = [];
+		}
+		else if(!typing && _savedVolumeKeys != null)
+		{
+			FlxG.sound.muteKeys = _savedVolumeKeys[0];
+			FlxG.sound.volumeDownKeys = _savedVolumeKeys[1];
+			FlxG.sound.volumeUpKeys = _savedVolumeKeys[2];
+			_savedVolumeKeys = null;
+		}
+	}
 
 	override function update(elapsed:Float)
 	{
