@@ -23,8 +23,13 @@ class PhillyLights extends BaseStage {
 	var Y:Float;
     var phillyLightsColors:Array<FlxColor>;
 
-    public function new(phillyStreet:FlxSprite,windowX:Float,windowY:Float,colors:Array<FlxColor>) {
+	var windowImage:String;
+	var windowScale:Float;
+
+    public function new(phillyStreet:FlxSprite,windowX:Float,windowY:Float,colors:Array<FlxColor>,?windowImage:String = 'philly/window',?windowScale:Float = 0.85) {
         super();
+        this.windowImage = windowImage;
+        this.windowScale = windowScale;
         this.phillyStreet = phillyStreet;
         phillyLightsColors = colors;
         X = windowX;
@@ -39,8 +44,8 @@ class PhillyLights extends BaseStage {
 				blammedLightsBlack.visible = false;
 				insert(members.indexOf(phillyStreet), blammedLightsBlack);
 
-				phillyWindowEvent = new BGSprite('philly/window', X, Y, 0.3, 0.3);
-				phillyWindowEvent.setGraphicSize(Std.int(phillyWindowEvent.width * 0.85));
+				phillyWindowEvent = new BGSprite(windowImage, X, Y, 0.3, 0.3);
+				phillyWindowEvent.setGraphicSize(Std.int(phillyWindowEvent.width * windowScale));
 				phillyWindowEvent.updateHitbox();
 				phillyWindowEvent.visible = false;
 				insert(members.indexOf(blammedLightsBlack) + 1, phillyWindowEvent);

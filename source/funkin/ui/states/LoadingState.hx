@@ -79,21 +79,12 @@ class LoadingState extends MusicBeatState
 	var loadTimeout:Float = 0;
 	var maxLoadTime:Float = 15.0;
 
-	#if PSYCH_WATERMARKS
-	var logo:FlxSprite;
-	var pessy:FlxSprite;
-	var loadingText:FlxText;
-
-	var timePassed:Float;
-	var shakeFl:Float;
-	var shakeMult:Float = 0;
-	
-	var isSpinning:Bool = false;
-	var spawnedPessy:Bool = false;
-	var pressedTimes:Int = 0;
-	#else
+	static inline var REVEAL_DELAY:Float = 0.5;
+	static inline var REVEAL_FADE:Float = 0.2;
+	var funkayBG:FlxSprite;
 	var funkay:FlxSprite;
-	#end
+	var revealTime:Float = 0;
+	var revealed:Bool = true;
 
 	#if HSCRIPT_ALLOWED
 	var hscript:HScript;
@@ -115,7 +106,7 @@ class LoadingState extends MusicBeatState
 		barBack.screenCenter(X);
 		barGroup.add(barBack);
 
-		bar = new FlxSprite(barBack.x + 5, barBack.y + 5).makeGraphic(1, 1, FlxColor.WHITE);
+		bar = new FlxSprite(barBack.x + 5, barBack.y + 5).makeGraphic(1, 1, 0xFFA64DFF);
 		bar.scale.set(0, 15);
 		bar.updateHitbox();
 		barGroup.add(bar);
@@ -183,41 +174,21 @@ class LoadingState extends MusicBeatState
 		}
 		#end
 
-		#if PSYCH_WATERMARKS // PSYCH LOADING SCREEN
-		var bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		bg.antialiasing = ClientPrefs.data.antialiasing;
-		bg.setGraphicSize(Std.int(FlxG.width));
-		bg.color = 0xFFFFC300;
-		bg.updateHitbox();
-		addBehindBar(bg);
-	
-		loadingText = new FlxText(520, 600, 400, Language.getPhrase('now_loading', 'Now Loading', ['...']), 32);
-		loadingText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, LEFT, OUTLINE_FAST, FlxColor.BLACK);
-		loadingText.borderSize = 2;
-		addBehindBar(loadingText);
-	
-		logo = new FlxSprite(0, 0).loadGraphic(Paths.image('loading_screen/icon'));
-		logo.antialiasing = ClientPrefs.data.antialiasing;
-		logo.scale.set(0.75, 0.75);
-		logo.updateHitbox();
-		logo.screenCenter();
-		logo.x -= 120;
-		logo.y -= 40;
-		addBehindBar(logo);
-
-		#else // BASE GAME LOADING SCREEN
-		var bg = new FlxSprite().makeGraphic(1, 1, 0xFFCAFF4D);
-		bg.scale.set(FlxG.width, FlxG.height);
-		bg.updateHitbox();
-		bg.screenCenter();
-		addBehindBar(bg);
+		funkayBG = new FlxSprite().makeGraphic(1, 1, 0xFFCAFF4D);
+		funkayBG.scale.set(FlxG.width, FlxG.height);
+		funkayBG.updateHitbox();
+		funkayBG.screenCenter();
+		addBehindBar(funkayBG);
 
 		funkay = new FlxSprite(0, 0).loadGraphic(Paths.image('funkay'));
 		funkay.antialiasing = ClientPrefs.data.antialiasing;
 		funkay.setGraphicSize(0, FlxG.height);
 		funkay.updateHitbox();
 		addBehindBar(funkay);
-		#end
+
+		revealed = false;
+		revealTime = 0;
+		funkayBG.alpha = funkay.alpha = barGroup.alpha = 0;
 		super.create();
 
 		if (stateChangeDelay <= 0 && checkLoaded())
@@ -288,76 +259,16 @@ class LoadingState extends MusicBeatState
 		}
 		#end
 
-		#if PSYCH_WATERMARKS // PSYCH LOADING SCREEN
-		timePassed += elapsed;
-		shakeFl += elapsed * 3000;
-		var dots:String = '';
-		switch(Math.floor(timePassed % 1 * 3))
+		if(!revealed)
 		{
-			case 0:
-				dots = '.';
-			case 1:
-				dots = '..';
-			case 2:
-				dots = '...';
-		}
-		loadingText.text = Language.getPhrase('now_loading', 'Now Loading{1}', [dots]);
-
-		if(!spawnedPessy)
-		{
-			if(!transitioning && controls.ACCEPT)
+			revealTime += elapsed;
+			if(revealTime >= REVEAL_DELAY)
 			{
-				shakeMult = 1;
-				FlxG.sound.play(Paths.sound('cancelMenu'));
-				pressedTimes++;
-			}
-			shakeMult = Math.max(0, shakeMult - elapsed * 5);
-			logo.offset.x = Math.sin(shakeFl * Math.PI / 180) * shakeMult * 100;
-
-			if(pressedTimes >= 5)
-			{
-				FlxG.camera.fade(0xAAFFFFFF, 0.5, true);
-				logo.visible = false;
-				spawnedPessy = true;
-				stateChangeDelay = 5;
-				FlxG.sound.play(Paths.sound('secret'));
-
-				pessy = new FlxSprite(700, 140);
-				pessy.frames = Paths.getSparrowAtlas('loading_screen/pessy');
-				pessy.animation.addByPrefix('run', 'run', 24, true);
-				pessy.animation.addByPrefix('spin', 'spin', 24, true);
-				pessy.antialiasing = ClientPrefs.data.antialiasing;
-				pessy.flipX = (logo.offset.x > 0);
-				pessy.visible = false;
-
-				new FlxTimer().start(0.01, function(tmr:FlxTimer) {
-					pessy.x = FlxG.width + 200;
-					pessy.velocity.x = -1100;
-					if(pessy.flipX)
-					{
-						pessy.x = -pessy.width - 200;
-						pessy.velocity.x *= -1;
-					}
-		
-					pessy.visible = true;
-					pessy.animation.play('run', true);
-					#if ACHIEVEMENTS_ALLOWED Achievements.unlock('pessy_easter_egg'); #end
-					
-					insert(members.indexOf(loadingText), pessy);
-				});
+				var revealAlpha:Float = Math.min(1, (revealTime - REVEAL_DELAY) / REVEAL_FADE);
+				funkayBG.alpha = funkay.alpha = barGroup.alpha = revealAlpha;
+				if(revealAlpha >= 1) revealed = true;
 			}
 		}
-		else if(!isSpinning && (pessy.flipX && pessy.x > FlxG.width) || (!pessy.flipX && pessy.x < -pessy.width))
-		{
-			isSpinning = true;
-			pessy.animation.play('spin', true);
-			pessy.flipX = false;
-			pessy.x = 500;
-			pessy.y = FlxG.height + 500;
-			pessy.velocity.x = 0;
-			FlxTween.tween(pessy, {y: 10}, 0.65, {ease: FlxEase.quadOut});
-		}
-		#end
 	}
 
 	#if (HSCRIPT_ALLOWED || LUA_ALLOWED)
@@ -560,6 +471,10 @@ class LoadingState extends MusicBeatState
 
 		var song:SwagSong = PlayState.SONG;
 		var folder:String = Paths.formatToSongPath(Song.loadedSongName);
+
+		var songStage:String = (song.stage == null || song.stage.length < 1) ? StageData.vanillaSongStage(folder) : song.stage;
+		var songStageFile:StageFile = StageData.getStageFile(songStage);
+		Paths.setCurrentLevel((songStageFile != null && songStageFile.directory != null && songStageFile.directory.length > 0) ? songStageFile.directory : 'shared');
 
 		#if VIDEOS_ALLOWED
 		videosToPrecache = [];

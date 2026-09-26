@@ -170,6 +170,7 @@ class Character extends animate.FlxAnimate
 		scale.set(1, 1);
 		updateHitbox();
 
+		useRenderTexture = modernFrames != null;
 		if(modernFrames != null)
 		{
 			frames = modernFrames;
@@ -303,10 +304,15 @@ class Character extends animate.FlxAnimate
 				if(animationNotes.length > 0 && Conductor.songPosition > animationNotes[0][0])
 				{
 					var noteData:Int = 1;
-					if(animationNotes[0][1] > 2) noteData = 3;
-
-					noteData += FlxG.random.int(0, 1);
+					if(curCharacter == 'otis-speaker')
+						noteData = (Std.int(animationNotes[0][1]) % 4) + 1;
+					else
+					{
+						if(animationNotes[0][1] > 2) noteData = 3;
+						noteData += FlxG.random.int(0, 1);
+					}
 					playAnim('shoot' + noteData, true);
+					if(onSpeakerShoot != null) onSpeakerShoot(noteData);
 					animationNotes.shift();
 				}
 				if(isAnimationFinished()) playAnim(getAnimationName(), false, false, animation.curAnim.frames.length - 3);
@@ -455,6 +461,7 @@ class Character extends animate.FlxAnimate
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1[0], Obj2[0]);
 	}
 
+	public var onSpeakerShoot:Int->Void = null;
 	public var danceEveryNumBeats:Int = 2;
 	public var vsliceSustains:Bool = false;
 	private var settingCharacterUp:Bool = true;

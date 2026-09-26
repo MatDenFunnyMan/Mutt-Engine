@@ -2,7 +2,7 @@
 	"animations": [
 		{
 			"loop": false,
-			"offsets": [0, 0],
+			"offsets": [50, 28],
 			"anim": "hey",
 			"fps": 24,
 			"name": "Cheer",
@@ -10,7 +10,7 @@
 		},
 		{
 			"loop": false,
-			"offsets": [0, 0],
+			"offsets": [50, 28],
 			"anim": "cheer",
 			"fps": 24,
 			"name": "Cheer",
@@ -18,7 +18,7 @@
 		},
 		{
 			"loop": false,
-			"offsets": [130, -10],
+			"offsets": [115, -16],
 			"anim": "singLEFT",
 			"fps": 24,
 			"name": "SingLEFT",
@@ -34,7 +34,7 @@
 		},
 		{
 			"loop": false,
-			"offsets": [-50, -130],
+			"offsets": [-60, -140],
 			"anim": "singDOWN",
 			"fps": 24,
 			"name": "SingDOWN",
@@ -42,7 +42,7 @@
 		},
 		{
 			"loop": false,
-			"offsets": [-20, 26],
+			"offsets": [-27, 24],
 			"fps": 24,
 			"anim": "singUP",
 			"indices": [],

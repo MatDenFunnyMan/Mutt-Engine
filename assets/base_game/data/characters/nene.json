@@ -157,6 +157,151 @@
 			"anim": "lowerKnife",
 			"loop": false,
 			"name": "Knife Lower"
+		},
+		{
+			"offsets": [
+				0,
+				0
+			],
+			"indices": [
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				7,
+				8,
+				9,
+				10,
+				11,
+				7,
+				8,
+				9,
+				10,
+				11,
+				7,
+				8,
+				9,
+				10,
+				11,
+				7,
+				8,
+				9,
+				10,
+				11,
+				7,
+				8,
+				9,
+				10,
+				11
+			],
+			"fps": 24,
+			"anim": "drop70",
+			"loop": false,
+			"name": "Laugh"
+		},
+		{
+			"offsets": [
+				0,
+				0
+			],
+			"indices": [
+				0,
+				1,
+				2,
+				3,
+				0,
+				1,
+				2,
+				3
+			],
+			"fps": 24,
+			"anim": "hairBlowNormal",
+			"loop": false,
+			"name": "Hair Blow"
+		},
+		{
+			"offsets": [
+				0,
+				0
+			],
+			"indices": [
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16
+			],
+			"fps": 24,
+			"anim": "hairFallNormal",
+			"loop": false,
+			"name": "Hair Blow"
+		},
+		{
+			"offsets": [
+				0,
+				0
+			],
+			"indices": [
+				0,
+				1,
+				2,
+				3,
+				0,
+				1,
+				2,
+				3
+			],
+			"fps": 24,
+			"anim": "hairBlowKnife",
+			"loop": false,
+			"name": "Idle (holding Knife with hair blowing)"
+		},
+		{
+			"offsets": [
+				0,
+				0
+			],
+			"indices": [
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14
+			],
+			"fps": 24,
+			"anim": "hairFallKnife",
+			"loop": false,
+			"name": "Idle (holding Knife with hair blowing)"
 		}
 	],
 	"vocals_file": "",

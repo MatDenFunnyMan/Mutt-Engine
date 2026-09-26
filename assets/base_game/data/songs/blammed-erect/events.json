@@ -1,266 +1,6 @@
 {
 	"events": [
 		[
-			0,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
-			44,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.945",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			88.3614457831318,
-			[
-				[
-					"Set Camera Bopping",
-					"2",
-					"0.6"
-				]
-			]
-		],
-		[
-			2823.52941176471,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
-					""
-				]
-			]
-		],
-		[
-			5647.05882352941,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
-			8470.58823529412,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
-					""
-				]
-			]
-		],
-		[
-			10764.7058823529,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
-			11029.4117647059,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"4, elasticInOut"
-				]
-			]
-		],
-		[
-			11205.3614457831,
-			[
-				[
-					"Set Camera Bopping",
-					"4",
-					"1"
-				]
-			]
-		],
-		[
-			16941.1764705882,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
-					""
-				]
-			]
-		],
-		[
-			19764,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.155",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			20470,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			21176,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.155",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			22764.7058823529,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
-			22808,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			28235.8235294118,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
-					""
-				]
-			]
-		],
-		[
-			29647,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.155",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			31058,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			33794.3614457831,
-			[
-				[
-					"Set Camera Bopping",
-					"2",
-					"1.1"
-				]
-			]
-		],
-		[
-			34058.8823529412,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
-			34102,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.945",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			39529.1764705882,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
-					""
-				]
-			]
-		],
-		[
-			40941,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			42529,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.945",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			44911.4117647059,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"4, elasticInOut"
-				]
-			]
-		],
-		[
-			45088.3614457831,
-			[
-				[
-					"Set Camera Bopping",
-					"2",
-					"1.6"
-				]
-			]
-		],
-		[
 			45176.4705882353,
 			[
 				[
@@ -276,33 +16,8 @@
 			]
 		],
 		[
-			45176.6341463415,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
 			45882,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.1025",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			45882,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -313,21 +28,6 @@
 		[
 			46235,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			46235,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -349,21 +49,6 @@
 			46941,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.1025",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			46941,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -374,21 +59,6 @@
 			47294,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.155",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			47294,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -398,21 +68,6 @@
 		[
 			48000,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.2075",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			48000,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -429,21 +84,6 @@
 			48529,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			48529,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -454,21 +94,6 @@
 			48705,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.2075",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			48705,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -478,21 +103,6 @@
 		[
 			49058,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			49058,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -514,21 +124,6 @@
 			49764,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.3125",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			49764,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -538,21 +133,6 @@
 		[
 			50117,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			50117,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -571,33 +151,8 @@
 			]
 		],
 		[
-			50823.6341463415,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
-					""
-				]
-			]
-		],
-		[
 			50867,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			50867,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -609,36 +164,6 @@
 			51529,
 			[
 				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
-					"Philly Glow",
-					"2",
-					""
-				]
-			]
-		],
-		[
-			51529,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.1025",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			51882,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -649,9 +174,9 @@
 			51882,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"8, expoOut"
+					"Philly Glow",
+					"2",
+					""
 				]
 			]
 		],
@@ -669,36 +194,6 @@
 			52588,
 			[
 				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
-					"Philly Glow",
-					"2",
-					""
-				]
-			]
-		],
-		[
-			52588,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.1025",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			52941,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -709,30 +204,15 @@
 			52941,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.155",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			53647,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.2075",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			53647,
-			[
-				[
-					"Add Camera Zoom",
-					"",
+					"Philly Glow",
+					"2",
 					""
-				],
+				]
+			]
+		],
+		[
+			53647,
+			[
 				[
 					"Philly Glow",
 					"2",
@@ -754,24 +234,9 @@
 			54176,
 			[
 				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
-				]
-			]
-		],
-		[
-			54176,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
 				]
 			]
 		],
@@ -779,21 +244,6 @@
 			54352,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.2075",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			54352,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -801,42 +251,12 @@
 			]
 		],
 		[
-			54529,
-			[
-				[
-					"Set Property",
-					"cameraSpeed",
-					"2"
-				]
-			]
-		],
-		[
 			54705,
 			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
 					""
-				],
-				[
-					"Camera Follow Pos",
-					"570",
-					"520"
-				]
-			]
-		],
-		[
-			54705,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
 				]
 			]
 		],
@@ -864,11 +284,6 @@
 			55411,
 			[
 				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -876,57 +291,12 @@
 			]
 		],
 		[
-			55411,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.3125",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			55588,
-			[
-				[
-					"Camera Follow Pos",
-					"530",
-					"520"
-				]
-			]
-		],
-		[
 			55764,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			55764,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
 					""
-				]
-			]
-		],
-		[
-			56117,
-			[
-				[
-					"Camera Follow Pos",
-					"630",
-					"520"
 				]
 			]
 		],
@@ -937,16 +307,6 @@
 					"Philly Glow",
 					"2",
 					""
-				],
-				[
-					"Camera Follow Pos",
-					"",
-					""
-				],
-				[
-					"Set Property",
-					"cameraSpeed",
-					"1"
 				]
 			]
 		],
@@ -961,33 +321,8 @@
 			]
 		],
 		[
-			56470.6341463415,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
 			56514,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			56514,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -999,21 +334,6 @@
 			57176,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.1025",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			57176,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -1023,21 +343,6 @@
 		[
 			57529,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			57529,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -1059,11 +364,6 @@
 			58235,
 			[
 				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -1071,33 +371,8 @@
 			]
 		],
 		[
-			58235,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.1025",
-					"8, expoOut"
-				]
-			]
-		],
-		[
 			58588,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.155",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			58588,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -1108,21 +383,6 @@
 		[
 			59294,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.2075",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			59294,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -1144,11 +404,6 @@
 			59823,
 			[
 				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -1156,33 +411,8 @@
 			]
 		],
 		[
-			59823,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
-				]
-			]
-		],
-		[
 			59999,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.2075",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			59999,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -1193,21 +423,6 @@
 		[
 			60352,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			60352,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -1229,21 +444,6 @@
 			61058,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.3125",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			61058,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -1254,33 +454,8 @@
 			61411,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			61411,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
-					""
-				]
-			]
-		],
-		[
-			62117.6341463415,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
 					""
 				]
 			]
@@ -1299,21 +474,6 @@
 			62161,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			62161,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -1323,36 +483,6 @@
 		[
 			62823,
 			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
-					"Philly Glow",
-					"2",
-					""
-				]
-			]
-		],
-		[
-			62823,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.1025",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			63176,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -1364,9 +494,9 @@
 			63176,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"8, expoOut"
+					"Philly Glow",
+					"2",
+					""
 				]
 			]
 		],
@@ -1384,21 +514,6 @@
 			63882,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.1025",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			63882,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -1409,21 +524,6 @@
 			64235,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.155",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			64235,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -1433,21 +533,6 @@
 		[
 			64941,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.2075",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			64941,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -1469,11 +554,6 @@
 			65470,
 			[
 				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -1481,33 +561,8 @@
 			]
 		],
 		[
-			65470,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
-				]
-			]
-		],
-		[
 			65646,
 			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.2075",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			65646,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
 				[
 					"Philly Glow",
 					"2",
@@ -1519,24 +574,9 @@
 			65999,
 			[
 				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
-				]
-			]
-		],
-		[
-			65999,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
 				]
 			]
 		],
@@ -1554,21 +594,6 @@
 			66705,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.3125",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			66705,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
@@ -1579,44 +604,9 @@
 			67058,
 			[
 				[
-					"(STEPS) Set Cam Zoom",
-					"1.26",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			67058,
-			[
-				[
-					"Add Camera Zoom",
-					"",
-					""
-				],
-				[
 					"Philly Glow",
 					"2",
 					""
-				]
-			]
-		],
-		[
-			67676.3614457831,
-			[
-				[
-					"Set Camera Bopping",
-					"2",
-					"1.1"
-				]
-			]
-		],
-		[
-			67676.3614457831,
-			[
-				[
-					"Set Camera Bopping",
-					"2",
-					"1.1"
 				]
 			]
 		],
@@ -1627,176 +617,6 @@
 					"Philly Glow",
 					"0",
 					""
-				]
-			]
-		],
-		[
-			67941.6341463415,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
-			67985,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			73411.6341463415,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
-					""
-				]
-			]
-		],
-		[
-			74823,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.155",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			76411,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			77647,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.155",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			79235.6341463415,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
-			79279,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			84705.6341463415,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
-					""
-				]
-			]
-		],
-		[
-			86117,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.1025",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			87529,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.155",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			88941,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.2075",
-					"8, expoOut"
-				]
-			]
-		],
-		[
-			90264.3614457831,
-			[
-				[
-					"Set Camera Bopping",
-					"2",
-					"0.6"
-				]
-			]
-		],
-		[
-			90352,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.945",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			101294.361445783,
-			[
-				[
-					"Set Camera Bopping",
-					"4",
-					"0"
-				]
-			]
-		],
-		[
-			101382.411764706,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.05",
-					"4, elasticInOut"
-				]
-			]
-		],
-		[
-			101823,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.945",
-					"64, sineInOut"
 				]
 			]
 		]

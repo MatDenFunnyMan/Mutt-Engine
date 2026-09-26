@@ -21,6 +21,8 @@ class TankErect extends BaseStage
 	var guy:FlxSprite;
 	var tankmanRun:FlxTypedGroup<TankmenBG>;
 	var cutscene:funkin.game.cutscenes.PicoTankman;
+	var tankmanRim:DropShadowShader;
+	var muzzleFlash:FlxSprite;
 	#if html5
 	var captainBloody_mask:BitmapData = null;
 	#end
@@ -56,6 +58,34 @@ class TankErect extends BaseStage
 		}
 	}
 
+	function shootMuzzleFlash(shot:Int)
+	{
+		if (muzzleFlash == null || gf == null) return;
+
+		var baseX:Float = gf.x - gf.offset.x + 13;
+		var baseY:Float = gf.y - gf.offset.y + 132;
+		switch (shot)
+		{
+			case 1: muzzleFlash.setPosition(baseX + 950, baseY);
+			case 2: muzzleFlash.setPosition(baseX + 950, baseY - 50);
+			case 3: muzzleFlash.setPosition(baseX - 350, baseY - 50);
+			default: muzzleFlash.setPosition(baseX - 350, baseY - 100);
+		}
+		muzzleFlash.blend = openfl.display.BlendMode.ADD;
+		muzzleFlash.visible = gf.visible;
+		muzzleFlash.animation.play('shoot$shot', true);
+	}
+
+	override function update(elapsed:Float)
+	{
+		super.update(elapsed);
+		if (muzzleFlash != null && muzzleFlash.visible && muzzleFlash.animation.curAnim != null)
+		{
+			if (muzzleFlash.animation.curAnim.curFrame > 1) muzzleFlash.blend = null;
+			if (muzzleFlash.animation.curAnim.finished) muzzleFlash.visible = false;
+		}
+	}
+
 	override function beatHit()
 	{
 		super.beatHit();
@@ -68,14 +98,17 @@ class TankErect extends BaseStage
 			sniper.animation.play('sip', true);
 	}
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float) {
+		if(eventName == "EnableMask" && tankmanRim != null)
+			tankmanRim.useAltMask = true;
+
 		if(eventName == "Change Character" && ClientPrefs.data.shaders){
 			switch(value1.toLowerCase().trim()) {
 				case 'gf' | 'girlfriend' | '2':
-					applyShader(gf, gf.curCharacter);
+					applyShader(gf, 'gf');
 				case 'dad' | 'opponent' | '1':
-					applyShader(dad, dad.curCharacter);
+					applyShader(dad, 'dad');
 				default:
-					applyShader(boyfriend, boyfriend.curCharacter);
+					applyShader(boyfriend, 'bf');
 			}
 		}
 	}
@@ -84,9 +117,9 @@ class TankErect extends BaseStage
 	{
 		if (ClientPrefs.data.shaders)
 		{
-			applyShader(boyfriend, boyfriend.curCharacter);
-			applyShader(gf, gf.curCharacter);
-			applyShader(dad, dad.curCharacter);
+			applyShader(boyfriend, 'bf');
+			if (gf != null) applyShader(gf, 'gf');
+			applyShader(dad, 'dad');
 
 			var pico = PicoCapableStage.instance;
 			if (pico != null && pico.abot != null && game.stages.contains(pico))
@@ -103,7 +136,21 @@ class TankErect extends BaseStage
 			captainBloody_mask = item;
 		});
 		#end
-		if (gf != null && gf.curCharacter == 'otis-speaker') GameOverSubstate.characterName = 'pico-holding-nene-dead';
+		if (gf != null && gf.curCharacter == 'otis-speaker')
+		{
+			GameOverSubstate.characterName = 'pico-holding-nene-dead';
+
+			muzzleFlash = new FlxSprite();
+			muzzleFlash.frames = Paths.getSparrowAtlas('characters/otis/muzzle-flashes/otis_flashes');
+			muzzleFlash.animation.addByPrefix('shoot1', 'shoot back0', 24, false);
+			muzzleFlash.animation.addByPrefix('shoot2', 'shoot back low0', 24, false);
+			muzzleFlash.animation.addByPrefix('shoot3', 'shoot forward0', 24, false);
+			muzzleFlash.animation.addByPrefix('shoot4', 'shoot forward low0', 24, false);
+			muzzleFlash.antialiasing = ClientPrefs.data.antialiasing;
+			muzzleFlash.visible = false;
+			addBehindGF(muzzleFlash);
+			gf.onSpeakerShoot = shootMuzzleFlash;
+		}
 		if (cutscene != null) cutscene.preloadCutscene();
 
 		if (!ClientPrefs.data.lowQuality)
@@ -158,88 +205,55 @@ class TankErect extends BaseStage
 			rim.curZoom = camGame.zoom;
 		};
 	}
-	function applyShader(sprite:FlxSprite, char_name:String)
+	function applyShader(sprite:FlxSprite, role:String)
 	{
+		if (sprite == null) return;
+
 		var rim = new DropShadowShader();
 		rim.setAdjustColor(-46, -38, -25, -20);
 		rim.color = 0xFFDFEF3C;
-		rim.threshold = 0.3;
 		rim.attachedSprite = sprite;
-		rim.distance = 15;
-		rim.strength = 1;
 		rim.angle = 90;
-		switch (char_name)
+
+		var charName:String = Std.isOfType(sprite, Character) ? cast(sprite, Character).curCharacter : '';
+		switch (role)
 		{
-			case "bf":
+			case 'bf':
+			case 'gf':
+				var mask:String = switch (charName)
 				{
-					rim.threshold = 0.1;
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
+					case 'gf-tankmen': 'erect/masks/gfTankmen_mask';
+					case 'nene-tankmen': 'erect/masks/neneTankmen_mask';
+					default: null;
 				}
-			case "gf-tankmen":
+				if (mask != null && Paths.fileExists('images/$mask.png', IMAGE))
 				{
-					rim.setAdjustColor(-42, -10, 5, -25);
-					rim.distance = 3;
-					rim.threshold = 0.1;
-					rim.altMaskImage = Paths.image("erect/masks/gfTankmen_mask").bitmap;
-					rim.maskThreshold = 1;
+					rim.altMaskImage = Paths.image(mask).bitmap;
+					rim.maskThreshold = 0.4;
 					rim.useAltMask = true;
-
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
 				}
-
-			case "tankman-bloody":
+			case 'dad':
+				rim.angle = 25;
+				rim.threshold = 0.3;
+				if (charName == 'tankman-bloody')
 				{
-					rim.angle = 135;
 					#if html5
 					rim.altMaskImage = captainBloody_mask;
 					#else
 					rim.altMaskImage = Paths.image("erect/masks/tankmanCaptainBloody_mask").bitmap;
 					#end
 					rim.maskThreshold = 1;
-					rim.threshold = 0.1;
-					rim.useAltMask = true;
-
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
-				}
-			case "tankman":
-				{
-					rim.angle = 135;
-					rim.threshold = 0.1;
-					rim.maskThreshold = 1;
 					rim.useAltMask = false;
-
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
 				}
-			case "nene":
-				{
-					rim.threshold = 0.1;
-					rim.angle = 90;
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
-				}
+				tankmanRim = rim;
 			default:
-				{
-					rim.angle = 90;
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
-				}
+				rim.threshold = 0.3;
 		}
+
+		sprite.animation.callback = function(anim, frame, index)
+		{
+			rim.updateFrameInfo(sprite.frame);
+		};
 		sprite.shader = rim;
 	}
 

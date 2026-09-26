@@ -1,41 +1,11 @@
 {
 	"events": [
 		[
-			0,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
-					""
-				]
-			]
-		],
-		[
 			3840,
 			[
 				[
 					"Kill Henchmen",
 					"",
-					""
-				]
-			]
-		],
-		[
-			3840,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
-			11520,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
 					""
 				]
 			]
@@ -51,131 +21,11 @@
 			]
 		],
 		[
-			19200,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
-			26880,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
-					""
-				]
-			]
-		],
-		[
-			34560,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
 			34560,
 			[
 				[
 					"Kill Henchmen",
 					"",
-					""
-				]
-			]
-		],
-		[
-			42240,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"gf, -100, 210",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			42360,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.855",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			45960,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.9",
-					"32, smoothStepInOut"
-				]
-			]
-		],
-		[
-			46080,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf, 60, 0",
-					"32, smoothStepInOut"
-				]
-			]
-		],
-		[
-			48960,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.99",
-					"6, quadOut"
-				]
-			]
-		],
-		[
-			49440,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.08",
-					"6, quadOut"
-				]
-			]
-		],
-		[
-			49920,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.9",
-					"8, quadOut"
-				]
-			]
-		],
-		[
-			50640,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
-			57600,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf",
 					""
 				]
 			]
@@ -191,167 +41,7 @@
 			]
 		],
 		[
-			65280,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"dad",
-					""
-				]
-			]
-		],
-		[
-			72960,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"gf, -100, 210",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			73080,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.855",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			76680,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.9",
-					"32, smoothStepInOut"
-				]
-			]
-		],
-		[
-			76800,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"bf, 60, 0",
-					"32, smoothStepInOut"
-				]
-			]
-		],
-		[
-			79680,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.99",
-					"6, quadOut"
-				]
-			]
-		],
-		[
-			80160,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"1.08",
-					"6, quadOut"
-				]
-			]
-		],
-		[
 			80640,
-			[
-				[
-					"Kill Henchmen",
-					"",
-					""
-				]
-			]
-		],
-		[
-			80640,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"gf, -100, 210",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			80760,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.855",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			84480,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"gf, -220, 170",
-					"32, sineOut"
-				]
-			]
-		],
-		[
-			84600,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.99",
-					"32, sineOut"
-				]
-			]
-		],
-		[
-			88320,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"gf, -100, 210",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			88440,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.855",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			92160,
-			[
-				[
-					"(STEPS) Target Follow Pos",
-					"gf, 90, 120",
-					"32, sineOut"
-				]
-			]
-		],
-		[
-			92280,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.99",
-					"32, sineOut"
-				]
-			]
-		],
-		[
-			96000,
 			[
 				[
 					"Kill Henchmen",
@@ -364,19 +54,9 @@
 			96000,
 			[
 				[
-					"(STEPS) Target Follow Pos",
-					"gf, -100, 210",
-					"32, expoOut"
-				]
-			]
-		],
-		[
-			96120,
-			[
-				[
-					"(STEPS) Set Cam Zoom",
-					"0.855",
-					"32, expoOut"
+					"Kill Henchmen",
+					"",
+					""
 				]
 			]
 		]

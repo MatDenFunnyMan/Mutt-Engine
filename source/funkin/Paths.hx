@@ -705,11 +705,30 @@ class Paths
 		#end
 	}
 
-	inline static public function formatToSongPath(path:String) {
-		final invalidChars = ~/[~&;:<>#\s]/g;
-		final hideChars = ~/[.,'"%?!]/g;
+	static public function formatToSongPath(path:String):String {
+		var result:StringBuf = null;
+		var start:Int = 0;
+		for (i in 0...path.length)
+		{
+			var replacement:String = switch(StringTools.fastCodeAt(path, i))
+			{
+				case '~'.code | '&'.code | ';'.code | ':'.code | '<'.code | '>'.code | '#'.code | ' '.code | 0x09 | 0x0A | 0x0B | 0x0C | 0x0D: '-';
+				case '.'.code | ','.code | "'".code | '"'.code | '%'.code | '?'.code | '!'.code: '';
+				default: null;
+			}
+			if(replacement == null) continue;
 
-		return hideChars.replace(invalidChars.replace(path, '-'), '').trim().toLowerCase();
+			if(result == null) result = new StringBuf();
+			result.addSub(path, start, i - start);
+			result.add(replacement);
+			start = i + 1;
+		}
+		if(result != null)
+		{
+			result.addSub(path, start);
+			path = result.toString();
+		}
+		return path.trim().toLowerCase();
 	}
 
 	public static var currentTrackedSounds:Map<String, Sound> = [];
@@ -924,6 +943,13 @@ class Paths
 		var modern:Array<FlxAtlasFrames> = [for (frames in collections) if(frames is animate.FlxAnimateFrames) frames];
 		for (frames in collections) if(!modern.contains(frames)) modern.push(frames);
 		return animate.FlxAnimateFrames.combineAtlas(modern);
+	}
+
+	public static function getAnimateAtlasFrames(folder:String, ?parentFolder:String):animate.FlxAnimateFrames
+	{
+		var animation:String = getTextFromFile('images/$folder/Animation.json');
+		if(animation == null) return null;
+		return loadModernAtlas(folder, animation, parentFolder);
 	}
 
 	static function loadModernAtlas(folder:String, animation:String, ?parentFolder:String):animate.FlxAnimateFrames

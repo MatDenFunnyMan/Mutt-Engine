@@ -114,9 +114,10 @@ class MallXmasErect extends BaseStage
 		santa.dance(true);
 	}
 
+	var cutsceneCamera:flixel.FlxObject;
+
 	function eggnogEndCutscene()
 	{
-
 		remove(santa);
 		dad.visible = false;
 		canPause = false;
@@ -127,41 +128,57 @@ class MallXmasErect extends BaseStage
 		erectSanta.anim.play("scene", true);
 		erectParents.anim.play("scene", true);
 		FlxG.sound.play(Paths.sound("santa_emotion"));
-    	erectSanta.anim.onComplete.add(() -> erectSanta.anim.pause());
-    	erectParents.anim.onComplete.add(() -> erectParents.anim.pause());
+		erectSanta.anim.onComplete.add(() -> erectSanta.anim.pause());
+		erectParents.anim.onComplete.add(() -> erectParents.anim.pause());
+
+		inCutscene = true;
+		game.camZooming = false;
+		FlxTween.cancelTweensOf(camGame);
+		camGame.follow(null);
+		cutsceneCamera = new flixel.FlxObject(camGame.scroll.x + camGame.width / 2, camGame.scroll.y + camGame.height / 2);
+		FlxTween.tween(camHUD, {alpha: 0}, 1);
+
+		moveCutsceneCamera(-100, 400, 2.8, FlxEase.expoOut);
+		FlxTween.tween(camGame, {zoom: 0.73}, 2, {ease: FlxEase.quadInOut});
 
 		new FlxTimer().start(2.8, function(tmr)
-			{
-				camFollow_set(erectSanta.x + 150, erectSanta.y);
-				FlxTween.tween(camGame,{zoom: 0.79}, 9,{
-					ease: FlxEase.quadInOut
-				});
-			});
+		{
+			moveCutsceneCamera(-250, 400, 9, FlxEase.quartInOut);
+			FlxTween.tween(camGame, {zoom: 0.79}, 9, {ease: FlxEase.quadInOut});
+		});
 
-			new FlxTimer().start(11.3, function(tmr){
+		new FlxTimer().start(11.375, function(tmr)
+		{
+			FlxG.sound.play(Paths.sound('santa_shot_n_falls'));
+		});
 
-			});
-			new FlxTimer().start(11.375, function(tmr)
-			{
-				FlxG.sound.play(Paths.sound('santa_shot_n_falls'));
-			});
+		new FlxTimer().start(12.83, function(tmr)
+		{
+			camGame.shake(0.005, 0.2);
+			moveCutsceneCamera(-240, 480, 5, FlxEase.expoOut);
+		});
 
-			new FlxTimer().start(12.83, function(tmr)
-			{
-				camGame.shake(0.005, 0.2);
-				camFollow_set(erectSanta.x + 160, erectSanta.y + 80);
-			});
+		new FlxTimer().start(15, function(tmr)
+		{
+			camOther.fade(0xFF000000, 1, false, null, true);
+		});
 
-			new FlxTimer().start(15, function(tmr)
-			{
-				camHUD.fade(0xFF000000, 1, false, null, true);
-			});
+		new FlxTimer().start(16, function(tmr)
+		{
+			endSong();
+		});
+	}
 
-			new FlxTimer().start(16, function(tmr)
-			{
-				camHUD.fade(0xFF000000, 0.5, true, null, true);
-				endSong();
-			});
+	function moveCutsceneCamera(x:Float, y:Float, duration:Float, ease:Float->Float)
+	{
+		FlxTween.cancelTweensOf(cutsceneCamera);
+		FlxTween.tween(cutsceneCamera, {x: x, y: y}, duration, {ease: ease});
+	}
+
+	override function update(elapsed:Float)
+	{
+		super.update(elapsed);
+		if (cutsceneCamera != null) camGame.focusOn(flixel.math.FlxPoint.weak(cutsceneCamera.x, cutsceneCamera.y));
 	}
 
 	function makeCutsceneAtlas(x:Float, y:Float, path:String, symbol:String):FlxAnimate

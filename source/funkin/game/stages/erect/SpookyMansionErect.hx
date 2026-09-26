@@ -21,9 +21,9 @@ class SpookyMansionErect extends BaseStage
 	var stairsDark:BGSprite;
 	var stairsLight:BGSprite;
 
-	var boyfriendGhost:Character;
-	var gfGhost:Character;
-	var dadGhost:Character;
+	var boyfriendLit:Character;
+	var gfLit:Character;
+	var dadLit:Character;
 
 	public function new() {
 		super();
@@ -64,7 +64,13 @@ class SpookyMansionErect extends BaseStage
 		}
 
 		halloweenWindow.animation.play("bgtrees0");
-        if (!ClientPrefs.data.lowQuality) makeChars();
+		if (!ClientPrefs.data.lowQuality)
+		{
+			boyfriendLit = makeLit(boyfriend, boyfriendGroup);
+			dadLit = makeLit(dad, dadGroup);
+			gfLit = makeLit(gf, gfGroup);
+			FlxG.signals.preDraw.add(syncAllLit);
+		}
 		add(stairsDark);
 		add(stairsLight);
 	}
@@ -75,6 +81,19 @@ class SpookyMansionErect extends BaseStage
 		shader?.update(elapsed);
 		}
 		super.update(elapsed);
+	}
+
+	override function destroy()
+	{
+		FlxG.signals.preDraw.remove(syncAllLit);
+		super.destroy();
+	}
+
+	function syncAllLit()
+	{
+		syncLit(boyfriend, boyfriendLit);
+		syncLit(dad, dadLit);
+		syncLit(gf, gfLit);
 	}
 	var lightningStrikeBeat:Int = 0;
 	var lightningOffset:Int = 8;
@@ -88,102 +107,31 @@ class SpookyMansionErect extends BaseStage
 		{
 			lightningStrikeShit();
 		}
-
-        if (curBeat % game.boyfriend.danceEveryNumBeats == 0 && !boyfriend.getAnimationName().startsWith('sing') && !game.boyfriend.stunned)
-			boyfriendGhost.dance();
-		if (curBeat % game.dad.danceEveryNumBeats == 0 && !dad.getAnimationName().startsWith('sing') && !game.dad.stunned)
-			dadGhost.dance();
-		if (curBeat % game.gf.danceEveryNumBeats == 0 && !gf.getAnimationName().startsWith('sing') && !game.gf.stunned)
-			gfGhost.dance();
 	}
-    override function goodNoteHit(note:Note) {
-        var anims = [ "singLEFT","singDOWN","singUP","singRIGHT"];
-	    boyfriendGhost?.playAnim(anims[note.noteData],true);
-		super.goodNoteHit(note);
-    }
-    override function noteMiss(note:Note) {
-        var anims = [ "singLEFT","singDOWN","singUP","singRIGHT"];
-	    boyfriendGhost?.playAnim(anims[note.noteData]+"miss",true);
-		super.noteMiss(note);
-    }
-    override function opponentNoteHit(note:Note) {
-        var anims = [ "singLEFT","singDOWN","singUP","singRIGHT"];
-	    dadGhost?.playAnim(anims[note.noteData],true);
-    }
-	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float) {
-		switch (eventName){
-			case "Play Animation":{
-				var char:Character = dadGhost;
-				switch(value2.toLowerCase().trim()) {
-					case 'bf' | 'boyfriend':
-						char = boyfriendGhost;
-					case 'gf' | 'girlfriend':
-						char = gfGhost;
-					default:
-						if(flValue2 == null) flValue2 = 0;
-						switch(Math.round(flValue2)) {
-							case 1: char = boyfriend;
-							case 2: char = gf;
-						}
-				}
 
-				if (char != null)
-				{
-					char.playAnim(value1, true);
-					char.specialAnim = true;
-				}
-			}
-		}
-	}
 	function lightningStrikeShit(playSound:Bool = true):Void
 	{
 		if(playSound) FlxG.sound.play(Paths.soundRandom('thunder_', 1, 2));
-			FlxTimer.wait(0.06, () ->
-			{
-				halloweenBGLight.alpha = 0;
-				stairsLight.alpha = 0;
-				boyfriend.alpha = 1;
-				dad.alpha = 1;
-				gf.alpha = 1;
 
-				gfGhost.alpha = 0;
-				boyfriendGhost.alpha = 0;
-				dadGhost.alpha = 0;
-			});
+		if (boyfriend != null && boyfriend.hasAnimation('scared') && boyfriend.getAnimationName() != 'cheer')
+			boyfriend.playAnim('scared', true);
+		if (gf != null && gf.hasAnimation('scared'))
+			gf.playAnim('scared', true);
+
+		if (ClientPrefs.data.flashing)
+		{
+			if (PicoCapableStage.instance != null && game.stages.contains(PicoCapableStage.instance)) PicoCapableStage.instance.ABot_plink();
+			setLightning(true);
+			FlxTimer.wait(0.06, () -> setLightning(false));
 			FlxTimer.wait(0.12, () ->
 			{
-				if (boyfriend.hasAnimation('scared'))
-					boyfriend.playAnim('scared', true);
-
-				if (dad.hasAnimation('scared'))
-					dad.playAnim('scared', true);
-
-				if (gf != null && gf.hasAnimation('scared'))
-					gf.playAnim('scared', true);
-				if (ClientPrefs.data.flashing)
-				{
-					if (PicoCapableStage.instance != null && game.stages.contains(PicoCapableStage.instance)) PicoCapableStage.instance.ABot_plink();
-					boyfriend.alpha = 0;
-					dad.alpha = 0;
-					gf.alpha = 0;
-					halloweenBGLight.alpha = 1;
-					stairsLight.alpha = 1;
-
-					gfGhost.alpha = 1;
-					boyfriendGhost.alpha = 1;
-					dadGhost.alpha = 1;
-					FlxTween.tween(boyfriendGhost, {alpha: 0}, 1.5);
-					FlxTween.tween(gfGhost, {alpha: 0}, 1.5);
-					FlxTween.tween(dadGhost, {alpha: 0}, 1.5);
-
-					FlxTween.tween(halloweenBGLight, {alpha: 0}, 1.5);
-					FlxTween.tween(stairsLight, {alpha: 0}, 1.5);
-
-					FlxTween.tween(boyfriend, {alpha: 1}, 1.5);
-					FlxTween.tween(gf, {alpha: 1}, 1.5);
-					FlxTween.tween(dad, {alpha: 1}, 1.5);
-				}
+				setLightning(true);
+				for (obj in [halloweenBGLight, stairsLight])
+					FlxTween.tween(obj, {alpha: 0}, 1.5);
+				for (char in [boyfriend, dad, gf])
+					if (char != null) FlxTween.tween(char, {alpha: 1}, 1.5);
 			});
+		}
 
 		lightningStrikeBeat = curBeat;
 		lightningOffset = FlxG.random.int(8, 24);
@@ -201,30 +149,44 @@ class SpookyMansionErect extends BaseStage
 		}
 	}
 
-	function makeChars()
+	function setLightning(on:Bool)
 	{
+		halloweenBGLight.alpha = on ? 1 : 0;
+		stairsLight.alpha = on ? 1 : 0;
+		for (char in [boyfriend, dad, gf])
+			if (char != null) char.alpha = on ? 0 : 1;
+	}
 
-		var bfName = PlayState.instance.boyfriend.curCharacter.split("-")[0];
-		var dadName = PlayState.instance.dad.curCharacter.split("-")[0];
-		if(bfName == "pico") bfName = "pico-playable";
+	function makeLit(dark:Character, group:FlxSpriteGroup):Character
+	{
+		if (dark == null || group == null) return null;
 
-		var gfMode = PlayState.instance.gf.curCharacter.split("-")[0];
-		gfGhost = new Character(game.gf.x, game.gf.y, gfMode);
+		var name:String = dark.curCharacter.split("-")[0];
+		if (name == "pico" && dark.isPlayer) name = "pico-playable";
+		if (name == dark.curCharacter) return null;
 
-		game.add(gfGhost);
-		gfGhost.dance();
+		var lit:Character = new Character(0, 0, name, dark.isPlayer);
+		lit.debugMode = true;
+		lit.alpha = 0;
+		group.insert(group.members.indexOf(dark), lit);
+		return lit;
+	}
 
-		boyfriendGhost = new Character(game.boyfriend.x, game.boyfriend.y, bfName, true);
-		game.add(boyfriendGhost);
-		boyfriendGhost.dance();
+	function syncLit(dark:Character, lit:Character)
+	{
+		if (dark == null || lit == null) return;
 
-		dadGhost = new Character(game.dad.x, game.dad.y, dadName, true);
-		dadGhost.flipX = false;
-		game.add(dadGhost);
-		dadGhost.dance();
+		lit.alpha = dark.alpha < 1 ? 1 : 0;
+		if (lit.alpha == 0) return;
 
-		boyfriendGhost.alpha = 0;
-		gfGhost.alpha = 0;
-		dadGhost.alpha = 0;
+		var name:String = dark.getAnimationName();
+		if (name != null && lit.hasAnimation(name))
+		{
+			var frame:Int = (dark.animation.curAnim != null) ? dark.animation.curAnim.curFrame : 0;
+			if (lit.getAnimationName() != name) lit.playAnim(name, true, false, frame);
+			if (lit.animation.curAnim != null)
+				lit.animation.curAnim.curFrame = Std.int(Math.min(frame, lit.animation.curAnim.numFrames - 1));
+		}
+		lit.setPosition(dark.x, dark.y);
 	}
 }

@@ -24,6 +24,7 @@ class CutsceneHandler extends FlxBasic
 	public var holdingTime:Float = 0;
 	public var skipSprite:FlxPieDial;
 	public var finishCallback:Void->Void = null;
+	public var onUpdate:Float->Void = null;
 
 	public function new(canSkip:Bool = true)
 	{
@@ -71,6 +72,7 @@ class CutsceneHandler extends FlxBasic
 			timedEvents[0].func();
 			timedEvents.shift();
 		}
+		if(onUpdate != null) onUpdate(elapsed);
 		
 		if(_canSkip && cutsceneTime > 0.1)
 		{

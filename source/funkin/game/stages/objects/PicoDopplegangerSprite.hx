@@ -1,11 +1,13 @@
 package funkin.game.stages.objects;
 
 import funkin.game.cutscenes.CutsceneHandler;
-import funkin.util.AtlasUtil;
+import funkin.util.AtlasUtil.ModernAtlasUtil;
 
-class PicoDopplegangerSprite extends FlxAnimate
+class PicoDopplegangerSprite extends animate.FlxAnimate
 {
 	static final ANIMS:Array<String> = ['shoot', 'explode', 'cigarette', 'loop'];
+	static inline final ATLAS_OFFSET_X:Float = -584;
+	static inline final ATLAS_OFFSET_Y:Float = -609;
 
 	public var isPlayer:Bool = false;
 	var suffix:String = '';
@@ -13,11 +15,12 @@ class PicoDopplegangerSprite extends FlxAnimate
 
 	public function new(x:Float, y:Float)
 	{
-		super(x, y);
-		Paths.loadAnimateAtlas(this, 'philly/erect/cutscenes/pico_doppleganger');
+		super(x + ATLAS_OFFSET_X, y + ATLAS_OFFSET_Y);
+		frames = Paths.getAnimateAtlasFrames('philly/erect/cutscenes/pico_doppleganger');
+		useRenderTexture = true;
 		for (side in ['Opponent', 'Player'])
 			for (anim in ANIMS)
-				AtlasUtil.addAnimation(this, anim + side, anim + side, null, 24, anim == 'loop');
+				ModernAtlasUtil.addAnimation(this, anim + side, anim + side, null, 24, anim == 'loop');
 		antialiasing = ClientPrefs.data.antialiasing;
 	}
 
@@ -53,7 +56,12 @@ class PicoDopplegangerSprite extends FlxAnimate
 		else if(explode)
 		{
 			playAnimation('explode' + suffix);
-			anim.onComplete.addOnce(() -> playAnimation('loop' + suffix));
+			animation.finishCallback = function(name:String)
+			{
+				if(name != 'explode' + suffix) return;
+				animation.finishCallback = null;
+				playAnimation('loop' + suffix);
+			};
 			cutsceneHandler.timer(3.7, () -> playSound('picoCigarette2'));
 			cutsceneHandler.timer(8.75, () -> playSound('picoExplode'));
 			cutsceneHandler.objects.remove(this);

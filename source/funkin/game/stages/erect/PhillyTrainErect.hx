@@ -29,25 +29,25 @@ class PhillyTrainErect extends BaseStage
 	{
 		if (!ClientPrefs.data.lowQuality)
 		{
-			var bg:BGSprite = new BGSprite('philly/erect/sky', -50, 0, 0.1, 0.1);
+			var bg:BGSprite = new BGSprite('philly/erect/sky', -100, 0, 0.1, 0.1);
 			add(bg);
 		}
 
 		var city:BGSprite = new BGSprite('philly/erect/city', -255, 45, 0.3, 0.3);
-		city.setGraphicSize(Std.int(city.width * 0.85));
+		city.setGraphicSize(Std.int(city.width * 0.9));
 		city.updateHitbox();
 		add(city);
 
 		phillyLightsColors = [0x502d64, 0x2663ac, 0x932c28, 0x329a6d, 0xb66f43];
-		phillyWindow = new BGSprite('philly/window', city.x, city.y, 0.3, 0.3);
-		phillyWindow.setGraphicSize(Std.int(phillyWindow.width * 0.85));
+		phillyWindow = new BGSprite('philly/win', -184, 155, 0.3, 0.3);
+		phillyWindow.setGraphicSize(Std.int(phillyWindow.width * 0.9));
 		phillyWindow.updateHitbox();
 		add(phillyWindow);
 		phillyWindow.alpha = 0;
 
 		if (!ClientPrefs.data.lowQuality)
 		{
-			var streetBehind:BGSprite = new BGSprite('philly/erect/behindTrain', 178, 148);
+			var streetBehind:BGSprite = new BGSprite('philly/erect/behindTrain', -299, 144);
 			add(streetBehind);
 		}
 
@@ -72,7 +72,7 @@ class PhillyTrainErect extends BaseStage
 			setStartCallback(cutsceneObj.startCutscene);
 		}
 
-		new PhillyLights(phillyStreet, phillyWindow.x, phillyWindow.y, phillyLightsColors);
+		new PhillyLights(phillyStreet, phillyWindow.x, phillyWindow.y, phillyLightsColors, 'philly/win', 0.9);
 	}
 
 	override function createPost()

@@ -31,7 +31,10 @@ class PhillyTrain extends BGSprite
 				if (sound.time >= 4700)
 				{
 					startedMoving = true;
-					if (PlayState.instance.gf != null)
+					var pico = funkin.game.stages.PicoCapableStage.instance;
+					if (pico != null && pico.handlesTrain())
+						pico.trainPassing = true;
+					else if (PlayState.instance.gf != null)
 					{
 						PlayState.instance.gf.playAnim('hairBlow');
 						PlayState.instance.gf.specialAnim = true;
@@ -80,7 +83,10 @@ class PhillyTrain extends BGSprite
 
 	public function restart():Void
 	{
-		if(PlayState.instance.gf != null)
+		var pico = funkin.game.stages.PicoCapableStage.instance;
+		if(pico != null && pico.handlesTrain())
+			pico.trainPassing = false;
+		else if(PlayState.instance.gf != null)
 		{
 			PlayState.instance.gf.danced = false; //Makes she bop her head to the correct side once the animation ends
 			PlayState.instance.gf.playAnim('hairFall');

@@ -13,6 +13,10 @@ enum PicoNeneState
 	STATE_RAISE;
 	STATE_READY;
 	STATE_LOWER;
+	STATE_HAIR_BLOWING;
+	STATE_HAIR_FALLING;
+	STATE_HAIR_BLOWING_RAISE;
+	STATE_HAIR_FALLING_RAISE;
 }
 
 class PicoCapableStage extends BaseStage
@@ -34,6 +38,7 @@ class PicoCapableStage extends BaseStage
 	var blinkCountdown:Int = 3;
 	var currentNeneState:PicoNeneState = STATE_DEFAULT;
 	var animationFinished:Bool = false;
+	public var trainPassing:Bool = false;
 
 	public static function shouldAdd(stage:String):Bool
 	{
@@ -125,6 +130,8 @@ class PicoCapableStage extends BaseStage
 			abot = new ABotSpeaker(gfGroup.x - 50, gfGroup.y + 550 - 30, PlayState.SONG.gfVersion == 'nene-dark');
 			updateABotEye(true);
 			addBehindGF(abot);
+			gfGroup.x -= 24;
+			gfGroup.y -= 74;
 		}
 
 		if(gf != null)
@@ -212,6 +219,21 @@ class PicoCapableStage extends BaseStage
 		}
 	}
 
+	public function handlesTrain():Bool
+	{
+		return gf != null && NENE_LIST.contains(PlayState.SONG.gfVersion) && gf.hasAnimation('hairBlowNormal');
+	}
+
+	function checkTrainPassing(raised:Bool = false)
+	{
+		if(!trainPassing || !handlesTrain()) return;
+
+		currentNeneState = raised ? STATE_HAIR_BLOWING_RAISE : STATE_HAIR_BLOWING;
+		gf.playAnim(raised ? 'hairBlowKnife' : 'hairBlowNormal', true);
+		gf.skipDance = true;
+		animationFinished = false;
+	}
+
 	function transitionState()
 	{
 		switch(currentNeneState)
@@ -222,6 +244,7 @@ class PicoCapableStage extends BaseStage
 					currentNeneState = STATE_PRE_RAISE;
 					gf.skipDance = true;
 				}
+				checkTrainPassing();
 
 			case STATE_PRE_RAISE:
 				if(game.health > VULTURE_THRESHOLD)
@@ -237,6 +260,7 @@ class PicoCapableStage extends BaseStage
 					gf.danced = true;
 					animationFinished = false;
 				}
+				checkTrainPassing();
 
 			case STATE_RAISE:
 				if(animationFinished)
@@ -244,6 +268,7 @@ class PicoCapableStage extends BaseStage
 					currentNeneState = STATE_READY;
 					animationFinished = false;
 				}
+				checkTrainPassing(true);
 
 			case STATE_READY:
 				if(game.health > VULTURE_THRESHOLD)
@@ -251,6 +276,7 @@ class PicoCapableStage extends BaseStage
 					currentNeneState = STATE_LOWER;
 					gf.playAnim('lowerKnife');
 				}
+				else checkTrainPassing(true);
 
 			case STATE_LOWER:
 				if(animationFinished)
@@ -258,6 +284,49 @@ class PicoCapableStage extends BaseStage
 					currentNeneState = STATE_DEFAULT;
 					animationFinished = false;
 					gf.skipDance = false;
+				}
+				checkTrainPassing();
+
+			case STATE_HAIR_BLOWING:
+				if(!trainPassing)
+				{
+					currentNeneState = STATE_HAIR_FALLING;
+					gf.playAnim('hairFallNormal', true);
+					animationFinished = false;
+				}
+				else if(animationFinished)
+				{
+					gf.playAnim('hairBlowNormal', true);
+					animationFinished = false;
+				}
+
+			case STATE_HAIR_FALLING:
+				if(animationFinished)
+				{
+					currentNeneState = STATE_DEFAULT;
+					animationFinished = false;
+					gf.skipDance = false;
+					gf.danced = false;
+				}
+
+			case STATE_HAIR_BLOWING_RAISE:
+				if(!trainPassing)
+				{
+					currentNeneState = STATE_HAIR_FALLING_RAISE;
+					gf.playAnim('hairFallKnife', true);
+					animationFinished = false;
+				}
+				else if(animationFinished)
+				{
+					gf.playAnim('hairBlowKnife', true);
+					animationFinished = false;
+				}
+
+			case STATE_HAIR_FALLING_RAISE:
+				if(animationFinished)
+				{
+					currentNeneState = STATE_READY;
+					animationFinished = false;
 				}
 		}
 	}

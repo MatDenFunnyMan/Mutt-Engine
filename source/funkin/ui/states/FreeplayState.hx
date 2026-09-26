@@ -136,8 +136,14 @@ class FreeplayState extends MusicBeatState
 	var backdropSpeed:Float = 1;
 	var backdropTween:FlxTween;
 	var pendingClipKey:String = null;
+	static var clipSound:Sound = null;
+	static var clipSlot:Int = -1;
+	#if lime_vorbis
+	static var clipBytes:Array<Bytes> = [null, null];
+	#end
 	#if (lime_vorbis && target.threaded)
 	var clipQueue:Deque<PreviewClip> = new Deque<PreviewClip>();
+	static var clipRequests:Deque<ClipRequest> = null;
 	#end
 
 	public static var vocals:FlxSound = null;
@@ -428,6 +434,7 @@ class FreeplayState extends MusicBeatState
 			FlxG.sound.music.pause();
 			FlxG.sound.music.resume();
 		}
+		releaseDetachedClip();
 
 		changeSelection(0, false);
 		if(revealRow != null) startReveal();
@@ -1089,13 +1096,19 @@ class FreeplayState extends MusicBeatState
 		playPreview(key, sound, true, start * 1000, length * 1000);
 	}
 
-	function playPreview(key:String, sound:Sound, cached:Bool, startTime:Float, length:Float)
+	function playPreview(key:String, sound:Sound, cached:Bool, startTime:Float, length:Float, slot:Int = -1)
 	{
 		if(sound == null || sound == FlxAssets.getSound('flixel/sounds/beep')) return;
 
 		if(FlxG.sound.music != null && FlxG.sound.music.fadeTween != null) FlxG.sound.music.fadeTween.cancel();
 		FlxG.sound.playMusic(sound, 0);
 		if(previewSound != null && previewSound != sound && previewCached) forgetSound(previewSound);
+		if(clipSound != sound) releaseClip();
+		if(slot > -1)
+		{
+			clipSound = sound;
+			clipSlot = slot;
+		}
 		previewSound = sound;
 		previewCached = cached;
 		previewKey = key;
@@ -1111,14 +1124,36 @@ class FreeplayState extends MusicBeatState
 	function requestClip(path:String, start:Float, length:Float)
 	{
 		var request:Int = previewRequest;
+		var slot:Int = (clipSlot == 0) ? 1 : 0;
 		pendingClipKey = path;
 		#if target.threaded
-		var queue:Deque<PreviewClip> = clipQueue;
-		Thread.create(function() queue.add({request: request, key: path, buffer: decodeClip(path, start, length)}));
+		if(clipRequests == null)
+		{
+			clipRequests = new Deque<ClipRequest>();
+			Thread.create(clipWorker);
+		}
+		clipRequests.add({queue: clipQueue, request: request, key: path, start: start, length: length, slot: slot});
 		#else
-		receiveClip({request: request, key: path, buffer: decodeClip(path, start, length)});
+		receiveClip({request: request, key: path, slot: slot, buffer: decodeClip(path, start, length, slot)});
 		#end
 	}
+
+	#if target.threaded
+	static function clipWorker()
+	{
+		while(true)
+		{
+			var job:ClipRequest = clipRequests.pop(true);
+			var newer:ClipRequest = clipRequests.pop(false);
+			while(newer != null)
+			{
+				job = newer;
+				newer = clipRequests.pop(false);
+			}
+			job.queue.add({request: job.request, key: job.key, slot: job.slot, buffer: decodeClip(job.key, job.start, job.length, job.slot)});
+		}
+	}
+	#end
 
 	function receiveClip(clip:PreviewClip)
 	{
@@ -1128,10 +1163,10 @@ class FreeplayState extends MusicBeatState
 
 		var buffer:AudioBuffer = clip.buffer;
 		var clipLength:Float = buffer.data.length / (buffer.channels * 2) / buffer.sampleRate * 1000;
-		playPreview(clip.key, Sound.fromAudioBuffer(buffer), false, 0, clipLength);
+		playPreview(clip.key, Sound.fromAudioBuffer(buffer), false, 0, clipLength, clip.slot);
 	}
 
-	static function decodeClip(path:String, start:Float, length:Float):AudioBuffer
+	static function decodeClip(path:String, start:Float, length:Float, slot:Int):AudioBuffer
 	{
 		var vorbis:VorbisFile = null;
 		try
@@ -1146,7 +1181,8 @@ class FreeplayState extends MusicBeatState
 
 			var frameSize:Int = info.channels * 2;
 			var size:Int = Std.int(Math.min(length, total - start) * info.rate) * frameSize;
-			var data:Bytes = Bytes.alloc(size);
+			var data:Bytes = clipBytes[slot];
+			if(data == null || data.length < size) data = clipBytes[slot] = Bytes.alloc(size);
 			var position:Int = 0;
 			var holes:Int = 0;
 			while(position < size)
@@ -1205,6 +1241,13 @@ class FreeplayState extends MusicBeatState
 		pendingClipKey = null;
 		previewRequest++;
 		previewFading = false;
+	}
+
+	static function releaseClip()
+	{
+		if(clipSound != null) clipSound.close();
+		clipSound = null;
+		clipSlot = -1;
 	}
 
 	function forgetSound(sound:Sound)
@@ -1300,6 +1343,15 @@ class FreeplayState extends MusicBeatState
 			FlxG.sound.playMusic(Paths.music('freakyMenu'));
 			FlxG.sound.music.volume = 1;
 		}
+
+		releaseDetachedClip();
+	}
+
+	static function releaseDetachedClip()
+	{
+		@:privateAccess
+		if(clipSound != null && (FlxG.sound.music == null || FlxG.sound.music._sound != clipSound))
+			releaseClip();
 	}
 }
 
@@ -1308,7 +1360,20 @@ typedef PreviewClip =
 {
 	request:Int,
 	key:String,
+	slot:Int,
 	buffer:AudioBuffer
+}
+#end
+
+#if (lime_vorbis && target.threaded)
+typedef ClipRequest =
+{
+	queue:Deque<PreviewClip>,
+	request:Int,
+	key:String,
+	start:Float,
+	length:Float,
+	slot:Int
 }
 #end
 

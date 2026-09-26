@@ -140,7 +140,7 @@ class PlayfieldRenderer extends FlxSprite //extending flxsprite just so i can ed
             if (strum == null || strum.holdCover == null)
                 continue;
 
-            var baseScale = (i < NoteMovement.defaultScale.length) ? NoteMovement.defaultScale[i] : 0;
+            var baseScale = isPixelStage ? PlayState.daPixelZoom : ((i < NoteMovement.defaultScale.length) ? NoteMovement.defaultScale[i] : 0);
             var ratio = (baseScale != 0) ? strum.scale.x / baseScale : 1;
 
             strum.holdCover.followStrum(strum, isPixelStage, ratio);

@@ -1144,6 +1144,7 @@ class PlayState extends MusicBeatState
 					if(!forMidSong) startAndEnd();
 				}
 				videoCutscene.finishCallback = onPrecachedVideoEnd;
+				videoCutscene.onSkip = onPrecachedVideoEnd;
 				variables.set('videoCutscene', videoCutscene);
 				if(playOnLoad) videoCutscene.play();
 				return videoCutscene;
@@ -1168,7 +1169,8 @@ class PlayState extends MusicBeatState
 				if(!forMidSong) startAndEnd();
 			}
 			videoCutscene.finishCallback = onVideoEnd;
-			
+			videoCutscene.onSkip = onVideoEnd;
+
 			if (GameOverSubstate.instance != null && isDead) GameOverSubstate.instance.add(videoCutscene);
 			else add(videoCutscene);
 
@@ -2234,6 +2236,15 @@ class PlayState extends MusicBeatState
 	override public function onFocusLost():Void
 	{
 		super.onFocusLost();
+		if (!paused && health > 0 && ClientPrefs.data.autoPause && startedCountdown && canPause && !endingSong && !inCutscene && subState == null)
+		{
+			var ret:Dynamic = callOnScripts('onPause', null, true);
+			if(ret != LuaUtils.Function_Stop)
+			{
+				openPauseMenu();
+				return;
+			}
+		}
 		if (!paused && health > 0)
 		{
 			#if VIDEOS_ALLOWED
@@ -2452,10 +2463,9 @@ class PlayState extends MusicBeatState
 		}
 
 		if (camZooming)
-		{
 			FlxG.camera.zoom = FlxMath.lerp(defaultCamZoom, FlxG.camera.zoom, Math.exp(-elapsed * 3.125 * camZoomingDecay * playbackRate));
+		if (camZooming || camZoomTween != null)
 			camHUD.zoom = FlxMath.lerp(1, camHUD.zoom, Math.exp(-elapsed * 3.125 * camZoomingDecay * playbackRate));
-		}
 
 		FlxG.watch.addQuick("secShit", curSection);
 		FlxG.watch.addQuick("beatShit", curBeat);
@@ -5563,8 +5573,32 @@ class PlayState extends MusicBeatState
 				gf.playAnim('sad');
 				gf.specialAnim = true;
 			}
+			else if(char != gf && gf != null)
+				playComboDropAnimation(gf, lastCombo);
 		}
 		vocals.volume = 0;
+	}
+
+	function playComboDropAnimation(character:Character, comboCount:Int)
+	{
+		var dropAnim:String = null;
+		var best:Int = -1;
+		for (name in character.animOffsets.keys())
+		{
+			if(!name.startsWith('drop')) continue;
+			var count:Null<Int> = Std.parseInt(name.substr(4));
+			if(count != null && comboCount >= count && count > best)
+			{
+				best = count;
+				dropAnim = name;
+			}
+		}
+
+		if(dropAnim != null)
+		{
+			character.playAnim(dropAnim, true);
+			character.specialAnim = true;
+		}
 	}
 
 	function opponentNoteHit(note:Note):Void

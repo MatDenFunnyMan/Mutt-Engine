@@ -45,6 +45,16 @@ class NoteSplash extends FlxSprite
 	var noteDataMap:Map<Int, String> = new Map();
 
 	public static var defaultNoteSplash(default, never):String = "noteSplashes/noteSplashes";
+	public static var pixelNoteSplash(default, never):String = "pixelUI/pixelNoteSplash";
+	static final PIXEL_SPLASH_SCALE:Float = 4;
+	static final PIXEL_SPLASH_OFFSETS:Array<Float> = [-140.8, -135];
+
+	static function pixelOverride(splash:String):String
+	{
+		if (PlayState.isPixelStage && splash == defaultNoteSplash && Paths.fileExists('images/$pixelNoteSplash.png', IMAGE))
+			return pixelNoteSplash;
+		return splash;
+	}
 	public static var configs:Map<String, NoteSplashConfig> = new Map();
 
 	public function new(?x:Float = 0, ?y:Float = 0, ?splash:String)
@@ -85,10 +95,32 @@ class NoteSplash extends FlxSprite
 			}
 		}
 
+		splash = pixelOverride(splash);
 		texture = splash;
 		if (Paths.fileExists('images/$texture.png', IMAGE))
 			frames = Paths.getSparrowAtlas(texture);
-		
+
+		if (frames != null && texture == pixelNoteSplash)
+		{
+			var path:String = 'images/$texture';
+			if (!configs.exists(path))
+			{
+				var pixelConfig:NoteSplashConfig = createConfig();
+				pixelConfig.allowRGB = false;
+				pixelConfig.allowPixel = false;
+				for (animNum in 0...3)
+					for (i => col in ['purple', 'blue', 'green', 'orange'])
+					{
+						var name:String = animNum > 0 ? Note.colArray[i] + (animNum + 1) : Note.colArray[i];
+						addAnimationToConfig(pixelConfig, PIXEL_SPLASH_SCALE, name, '$col${animNum + 1}', [31, 35], PIXEL_SPLASH_OFFSETS.copy(), [], i + animNum * 4);
+					}
+				configs.set(path, pixelConfig);
+			}
+			this.config = configs.get(path);
+			maxAnims = 3;
+			return;
+		}
+
 		if (frames == null)
 		{
 			texture = 'noteSplashes/noteSplashes' + getSplashSkinPostfix();
@@ -245,6 +277,7 @@ class NoteSplash extends FlxSprite
 					loadedTexture = defaultNoteSplash;
 			}
 
+			loadedTexture = pixelOverride(loadedTexture);
 			if (texture != loadedTexture) loadSplash(loadedTexture);
 		}
 
@@ -343,6 +376,8 @@ class NoteSplash extends FlxSprite
 		antialiasing = ClientPrefs.data.antialiasing;
 		if (note != null) antialiasing = note.noteSplashData.antialiasing;
 		if (PlayState.isPixelStage && config.allowPixel) antialiasing = false;
+		if (texture == pixelNoteSplash) antialiasing = false;
+		blend = (texture == pixelNoteSplash) ? openfl.display.BlendMode.SCREEN : null;
 
 		var minFps:Int = 22;
 		var maxFps:Int = 26;
