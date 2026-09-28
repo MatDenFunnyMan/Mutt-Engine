@@ -9,7 +9,10 @@ class TankmenBG extends FlxSprite
 	private var endingOffset:Float;
 	private var goingRight:Bool;
 	public var strumTime:Float;
-	var offsetRight:Bool = false;
+	var shotType:Int = 1;
+	var runOffset:FlxPoint = FlxPoint.get();
+
+	static final SHOT_OFFSETS:Array<Array<Float>> = [[180, 138, 359, 138], [340, 200, 376, 200]];
 
 	public function new(x:Float, y:Float, facingRight:Bool)
 	{
@@ -21,7 +24,8 @@ class TankmenBG extends FlxSprite
 
 		frames = Paths.getSparrowAtlas('tankmanKilled1');
 		animation.addByPrefix('run', 'tankman running', 24, true);
-		animation.addByPrefix('shot', 'John Shot ' + FlxG.random.int(1, 2), 24, false);
+		shotType = FlxG.random.int(1, 2);
+		animation.addByPrefix('shot', 'John Shot ' + shotType, 24, false);
 		animation.play('run');
 		animation.curAnim.curFrame = FlxG.random.int(0, animation.curAnim.frames.length - 1);
 		antialiasing = ClientPrefs.data.antialiasing;
@@ -30,22 +34,25 @@ class TankmenBG extends FlxSprite
 		updateHitbox();
 	}
 
-	public function resetShit(x:Float, y:Float, goingRight:Bool, ?offsetRight:Bool = false):Void
+	public function resetShit(x:Float, y:Float, goingRight:Bool):Void
 	{
 		this.x = x;
 		this.y = y;
 		this.goingRight = goingRight;
-		this.offsetRight = offsetRight;
 		endingOffset = FlxG.random.float(50, 200);
 		tankSpeed = FlxG.random.float(0.6, 1);
 		flipX = goingRight;
 	}
 
+	override function destroy()
+	{
+		runOffset.put();
+		super.destroy();
+	}
+
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
-
-		visible = (x > -0.5 * FlxG.width && x < 1.2 * FlxG.width);
 
 		if(animation.curAnim.name == "run")
 		{
@@ -60,14 +67,12 @@ class TankmenBG extends FlxSprite
 			kill();
 		}
 
-		if(Conductor.songPosition > strumTime)
+		if(Conductor.songPosition > strumTime && animation.curAnim.name == "run")
 		{
+			runOffset.set(offset.x, offset.y);
 			animation.play('shot');
-			if(goingRight && !offsetRight)
-			{
-				offset.x = 300;
-				offset.y = 200;
-			}
+			var shotOffset:Array<Float> = SHOT_OFFSETS[shotType - 1];
+			offset.set(runOffset.x + (flipX ? shotOffset[2] : shotOffset[0]) * scale.x, runOffset.y + (flipX ? shotOffset[3] : shotOffset[1]) * scale.y);
 		}
 	}
 }

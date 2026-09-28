@@ -124,6 +124,8 @@ class PicoCapableStage extends BaseStage
 			abotPixel = new ABotPixel(gfGroup.x - 165, gfGroup.y + 340 - 30);
 			updateABotEye(true);
 			addBehindGF(abotPixel);
+			gfGroup.x += 6;
+			gfGroup.y -= 12;
 		}
 		else
 		{
@@ -132,6 +134,11 @@ class PicoCapableStage extends BaseStage
 			addBehindGF(abot);
 			gfGroup.x -= 24;
 			gfGroup.y -= 74;
+			if(PlayState.SONG.gfVersion == 'otis-speaker')
+			{
+				gfGroup.x += 38;
+				gfGroup.y += 57;
+			}
 		}
 
 		if(gf != null)
@@ -181,17 +188,30 @@ class PicoCapableStage extends BaseStage
 	override function beatHit()
 	{
 		if(gf == null || !NENE_LIST.contains(PlayState.SONG.gfVersion)) return;
-		if(abotPixel != null) abotPixel.speaker.animation.play('anim', true);
+		danceABotPixel(curBeat);
 
 		if(currentNeneState == STATE_READY)
 		{
 			if(blinkCountdown == 0)
 			{
-				gf.playAnim('idleKnife', false);
+				gf.playAnim(gf.hasAnimation('idleKnifeBlink') ? 'idleKnifeBlink' : 'idleKnife', false);
 				blinkCountdown = FlxG.random.int(MIN_BLINK_DELAY, MAX_BLINK_DELAY);
 			}
 			else blinkCountdown--;
 		}
+	}
+
+	override function countdownTick(count:Countdown, num:Int)
+	{
+		if(gf != null && NENE_LIST.contains(PlayState.SONG.gfVersion)) danceABotPixel(4 - num);
+	}
+
+	function danceABotPixel(beat:Int)
+	{
+		if(abotPixel == null || beat % Math.round(game.gfSpeed * gf.danceEveryNumBeats) != 0) return;
+
+		var name:String = gf.getAnimationName();
+		abotPixel.dance((currentNeneState == STATE_DEFAULT && (name == 'danceLeft' || name == 'danceRight')) ? name : null);
 	}
 
 	override function update(elapsed:Float)
@@ -276,7 +296,11 @@ class PicoCapableStage extends BaseStage
 					currentNeneState = STATE_LOWER;
 					gf.playAnim('lowerKnife');
 				}
-				else checkTrainPassing(true);
+				else
+				{
+					if(animationFinished && gf.getAnimationName() == 'idleKnifeBlink') gf.playAnim('idleKnife', true);
+					checkTrainPassing(true);
+				}
 
 			case STATE_LOWER:
 				if(animationFinished)

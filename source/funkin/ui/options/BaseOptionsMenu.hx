@@ -96,7 +96,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 				checkbox.ID = i;
 				checkboxGroup.add(checkbox);
 			}
-			else
+			else if(optionsArray[i].type != BUTTON)
 			{
 				optionText.x -= VALUE_SHIFT;
 				optionText.startPosition.x -= VALUE_SHIFT;
@@ -180,7 +180,12 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 		}
 
-		if(nextAccept <= 0)
+		if(nextAccept <= 0 && curOption.isLocked())
+		{
+			if(controls.ACCEPT || controls.UI_LEFT_P || controls.UI_RIGHT_P || controls.RESET)
+				FlxG.sound.play(Paths.sound('cancelMenu'));
+		}
+		else if(nextAccept <= 0)
 		{
 			switch(curOption.type)
 			{
@@ -191,6 +196,13 @@ class BaseOptionsMenu extends MusicBeatSubstate
 						curOption.setValue((curOption.getValue() == true) ? false : true);
 						curOption.change();
 						reloadCheckboxes();
+					}
+
+				case BUTTON:
+					if(controls.ACCEPT)
+					{
+						FlxG.sound.play(Paths.sound('confirmMenu'));
+						curOption.change();
 					}
 
 				case KEYBIND:
@@ -298,7 +310,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 					}
 			}
 
-			if(controls.RESET)
+			if(controls.RESET && curOption.type != BUTTON)
 			{
 				var leOption:Option = optionsArray[curSelected];
 				if(leOption.type != KEYBIND)
@@ -495,6 +507,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	}
 
 	function updateTextFrom(option:Option) {
+		if(option.type == BUTTON) return;
 		if(option.type == KEYBIND)
 		{
 			updateBind(option);
@@ -511,29 +524,42 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	function changeSelection(change:Int = 0)
 	{
 		curSelected = FlxMath.wrap(curSelected + change, 0, optionsArray.length - 1);
-
-		descText.text = optionsArray[curSelected].description;
-		descText.screenCenter(Y);
-		descText.y += 270;
+		curOption = optionsArray[curSelected]; //shorter lol
 
 		for (num => item in grpOptions.members)
-		{
 			item.targetY = num - curSelected;
-			item.alpha = 0.6;
-			if (item.targetY == 0) item.alpha = 1;
+
+		refreshOptions();
+		FlxG.sound.play(Paths.sound('scrollMenu'));
+	}
+
+	function refreshOptions()
+	{
+		for (num => item in grpOptions.members)
+		{
+			item.alpha = (num == curSelected) ? 1 : 0.6;
+			if(optionsArray[num].isLocked()) item.alpha *= 0.4;
 		}
 		for (text in grpTexts)
-		{
-			text.alpha = 0.6;
-			if(text.ID == curSelected) text.alpha = 1;
-		}
+			text.alpha = grpOptions.members[text.ID].alpha;
+
+		for (option in optionsArray)
+			if(option.type != KEYBIND) updateTextFrom(option);
+		reloadCheckboxes();
+		updateDescription();
+	}
+
+	function updateDescription()
+	{
+		var option:Option = optionsArray[curSelected];
+		descText.text = option.description;
+		if(option.isLocked() && option.lockedReason != null) descText.text += '\n' + option.lockedReason;
+		descText.screenCenter(Y);
+		descText.y += 270;
 
 		descBox.setPosition(descText.x - 10, descText.y - 10);
 		descBox.setGraphicSize(Std.int(descText.width + 20), Std.int(descText.height + 25));
 		descBox.updateHitbox();
-
-		curOption = optionsArray[curSelected]; //shorter lol
-		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
 
 	function reloadCheckboxes()

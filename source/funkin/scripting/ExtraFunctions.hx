@@ -135,7 +135,7 @@ class ExtraFunctions
 		Lua_helper.add_callback(lua, "isMusicPlaying", function() {
 			return FlxG.sound.music != null && FlxG.sound.music.playing;
 		});
-		Lua_helper.add_callback(lua, "setMouseVisible", function(visible:Bool) FlxG.mouse.visible = visible);
+		Lua_helper.add_callback(lua, "setMouseVisible", function(visible:Bool) funkin.backend.MouseVisibility.setScriptVisible(visible));
 		Lua_helper.add_callback(lua, "getMouseVisible", function() return FlxG.mouse.visible);
 		Lua_helper.add_callback(lua, "setCameraZoom", function(zoom:Float) {
 			FlxG.camera.zoom = zoom;

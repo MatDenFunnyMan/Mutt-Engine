@@ -9,13 +9,15 @@ class SchoolDoof
 
 	public function new(songName:String)
 	{
-		var candidates:Array<String> = [
-			Paths.json('songs/$songName/${songName}Dialogue_${ClientPrefs.data.language}'),
-			Paths.json('songs/$songName/${songName}Dialogue')
-		];
-		#if MODS_ALLOWED
-		candidates.insert(0, Paths.modsJson('songs/$songName/${songName}Dialogue'));
-		#end
+		var candidates:Array<String> = [];
+		for (dialogue in funkin.backend.Naughtyness.candidates('${songName}Dialogue'))
+		{
+			#if MODS_ALLOWED
+			candidates.push(Paths.modsJson('songs/$songName/$dialogue'));
+			#end
+			candidates.push(Paths.json('songs/$songName/${dialogue}_${ClientPrefs.data.language}'));
+			candidates.push(Paths.json('songs/$songName/$dialogue'));
+		}
 		for (path in candidates)
 		{
 			dialogue = PixelDialogueBox.parse(path);

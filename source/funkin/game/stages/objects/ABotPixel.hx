@@ -83,8 +83,9 @@ class ABotPixel extends FlxSpriteGroup
 		var spr = new FlxSprite(x, y);
 		spr.frames = Paths.getSparrowAtlas(image);
 		spr.scale.set(6, 6);
-		spr.animation.addByPrefix('anim', 'bop', 24, false);
-		spr.animation.play('anim', true);
+		spr.animation.addByPrefix('danceLeft', 'danceLeft', 24, false);
+		spr.animation.addByPrefix('danceRight', 'danceRight', 24, false);
+		spr.animation.play('danceLeft', true);
 		spr.animation.curAnim.curFrame = spr.animation.curAnim.numFrames - 1;
 		spr.antialiasing = false;
 		spr.updateHitbox();
@@ -94,27 +95,27 @@ class ABotPixel extends FlxSpriteGroup
 
 	#if funkin.vis
 	var levels:Array<Bar>;
-	var levelMax:Int = 0;
 	override function update(elapsed:Float):Void
 	{
 		super.update(elapsed);
 		checkAnalyzer();
 		if(analyzer == null) return;
 
+		var music:FlxSound = FlxG.sound.music;
+		if(music == null || !music.playing || music.length <= 0 || music.time < 0 || music.time >= music.length)
+		{
+			for (viz in vizSprites) viz.visible = false;
+			return;
+		}
+
 		levels = analyzer.getLevels(levels);
-		var oldLevelMax = levelMax;
-		levelMax = 0;
 		for (i in 0...Std.int(Math.min(vizSprites.length, levels.length)))
 		{
 			var animFrame:Int = (FlxG.sound.volume == 0 || FlxG.sound.muted) ? 0 : Math.round(levels[i].value * 6);
 			vizSprites[i].visible = animFrame > 0;
 			animFrame = Std.int(Math.abs(FlxMath.bound(animFrame - 1, 0, 5) - 5));
 			vizSprites[i].animation.curAnim.curFrame = animFrame;
-			levelMax = Std.int(Math.max(levelMax, 5 - animFrame));
 		}
-
-		if(levelMax >= 4 && oldLevelMax <= levelMax && (levelMax >= 5 || speakerTop.animation.curAnim.curFrame >= 3))
-			beatHit();
 	}
 
 	public function initAnalyzer()
@@ -138,9 +139,10 @@ class ABotPixel extends FlxSpriteGroup
 	}
 	#end
 
-	public function beatHit()
+	public function dance(?bodyAnim:String)
 	{
-		speakerTop.animation.play('anim', true);
+		speakerTop.animation.play('danceLeft', true);
+		if(bodyAnim != null) speaker.animation.play(bodyAnim, true);
 	}
 
 	var lookingAtRight:Bool = true;

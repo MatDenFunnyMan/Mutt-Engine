@@ -110,10 +110,35 @@ class PlayfieldRenderer extends FlxSprite //extending flxsprite just so i can ed
     }
 
 
+    var strumBaseAlpha:Array<Float> = [];
+    var strumDrawnAlpha:Array<Float> = [];
+
+    function syncStrumBaseAlpha()
+    {
+        for (i in 0...strumGroup.members.length)
+        {
+            var strum = strumGroup.members[i];
+            if (strum == null)
+                continue;
+            if (i >= strumBaseAlpha.length || strum.alpha != strumDrawnAlpha[i])
+            {
+                strumBaseAlpha[i] = strum.alpha;
+                strumDrawnAlpha[i] = strum.alpha;
+            }
+        }
+    }
+
+    function getStrumBaseAlpha(index:Int):Float
+    {
+        return (index >= 0 && index < strumBaseAlpha.length) ? strumBaseAlpha[index] : 1;
+    }
+
     override public function draw()
     {
         if (alpha == 0 || !visible)
             return;
+
+        syncStrumBaseAlpha();
 
         strumGroup.cameras = this.cameras;
         notes.cameras = this.cameras;
@@ -160,6 +185,7 @@ class PlayfieldRenderer extends FlxSprite //extending flxsprite just so i can ed
         //strum.z = strumData.z;
         strum.angle = strumData.angle;
         strum.alpha = strumData.alpha;
+        strumDrawnAlpha[strumData.index] = strum.alpha;
         strum.scale.x = strumData.scaleX;
         strum.scale.y = strumData.scaleY;
     }
@@ -207,7 +233,7 @@ class PlayfieldRenderer extends FlxSprite //extending flxsprite just so i can ed
 
         var noteAlpha:Float = 1;
         #if PSYCH
-        noteAlpha = notes.members[noteIndex].multAlpha;
+        noteAlpha = notes.members[noteIndex].multAlpha * getStrumBaseAlpha(lane);
         #else 
         if (notes.members[noteIndex].isSustainNote)
             noteAlpha = 0.6;
@@ -323,6 +349,7 @@ class PlayfieldRenderer extends FlxSprite //extending flxsprite just so i can ed
 
     private function drawStrum(noteData:NotePositionData)
     {
+        noteData.alpha *= getStrumBaseAlpha(noteData.index);
         if (noteData.alpha <= 0)
             return;
         var strumNote = strumGroup.members[noteData.index];

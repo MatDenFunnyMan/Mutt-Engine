@@ -1,7 +1,7 @@
 {
 	"songs": [
-		["Senpai (Pico Mix)", "senpai-pixel", [255, 120, 191]],
-		["Roses (Pico Mix)", "senpai-pixel", [255, 120, 191]]
+		["Senpai (Pico Mix)", "senpai", [255, 120, 191]],
+		["Roses (Pico Mix)", "senpai", [255, 120, 191]]
 	],
 	"weekCharacters": [
 		"senpai",

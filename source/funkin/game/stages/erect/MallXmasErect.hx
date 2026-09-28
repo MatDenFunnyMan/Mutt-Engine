@@ -59,6 +59,9 @@ class MallXmasErect extends BaseStage
 		if(songName == "eggnog-erect" || songName == "eggnog-(pico-mix)"){
 			erectSanta = makeCutsceneAtlas(-840 + 380, 150 + 347, "christmas/santa_speaks_assets", "santa whole scene");
 			erectParents = makeCutsceneAtlas(100 - 620, 100 + 401, "christmas/parents_shoot_assets", "parents whole scene");
+			Paths.sound('santa_emotion');
+			Paths.sound('santa_shot_n_falls');
+			game.preloadSubtitles('santa-emotions');
 			setEndCallback(eggnogEndCutscene);
 		}
 	}
@@ -127,7 +130,7 @@ class MallXmasErect extends BaseStage
 
 		erectSanta.anim.play("scene", true);
 		erectParents.anim.play("scene", true);
-		FlxG.sound.play(Paths.sound("santa_emotion"));
+		game.playSubtitles('santa-emotions', FlxG.sound.play(Paths.sound("santa_emotion")));
 		erectSanta.anim.onComplete.add(() -> erectSanta.anim.pause());
 		erectParents.anim.onComplete.add(() -> erectParents.anim.pause());
 

@@ -32,7 +32,6 @@ class InitialState extends MusicBeatState
 				}
 
 				funkin.external.winapi.WindowsCPP.reDefineMainWindowTitle(newTitle);
-				Main.applyModWindowColor();
 			} catch(e:Dynamic) {
 				trace("Error loading mod pack info: " + e);
 			}

@@ -61,18 +61,23 @@ class GameOverSubstate extends MusicBeatSubstate
 
 		Conductor.songPosition = 0;
 
+		var deathScroll:FlxPoint = FlxPoint.get();
 		if(boyfriend == null)
 		{
+			deathScroll.set(FlxG.camera.scroll.x, FlxG.camera.scroll.y);
 			boyfriend = new Character(PlayState.instance.boyfriend.getScreenPosition().x, PlayState.instance.boyfriend.getScreenPosition().y, characterName, true);
 			boyfriend.x += boyfriend.positionArray[0] - PlayState.instance.boyfriend.positionArray[0];
 			boyfriend.y += boyfriend.positionArray[1] - PlayState.instance.boyfriend.positionArray[1];
 		}
 		boyfriend.skipDance = true;
+		boyfriend.canPlayOtherAnims = true;
+		boyfriend.animSuffix = '';
 		add(boyfriend);
 
 		FlxG.sound.play(Paths.sound(deathSoundName));
 		FlxG.camera.scroll.set();
 		FlxG.camera.target = null;
+		if(PlayState.instance.stageData != null) FlxG.camera.zoom = PlayState.instance.stageData.defaultZoom;
 
 		boyfriend.playAnim('firstDeath');
 
@@ -112,22 +117,37 @@ class GameOverSubstate extends MusicBeatSubstate
 						boyfriend.animation.callback = null;
 				}
 			}
+		}
 
-			if(PlayState.instance.gf != null && funkin.game.stages.PicoCapableStage.NENE_LIST.contains(PlayState.instance.gf.curCharacter))
+		if(['pico-dead', 'pico-christmas-dead', 'pico-pixel-dead'].contains(characterName))
+		{
+			var gf:Character = PlayState.instance.gf;
+			if(gf != null && funkin.game.stages.PicoCapableStage.NENE_LIST.contains(gf.curCharacter))
 			{
-				var neneKnife:FlxSprite = new FlxSprite(boyfriend.x - 450, boyfriend.y - 250);
-				if(PlayState.isPixelStage)
+				var idle:Array<Dynamic> = gf.animOffsets.get(gf.animOffsets.exists('danceLeft') ? 'danceLeft' : 'idle');
+				var neneX:Float = gf.x - (idle != null ? idle[0] : 0) - deathScroll.x * gf.scrollFactor.x;
+				var neneY:Float = gf.y - (idle != null ? idle[1] : 0) - deathScroll.y * gf.scrollFactor.y;
+				var neneKnife:FlxSprite = new FlxSprite();
+				switch(gf.curCharacter)
 				{
-					neneKnife.frames = Paths.getSparrowAtlas('nenePixelKnifeToss');
-					neneKnife.animation.addByPrefix('anim', 'knifetosscolor', 24, false);
-					neneKnife.antialiasing = false;
+					case 'nene-pixel':
+						neneKnife.frames = Paths.getSparrowAtlas('characters_pixel/nenePixel/nenePixelKnifeToss');
+						neneKnife.animation.addByPrefix('anim', 'knifetosscolor', 24, false);
+						neneKnife.scale.set(6, 6);
+						neneKnife.antialiasing = false;
+						neneKnife.setPosition(neneX + gf.origin.x * (1 - gf.scale.x) + 280, neneY + gf.origin.y * (1 - gf.scale.y) + 170);
+					case 'nene-christmas':
+						neneKnife.frames = Paths.getSparrowAtlas('characters/mallPico/neneChristmasKnife');
+						neneKnife.animation.addByPrefix('anim', 'knife toss xmas', 24, false);
+						neneKnife.antialiasing = ClientPrefs.data.antialiasing;
+						neneKnife.setPosition(neneX + 16, neneY + 49);
+					default:
+						neneKnife.frames = Paths.getSparrowAtlas('NeneKnifeToss');
+						neneKnife.animation.addByPrefix('anim', 'knife toss', 24, false);
+						neneKnife.antialiasing = ClientPrefs.data.antialiasing;
+						neneKnife.setPosition(neneX + 116, neneY + 89);
 				}
-				else
-				{
-					neneKnife.frames = Paths.getSparrowAtlas('NeneKnifeToss');
-					neneKnife.animation.addByPrefix('anim', 'knife toss', 24, false);
-					neneKnife.antialiasing = ClientPrefs.data.antialiasing;
-				}
+				neneKnife.scrollFactor.set(gf.scrollFactor.x, gf.scrollFactor.y);
 				neneKnife.animation.finishCallback = function(_)
 				{
 					remove(neneKnife);
@@ -137,6 +157,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				neneKnife.animation.play('anim', true);
 			}
 		}
+		deathScroll.put();
 
 		super.create();
 	}
@@ -190,12 +211,12 @@ class GameOverSubstate extends MusicBeatSubstate
 					case 'tank' | 'tankmanBattlefieldErect':
 						coolStartDeath(0.2);
 						
-						var exclude:Array<Int> = [];
-						//if(!ClientPrefs.cursing) exclude = [1, 3, 8, 13, 17, 21];
-	
+						var exclude:Array<Int> = ClientPrefs.data.naughtyness ? [] : [1, 3, 8, 13, 17, 21];
+						var excludePico:Array<Int> = ClientPrefs.data.naughtyness ? [] : [4, 7, 8, 9];
+
 						var jeffLine:String = switch(PlayState.SONG.player1)
 						{
-							case 'pico-playable' | 'pico-holding-nene': 'jeffGameover-pico/jeffGameover-' + FlxG.random.int(1, 9);
+							case 'pico-playable' | 'pico-holding-nene': 'jeffGameover-pico/jeffGameover-' + FlxG.random.int(1, 9, excludePico);
 							case 'bf' | 'bf-holding-gf': 'jeffGameover/jeffGameover-' + FlxG.random.int(1, 25, exclude);
 							default: PlayState.SONG.player1.startsWith('pico') ? 'jeffGameover-pico/jeffGameover-10' : 'jeffGameover/jeffGameover-' + FlxG.random.int(1, 25, exclude);
 						}

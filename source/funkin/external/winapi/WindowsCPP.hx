@@ -223,24 +223,6 @@ class WindowsCPP
 		return res;
 	}
 
-	@:functionCode('
-        HWND window = GET_MAIN_WINDOW();
-
-		auto color = RGB(r, g, b);
-		
-        if (S_OK != DwmSetWindowAttribute(window, 35, &color, sizeof(COLORREF))) {
-            DwmSetWindowAttribute(window, 35, &color, sizeof(COLORREF));
-        }
-
-		if (S_OK != DwmSetWindowAttribute(window, 34, &color, sizeof(COLORREF))) {
-            DwmSetWindowAttribute(window, 34, &color, sizeof(COLORREF));
-        }
-
-        UpdateWindow(window);
-    ')
-	public static function setWindowBorderColor(r:Int, g:Int, b:Int)
-	{
-	}
 
 	@:functionCode('
         HWND window = GET_MAIN_WINDOW();
@@ -253,17 +235,6 @@ class WindowsCPP
     {
     }
 	
-    @:functionCode('
-        HWND window = GET_MAIN_WINDOW();
-
-        auto color2 = RGB(r, g, b);
-        DwmSetWindowAttribute(window, 36, &color2, sizeof(COLORREF));
-
-		UpdateWindow(window);
-    ')
-    public static function setWindowTextColor(r:Int, g:Int, b:Int):Void
-    {
-    }
 
 	@:functionCode('
 		HWND window = GET_MAIN_WINDOW();
@@ -275,18 +246,6 @@ class WindowsCPP
     {
     }
 
-	@:functionCode('
-		HWND window = GET_MAIN_WINDOW();
-
-		int damode = dmode ? 1 : 0;
-
-		DwmSetWindowAttribute(window, DWMWA_USE_IMMERSIVE_DARK_MODE, &damode, sizeof(damode));
-
-		UpdateWindow(window);
-	')
-	public static function windowDarkMode(dmode):Void
-    {
-    }
 	
 	@:functionCode('
 	HWND window = GET_MAIN_WINDOW();
@@ -609,18 +568,6 @@ class WindowsCPP
 	{
 	}
 
-	@:functionCode('
-        HWND window = GET_MAIN_WINDOW();
-
-        COLORREF color = 0xFFFFFFFF;
-        DwmSetWindowAttribute(window, 35, &color, sizeof(COLORREF));
-        DwmSetWindowAttribute(window, 34, &color, sizeof(COLORREF));
-
-        UpdateWindow(window);
-    ')
-	public static function resetWindowBorderColor()
-	{
-	}
 	@:functionCode('
         HWND window = GetForegroundWindow();
         char exePath[MAX_PATH];

@@ -18,6 +18,8 @@ typedef CharacterFile = {
 	var scale:Float;
 	var sing_duration:Float;
 	var healthicon:String;
+	@:optional var healthicon_antialiasing:Null<Bool>;
+	@:optional var censored_character:String;
 
 	var position:Array<Float>;
 	var camera_position:Array<Float>;
@@ -59,10 +61,14 @@ class Character extends animate.FlxAnimate
 	public var stunned:Bool = false;
 	public var singDuration:Float = 4; //Multiplier of how long a character holds the sing pose
 	public var idleSuffix:String = '';
+	public var animSuffix:String = '';
+	public var canPlayOtherAnims:Bool = true;
 	public var danceIdle:Bool = false; //Character use "danceLeft" and "danceRight" instead of "idle"
 	public var skipDance:Bool = false;
 
 	public var healthIcon:String = 'face';
+	public var healthIconAntialiasing:Null<Bool> = null;
+	public var censoredCharacter:String = null;
 	public var animationsArray:Array<AnimArray> = [];
 
 	public var positionArray:Array<Float> = [0, 0];
@@ -132,7 +138,14 @@ class Character extends animate.FlxAnimate
 			var rawContent:String = Assets.getText(path);
 			#end
 
-			loadCharacterFile(Json.parse(rawContent));
+			var json:Dynamic = Json.parse(rawContent);
+			var censored:String = json.censored_character;
+			if(censored != null && censored != character && !ClientPrefs.data.naughtyness && Std.isOfType(FlxG.state, PlayState))
+			{
+				changeCharacter(censored);
+				return;
+			}
+			loadCharacterFile(json);
 		}
 		catch(e:Dynamic)
 		{
@@ -209,6 +222,8 @@ class Character extends animate.FlxAnimate
 
 		// data
 		healthIcon = json.healthicon;
+		healthIconAntialiasing = json.healthicon_antialiasing;
+		censoredCharacter = json.censored_character;
 		singDuration = json.sing_duration;
 		flipX = (json.flip_x != isPlayer);
 		healthColorArray = (json.healthbar_colors != null && json.healthbar_colors.length > 2) ? json.healthbar_colors : [161, 161, 161];
@@ -279,7 +294,7 @@ class Character extends animate.FlxAnimate
 			if(heyTimer <= 0)
 			{
 				var anim:String = getAnimationName();
-				if(specialAnim && (anim == 'hey' || anim == 'cheer'))
+				if(specialAnim && (anim == 'hey' || anim == 'cheer' || anim == 'scared'))
 				{
 					specialAnim = false;
 					dance();
@@ -408,6 +423,13 @@ class Character extends animate.FlxAnimate
 
 	public function playAnim(AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0):Void
 	{
+		if(!canPlayOtherAnims)
+		{
+			if(!isAnimationFinished()) return;
+			canPlayOtherAnims = true;
+		}
+		if(animSuffix.length > 0 && hasAnimation(AnimName + animSuffix)) AnimName += animSuffix;
+
 		specialAnim = false;
 		if(!isAnimateAtlas)
 		{

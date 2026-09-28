@@ -84,13 +84,13 @@ class EditorPlayState extends MusicBeatSubstate
 
 	override function create()
 	{
-		Conductor.safeZoneOffset = (ClientPrefs.data.safeFrames / 60) * 1000 * playbackRate;
+		Conductor.safeZoneOffset = (funkin.game.InputSystem.safeFrames() / 60) * 1000 * playbackRate;
 		Conductor.songPosition -= startOffset;
 		startOffset = Conductor.crochet;
 		timerToStart = startOffset;
 
 		cachePopUpScore();
-		guitarHeroSustains = ClientPrefs.data.guitarHeroSustains;
+		guitarHeroSustains = funkin.game.InputSystem.sustainsAsOneNote();
 		if(ClientPrefs.data.hitsoundVolume > 0) Paths.sound('hitsound');
 
 		/* setting up Editor PlayState stuff */
@@ -683,7 +683,7 @@ class EditorPlayState extends MusicBeatSubstate
 
 		plrInputNotes.sort(PlayState.sortHitNotes);
 
-		var shouldMiss:Bool = !ClientPrefs.data.ghostTapping;
+		var shouldMiss:Bool = !funkin.game.InputSystem.ghostTapping();
 
 		if (plrInputNotes.length != 0) { // slightly faster than doing `> 0` lol
 			var funnyNote:Note = plrInputNotes[0]; // front note

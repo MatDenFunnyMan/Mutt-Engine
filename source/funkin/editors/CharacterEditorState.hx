@@ -1468,6 +1468,16 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		decideIconColor.cameras = cams;
 		state.add(decideIconColor);
 
+		var iconAntialiasingCheckBox:PsychUICheckBox = new PsychUICheckBox(midX, contentY + 74, 'Anti-aliasing', 100);
+		iconAntialiasingCheckBox.checked = healthIcon.isSmooth();
+		iconAntialiasingCheckBox.onClick = function() {
+			character.healthIconAntialiasing = iconAntialiasingCheckBox.checked;
+			healthIcon.iconAntialiasing = iconAntialiasingCheckBox.checked;
+			unsavedProgress = true;
+		};
+		iconAntialiasingCheckBox.cameras = cams;
+		state.add(iconAntialiasingCheckBox);
+
 		var barLabel:FlxText = new FlxText(midX, contentY + 100, 150, 'Health Bar Color:');
 		barLabel.cameras = cams;
 		state.add(barLabel);
@@ -2305,6 +2315,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		healthBar.leftBar.color = healthBar.rightBar.color = FlxColor.fromRGB(character.healthColorArray[0], character.healthColorArray[1], character.healthColorArray[2]);
 		if(healthBarDisplay != null) healthBarDisplay.color = FlxColor.fromRGB(character.healthColorArray[0], character.healthColorArray[1], character.healthColorArray[2]);
 		healthIcon.changeIcon(character.healthIcon, false);
+		healthIcon.iconAntialiasing = character.healthIconAntialiasing;
 		healthIcon.setGraphicSize(150);
 		healthIcon.updateHitbox();
 		updatePresence();
@@ -2468,6 +2479,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			"scale": character.jsonScale,
 			"sing_duration": character.singDuration,
 			"healthicon": character.healthIcon,
+			"healthicon_antialiasing": healthIcon.isSmooth(),
 
 			"position":	character.positionArray,
 			"camera_position": character.cameraPosition,
@@ -2480,6 +2492,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			"vslice_sustains": character.vsliceSustains,
 			"_editor_isPlayer": character.isPlayer
 		};
+		if(character.censoredCharacter != null) Reflect.setField(json, 'censored_character', character.censoredCharacter);
 
 		var data:String = PsychJsonPrinter.print(json, ['offsets', 'position', 'healthbar_colors', 'camera_position', 'indices']);
 

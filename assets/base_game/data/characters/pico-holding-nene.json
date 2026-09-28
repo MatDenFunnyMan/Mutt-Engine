@@ -120,6 +120,17 @@
 			"fps": 24,
 			"name": "laugh start",
 			"indices": []
+		},
+		{
+			"loop": true,
+			"offsets": [
+				81,
+				45
+			],
+			"anim": "laughEnd-loop",
+			"fps": 24,
+			"name": "laugh loop",
+			"indices": []
 		}
 	],
 	"vocals_file": "",

@@ -76,6 +76,61 @@
 			"anim": "singRIGHT",
 			"loop": false,
 			"name": "right"
+		},
+		{
+			"loop": false,
+			"offsets": [
+				158,
+				174
+			],
+			"anim": "idle-bloody",
+			"fps": 24,
+			"name": "idle knife",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				158,
+				174
+			],
+			"anim": "singLEFT-bloody",
+			"fps": 24,
+			"name": "left knife",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				158,
+				174
+			],
+			"anim": "singDOWN-bloody",
+			"fps": 24,
+			"name": "down knife",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				158,
+				174
+			],
+			"anim": "singUP-bloody",
+			"fps": 24,
+			"name": "up knife",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				158,
+				174
+			],
+			"anim": "singRIGHT-bloody",
+			"fps": 24,
+			"name": "right knife",
+			"indices": []
 		}
 	],
 	"vocals_file": "",
@@ -86,6 +141,7 @@
 		240
 	],
 	"healthicon": "tankman-bloody",
+	"censored_character": "tankman",
 	"flip_x": false,
 	"healthbar_colors": [
 		225,

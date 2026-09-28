@@ -57,21 +57,5 @@ extern class WinAPI
   @:native('WINAPI_GetProcessMemoryWorkingSetSize')
   static function getProcessMemoryWorkingSetSize():cpp.SizeT;
 
-  /**
-   * Sets the dark mode for the active window.
-   *
-   * @param handle A handle to the parent window.
-   * @param enable Whether to enable or disable dark mode.
-   */
-  @:native('WINAPI_SetDarkMode')
-  static function setDarkMode(handle:cpp.RawPointer<cpp.Void>, enable:Bool):Void;
-
-  /**
-   * Checks if the system is using dark mode.
-   *
-   * @return True if system is in dark mode, false otherwise.
-   */
-  @:native('WINAPI_IsSystemDarkMode')
-  static function isSystemDarkMode():Bool;
 }
 #end

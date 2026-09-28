@@ -116,7 +116,11 @@ class SpookyMansionErect extends BaseStage
 		if (boyfriend != null && boyfriend.hasAnimation('scared') && boyfriend.getAnimationName() != 'cheer')
 			boyfriend.playAnim('scared', true);
 		if (gf != null && gf.hasAnimation('scared'))
+		{
 			gf.playAnim('scared', true);
+			gf.specialAnim = true;
+			gf.heyTimer = 2;
+		}
 
 		if (ClientPrefs.data.flashing)
 		{

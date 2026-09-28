@@ -5,6 +5,9 @@ import funkin.data.StageData;
 import funkin.data.WeekData;
 import funkin.data.Song;
 import funkin.game.Rating;
+import funkin.game.InputSystem;
+import funkin.game.subtitles.Subtitles;
+import funkin.game.subtitles.SubtitleData;
 
 import modcharting.ModchartFuncs;
 import modcharting.NoteMovement;
@@ -228,6 +231,11 @@ class PlayState extends MusicBeatState
 	public var healthLoss:Float = 1;
 
 	public var guitarHeroSustains:Bool = false;
+	public var ghostTapping:Bool = true;
+	public var inputSystem:String = InputSystem.PSYCH;
+	public var vsliceInput:Bool = false;
+	public var vsliceComboBreaks:Int = 0;
+	var vsliceScoreRemainder:Float = 0;
 	public var instakillOnMiss:Bool = false;
 	public var cpuControlled:Bool = false;
 	public var practiceMode:Bool = false;
@@ -357,7 +365,11 @@ class PlayState extends MusicBeatState
 		cpuControlled = ClientPrefs.getGameplaySetting('botplay');
 		opponentMode = ClientPrefs.getGameplaySetting('opponentmode');
 		mirrorChart = ClientPrefs.getGameplaySetting('mirrorchart');
-		guitarHeroSustains = ClientPrefs.data.guitarHeroSustains;
+		inputSystem = InputSystem.current;
+		vsliceInput = inputSystem == InputSystem.VSLICE;
+		guitarHeroSustains = InputSystem.sustainsAsOneNote();
+		ghostTapping = InputSystem.ghostTapping();
+		InputSystem.applyRatings(ratingsData);
 
 		// var gameCam:FlxCamera = FlxG.camera;
 		camGame = initPsychCamera();
@@ -397,7 +409,7 @@ class PlayState extends MusicBeatState
 
 		curStage = SONG.stage;
 
-		var stageData:StageFile = StageData.getStageFile(curStage);
+		stageData = StageData.getStageFile(curStage);
 		defaultCamZoom = stageData.defaultZoom;
 
 		stageUI = "normal";
@@ -715,12 +727,14 @@ class PlayState extends MusicBeatState
 		uiGroup.add(healthBar);
 
 		iconP1 = new HealthIcon(boyfriend.healthIcon, true);
+		iconP1.iconAntialiasing = boyfriend.healthIconAntialiasing;
 		iconP1.y = healthBar.y - 75;
 		iconP1.visible = !ClientPrefs.data.hideHud;
 		iconP1.alpha = ClientPrefs.data.healthBarAlpha;
 		uiGroup.add(iconP1);
 
 		iconP2 = new HealthIcon(dad != null ? dad.healthIcon : 'face', false);
+		if(dad != null) iconP2.iconAntialiasing = dad.healthIconAntialiasing;
 		iconP2.y = healthBar.y - 75;
 		iconP2.visible = !ClientPrefs.data.hideHud && !soloMode;
 		iconP2.alpha = ClientPrefs.data.healthBarAlpha;
@@ -824,6 +838,7 @@ class PlayState extends MusicBeatState
 			eventNotes.sort(sortByTime);
 		}
 
+		createSubtitles();
 		#if MEMTEST funkin.debug.MemoryTest.phase = 'start callback'; #end
 		startCallback();
 		RecalculateRating(false, false);
@@ -833,7 +848,7 @@ class PlayState extends MusicBeatState
 
 		//PRECACHING THINGS THAT GET USED FREQUENTLY TO AVOID LAGSPIKES
 		if(ClientPrefs.data.hitsoundVolume > 0) Paths.sound('hitsound');
-		if(!ClientPrefs.data.ghostTapping) for (i in 1...4) Paths.sound('missnote$i');
+		if(!ghostTapping) for (i in 1...4) Paths.sound('missnote$i');
 		Paths.image('alphabet');
 
 		resetRPC();
@@ -896,7 +911,7 @@ class PlayState extends MusicBeatState
 		playbackRate = value;
 		FlxG.animationTimeScale = value;
 		Conductor.offset = Reflect.hasField(PlayState.SONG, 'offset') ? (PlayState.SONG.offset / value) : 0;
-		Conductor.safeZoneOffset = (ClientPrefs.data.safeFrames / 60) * 1000 * value;
+		Conductor.safeZoneOffset = (InputSystem.safeFrames() / 60) * 1000 * value;
 		#if VIDEOS_ALLOWED
 		if(videoCutscene != null && videoCutscene.videoSprite != null) videoCutscene.videoSprite.bitmap.rate = value;
 		#end
@@ -1516,15 +1531,16 @@ class PlayState extends MusicBeatState
 		var bads:Int = ratingsData[2].hits;
 		var shits:Int = ratingsData[3].hits;
 
+		var comboBreaks:Int = songMisses + (vsliceInput ? vsliceComboBreaks : 0);
 		ratingFC = "";
-		if(songMisses == 0)
+		if(comboBreaks == 0)
 		{
 			if (bads > 0 || shits > 0) ratingFC = 'FC';
 			else if (goods > 0) ratingFC = 'GFC';
 			else if (sicks > 0) ratingFC = 'SFC';
 		}
 		else {
-			if (songMisses < 10) ratingFC = 'SDCB';
+			if (comboBreaks < 10) ratingFC = 'SDCB';
 			else ratingFC = 'Clear';
 		}
 	}
@@ -1582,6 +1598,87 @@ class PlayState extends MusicBeatState
 		callOnScripts('onSkipDialogue', [dialogueCount]);
 	}
 
+	public static inline final LYRICS_MARGIN:Float = 139;
+	public static inline final CUTSCENE_SUBTITLES_MARGIN:Float = 42;
+
+	public var subtitles:Subtitles;
+	var songLyrics:SubtitleData;
+	var subtitleCache:Map<String, SubtitleData> = new Map();
+
+	function createSubtitles()
+	{
+		if(subtitles != null) return;
+		subtitles = new Subtitles(LYRICS_MARGIN, ClientPrefs.data.downScroll);
+		subtitles.cameras = [camOther];
+		add(subtitles);
+
+		songLyrics = SubtitleData.load('songs/$songName/subtitles/song-lyrics');
+		subtitles.prepare(songLyrics);
+		for (data in subtitleCache) subtitles.prepare(data);
+	}
+
+	function lyricsMargin():Float
+	{
+		var margin:Float = LYRICS_MARGIN;
+		for (text in [scoreTxt, botplayTxt])
+		{
+			if(text == null || !text.visible) continue;
+			margin = Math.max(margin, ClientPrefs.data.downScroll ? text.y + text.height + 6 : FlxG.height - text.y + 6);
+		}
+		return margin;
+	}
+
+	function subtitlesToFront()
+	{
+		if(members.indexOf(subtitles) == members.length - 1) return;
+		remove(subtitles, true);
+		add(subtitles);
+	}
+
+	public function playSongLyrics():Subtitles
+	{
+		if(songLyrics == null || subtitles == null) return null;
+
+		subtitlesToFront();
+		subtitles.margin = lyricsMargin();
+		subtitles.alignTop = ClientPrefs.data.downScroll;
+		return subtitles.play(songLyrics, () -> FlxG.sound.music != null ? FlxG.sound.music.time : -1);
+	}
+
+	public function preloadSubtitles(key:String):SubtitleData
+	{
+		if(subtitleCache.exists(key)) return subtitleCache.get(key);
+
+		var data:SubtitleData = SubtitleData.load('songs/$songName/subtitles/$key');
+		if(data == null) data = SubtitleData.load('subtitles/$key');
+		if(data == null) data = SubtitleData.load(key);
+		if(data == null) return null;
+
+		subtitleCache.set(key, data);
+		if(subtitles != null) subtitles.prepare(data);
+		return data;
+	}
+
+	public function playSubtitles(key:String, ?sound:FlxSound, ?margin:Null<Float>, ?alignTop:Bool = false):Subtitles
+	{
+		var data:SubtitleData = preloadSubtitles(key);
+		if(data == null || subtitles == null)
+		{
+			#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
+			addTextToDebug('Subtitles not found: $key', FlxColor.RED);
+			#end
+			return null;
+		}
+
+		subtitlesToFront();
+		subtitles.margin = margin != null ? margin : CUTSCENE_SUBTITLES_MARGIN;
+		subtitles.alignTop = alignTop;
+		return subtitles.play(data, sound != null ? Subtitles.soundClock(sound) : null);
+	}
+
+	public function stopSubtitles()
+		if(subtitles != null) subtitles.stop();
+
 	function startSong():Void
 	{
 		startingSong = false;
@@ -1605,6 +1702,7 @@ class PlayState extends MusicBeatState
 		}
 
 		stagesFunc(function(stage:BaseStage) stage.startSong());
+		playSongLyrics();
 
 		// Song duration in a float, useful for the time left feature
 		songLength = FlxG.sound.music.length;
@@ -2221,7 +2319,7 @@ class PlayState extends MusicBeatState
 	override public function onFocus():Void
 	{
 		super.onFocus();
-		if (!paused && health > 0)
+		if (!paused && health > 0 && ClientPrefs.data.autoPause)
 		{
 			#if VIDEOS_ALLOWED
 			if(videoCutscene != null && videoCutscene.videoSprite != null)
@@ -2245,7 +2343,7 @@ class PlayState extends MusicBeatState
 				return;
 			}
 		}
-		if (!paused && health > 0)
+		if (!paused && health > 0 && ClientPrefs.data.autoPause)
 		{
 			#if VIDEOS_ALLOWED
 			if(videoCutscene != null && videoCutscene.videoSprite != null)
@@ -2969,7 +3067,7 @@ class PlayState extends MusicBeatState
 						}
 				}
 
-				if (char != null)
+				if (char != null && (char.hasAnimation(value1) || char.animation.exists(value1)))
 				{
 					char.playAnim(value1, true);
 					char.specialAnim = true;
@@ -3332,6 +3430,7 @@ class PlayState extends MusicBeatState
 							boyfriend = boyfriendMap.get(value2);
 							boyfriend.alpha = lastAlpha;
 							iconP1.changeIcon(boyfriend.healthIcon);
+							iconP1.iconAntialiasing = boyfriend.healthIconAntialiasing;
 						}
 						setOnScripts('boyfriendName', boyfriend.curCharacter);
 
@@ -3354,6 +3453,7 @@ class PlayState extends MusicBeatState
 							}
 							dad.alpha = lastAlpha;
 							iconP2.changeIcon(dad.healthIcon);
+							iconP2.iconAntialiasing = dad.healthIconAntialiasing;
 						}
 						setOnScripts('dadName', dad.curCharacter);
 
@@ -4968,7 +5068,7 @@ class PlayState extends MusicBeatState
 						changedDifficulty = false;
 					};
 
-					FreeplayState.songCompleted(Song.loadedSongName, funkin.ui.results.ResultsRank.RankData.calculate(Math.isNaN(ratingPercent) ? 0 : ratingPercent, songMisses, ratingHits(0), songHits));
+					if(!cpuControlled && !practiceMode) FreeplayState.songCompleted(Song.loadedSongName, funkin.ui.results.ResultsRank.RankData.calculate(Math.isNaN(ratingPercent) ? 0 : ratingPercent, songMisses, ratingHits(0), songHits));
 					showResults(makeResultsData(false), finishFreeplay);
 			}
 			transitioning = true;
@@ -5070,6 +5170,13 @@ class PlayState extends MusicBeatState
 			Paths.image(uiFolder + 'num' + i + uiPostfix);
 	}
 
+	function addCombo()
+	{
+		combo++;
+		if(combo > maxCombo) maxCombo = combo;
+		if(combo > 9999) combo = 9999;
+	}
+
 	private function popUpScore(note:Note = null):Void
 	{
 		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
@@ -5098,6 +5205,13 @@ class PlayState extends MusicBeatState
 		if(!note.ratingDisabled) daRating.hits++;
 		note.rating = daRating.name;
 		score = daRating.score;
+
+		if(vsliceInput)
+		{
+			score = InputSystem.vsliceScore(noteDiff / playbackRate);
+			if(InputSystem.vsliceComboBreak(daRating.name)) vsliceBreakCombo();
+			else addCombo();
+		}
 
 		if(daRating.noteSplash && !note.noteSplashData.disabled)
 			spawnNoteSplashOnNote(note);
@@ -5300,7 +5414,7 @@ class PlayState extends MusicBeatState
 				}
 				else
 				{
-					if (!ClientPrefs.data.ghostTapping)
+					if (!ghostTapping)
 						noteMissPress(key);
 				}
 
@@ -5315,7 +5429,7 @@ class PlayState extends MusicBeatState
 
 		if (!hitSomething)
 		{
-			if (ClientPrefs.data.ghostTapping)
+			if (ghostTapping)
 				callOnScripts('onGhostTap', [key]);
 			else
 				noteMissPress(key);
@@ -5357,6 +5471,8 @@ class PlayState extends MusicBeatState
 
 		var ret:Dynamic = callOnScripts('onKeyReleasePre', [key]);
 		if(ret == LuaUtils.Function_Stop) return;
+
+		if(vsliceInput) vsliceReleaseHolds(key);
 
 		var spr:StrumNote = playerStrums.members[key];
 		if(spr != null)
@@ -5481,9 +5597,10 @@ class PlayState extends MusicBeatState
 
 	function noteMissPress(direction:Int = 1):Void //You pressed a key when there was no notes to press for this key
 	{
-		if(ClientPrefs.data.ghostTapping) return; //fuck it
+		if(ghostTapping) return; //fuck it
 
-		noteMissCommon(direction);
+		if(vsliceInput) vsliceGhostMiss(direction);
+		else noteMissCommon(direction);
 		FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
 		stagesFunc(function(stage:BaseStage) stage.noteMissPress(direction));
 		callOnScripts('noteMissPress', [direction]);
@@ -5494,6 +5611,7 @@ class PlayState extends MusicBeatState
 		// score and data
 		var subtract:Float = pressMissDamage;
 		if(note != null) subtract = note.missHealth;
+		if(vsliceInput && note != null && !note.hitCausesMiss) subtract = InputSystem.VSLICE_HEALTH_MISS * (note.missHealth / InputSystem.DEFAULT_MISS_HEALTH);
 
 		// GUITAR HERO SUSTAIN CHECK LOL!!!!
 		if (note != null && guitarHeroSustains && note.parent == null) {
@@ -5513,14 +5631,27 @@ class PlayState extends MusicBeatState
 				// i mean its fair :p -Crow
 				subtract *= note.tail.length + 1;
 				// i think it would be fair if damage multiplied based on how long the sustain is -[REDACTED]
+
+				if(vsliceInput)
+				{
+					subtract = InputSystem.VSLICE_HEALTH_MISS * (note.missHealth / InputSystem.DEFAULT_MISS_HEALTH);
+					if(note.sustainLength > InputSystem.VSLICE_HOLD_DROP_THRESHOLD)
+						addVSliceScore(InputSystem.VSLICE_HOLD_DROP_SCORE_PER_SECOND * note.sustainLength / 1000);
+				}
 			}
 
-			if (note.missed)
+			if (note.missed && !vsliceInput)
 				return;
 		}
 		if (note != null && guitarHeroSustains && note.parent != null && note.isSustainNote) {
 			if (note.missed)
 				return;
+
+			if(vsliceInput)
+			{
+				if(note.parent.wasGoodHit) vsliceDropHold(note.parent, note.strumTime);
+				return;
+			}
 
 			var parentNote:Note = note.parent;
 			if (parentNote.wasGoodHit && parentNote.tail.length > 0) {
@@ -5544,12 +5675,16 @@ class PlayState extends MusicBeatState
 		combo = 0;
 
 		health -= subtract * healthLoss;
-		songScore -= 10;
+		songScore += vsliceInput ? InputSystem.VSLICE_MISS_SCORE : -10;
 		if(!endingSong) songMisses++;
 		totalPlayed++;
 		RecalculateRating(true);
 
-		// play character anims
+		playMissAnimation(direction, note, lastCombo);
+	}
+
+	function playMissAnimation(direction:Int, note:Note, lastCombo:Int)
+	{
 		var char:Character = boyfriend;
 		if((note != null && note.gfNote) || (SONG.notes[curSection] != null && SONG.notes[curSection].gfSection)) char = gf;
 		if(note != null && note.noteType == 'Boyfriend SING') char = boyfriend;
@@ -5599,6 +5734,84 @@ class PlayState extends MusicBeatState
 			character.playAnim(dropAnim, true);
 			character.specialAnim = true;
 		}
+	}
+
+	function vsliceGhostMiss(direction:Int)
+	{
+		health -= InputSystem.VSLICE_HEALTH_GHOST_MISS * (pressMissDamage / InputSystem.DEFAULT_PRESS_MISS_DAMAGE) * healthLoss;
+		songScore += InputSystem.VSLICE_GHOST_MISS_SCORE;
+		RecalculateRating(true);
+		playMissAnimation(direction, null, 0);
+	}
+
+	function vsliceBreakCombo()
+	{
+		var lastCombo:Int = combo;
+		combo = 0;
+		vsliceComboBreaks++;
+		if(gf == null || lastCombo <= 5) return;
+
+		if(gf.hasAnimation('sad'))
+		{
+			gf.playAnim('sad');
+			gf.specialAnim = true;
+		}
+		else playComboDropAnimation(gf, lastCombo);
+	}
+
+	function vsliceReleaseHolds(key:Int)
+	{
+		for (note in notes.members)
+		{
+			if(note == null || !note.isSustainNote || !note.mustPress || note.noteData != key) continue;
+			if(note.wasGoodHit || note.missed || note.parent == null || !note.parent.wasGoodHit) continue;
+			vsliceDropHold(note.parent, Conductor.songPosition);
+		}
+	}
+
+	function vsliceDropHold(parentNote:Note, time:Float)
+	{
+		for (child in parentNote.tail)
+		{
+			if(child.wasGoodHit) continue;
+			child.alpha = 0.35;
+			child.missed = true;
+			child.canBeHit = false;
+			child.ignoreNote = true;
+			child.tooLate = true;
+		}
+
+		var remaining:Float = parentNote.strumTime + parentNote.sustainLength - time;
+		if(remaining <= InputSystem.VSLICE_HOLD_DROP_THRESHOLD) return;
+
+		addVSliceScore(InputSystem.VSLICE_HOLD_DROP_SCORE_PER_SECOND * remaining / 1000);
+		vsliceBreakCombo();
+		vocals.volume = 0;
+		FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.5, 0.6));
+		RecalculateRating(true);
+		callOnScripts('onHoldDrop', [parentNote.noteData, remaining]);
+	}
+
+	function applyVSliceHitHealth(note:Note)
+	{
+		if(note.isSustainNote)
+		{
+			var length:Float = (note.prevNote != null) ? Math.max(0, note.strumTime - note.prevNote.strumTime) / 1000 : 0;
+			health += InputSystem.VSLICE_HEALTH_HOLD_PER_SECOND * length * healthGain;
+			if(!cpuControlled) addVSliceScore(InputSystem.VSLICE_HOLD_SCORE_PER_SECOND * length);
+			return;
+		}
+
+		var change:Float = InputSystem.vsliceHitHealth(note.rating) * (note.hitHealth / InputSystem.DEFAULT_HIT_HEALTH);
+		health += change * (change < 0 ? healthLoss : healthGain);
+	}
+
+	function addVSliceScore(amount:Float)
+	{
+		vsliceScoreRemainder += amount;
+		var whole:Int = Std.int(vsliceScoreRemainder);
+		songScore += whole;
+		vsliceScoreRemainder -= whole;
 	}
 
 	function opponentNoteHit(note:Note):Void
@@ -6089,14 +6302,16 @@ class PlayState extends MusicBeatState
 
 			if (!note.isSustainNote)
 			{
-				combo++;
-				if(combo > maxCombo) maxCombo = combo;
-				if(combo > 9999) combo = 9999;
+				if(!vsliceInput) addCombo();
 				popUpScore(note);
 			}
-			var gainHealth:Bool = true; // prevent health gain, *if* sustains are treated as a singular note
-			if (guitarHeroSustains && note.isSustainNote) gainHealth = false;
-			if (gainHealth) health += note.hitHealth * healthGain;
+			if(vsliceInput) applyVSliceHitHealth(note);
+			else
+			{
+				var gainHealth:Bool = true; // prevent health gain, *if* sustains are treated as a singular note
+				if (guitarHeroSustains && note.isSustainNote) gainHealth = false;
+				if (gainHealth) health += note.hitHealth * healthGain;
+			}
 
 		}
 		else //Notes that count as a miss if you hit them (Hurt notes for example)

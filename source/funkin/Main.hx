@@ -48,31 +48,9 @@ import haxe.io.Path;
 import funkin.save.Highscore;
 import funkin.util.ThreadedCache;
 
-#if (cpp && windows)
-import hxwindowmode.WindowColorMode;
-import funkin.external.winapi.WindowsCPP;
-#end
-
 #if (linux && !debug)
 @:cppInclude('./external/gamemode_client.h')
 @:cppFileCode('#define GAMEMODE_AUTO')
-#end
-
-#if (cpp && windows)
-@:cppFileCode('
-	#include <windows.h>
-	
-	bool _detectWindowsDarkMode() {
-		HKEY hKey;
-		DWORD value = 0;
-		DWORD dataSize = sizeof(DWORD);
-		if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Themes\\\\Personalize", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-			RegQueryValueExA(hKey, "AppsUseLightTheme", NULL, NULL, (LPBYTE)&value, &dataSize);
-			RegCloseKey(hKey);
-		}
-		return (value == 0);
-	}
-')
 #end
 
 class Main extends Sprite
@@ -93,6 +71,8 @@ class Main extends Sprite
 	public static var engineVersion:String = "1.0.3";
 	public static var audioDisconnected:Bool = false;
 	public static var changeID:Int = 0;
+	public static var focusVolume:Null<Float> = null;
+	static inline final LOST_FOCUS_VOLUME:Float = 0.35;
 
 	var flashSprite:Sprite;
 	var flashBitmap:openfl.display.Bitmap;
@@ -290,16 +270,13 @@ class Main extends Sprite
 		Lib.current.stage.window.setIcon(icon);
 		#end
 
-		#if (cpp && windows)
-		updateWindowTheme();
-		#end
-
 		#if html5
 		FlxG.autoPause = false;
 		FlxG.mouse.visible = false;
 		#end
 
 		FlxG.fixedTimestep = false;
+		FlxG.signals.postGameReset.add(() -> FlxG.fixedTimestep = false);
 		FlxG.game.focusLostFramerate = 60;
 		FlxG.keys.preventDefaultKeys = [TAB];
 		FlxG.stage.addEventListener(openfl.events.KeyboardEvent.KEY_DOWN, onKeyDown);
@@ -322,6 +299,23 @@ class Main extends Sprite
 		#if sys
 		FlxG.signals.postUpdate.add(() -> ThreadedCache.processPending());
 		#end
+		funkin.backend.MouseVisibility.init();
+		FlxG.signals.focusLost.add(onWindowFocusLost);
+		FlxG.signals.focusGained.add(onWindowFocusGained);
+	}
+
+	static function onWindowFocusLost():Void
+	{
+		if(FlxG.autoPause || focusVolume != null || FlxG.sound.muted || FlxG.sound.volume == 0) return;
+		focusVolume = FlxG.sound.volume;
+		FlxG.sound.volume *= LOST_FOCUS_VOLUME;
+	}
+
+	static function onWindowFocusGained():Void
+	{
+		if(focusVolume == null) return;
+		FlxG.sound.volume = focusVolume;
+		focusVolume = null;
 	}
 
 	static function resetSpriteCache(sprite:Sprite):Void {
@@ -333,7 +327,7 @@ class Main extends Sprite
 
 	function onKeyDown(event:openfl.events.KeyboardEvent):Void {
 		var screenshotKeys = ClientPrefs.keyBinds.get('screenshot');
-		if (screenshotKeys != null) {
+		if (screenshotKeys != null && ClientPrefs.data.allowScreenshots) {
 			for (key in screenshotKeys) {
 				if (event.keyCode == key) {
 					takeScreenshot();
@@ -356,7 +350,7 @@ class Main extends Sprite
 		if (fullscreenKeys != null) {
 			for (key in fullscreenKeys) {
 				if (event.keyCode == key) {
-					FlxG.fullscreen = !FlxG.fullscreen;
+					funkin.backend.DisplaySettings.toggleFullscreen();
 					break;
 				}
 			}
@@ -468,99 +462,4 @@ class Main extends Sprite
 			});
 		});
 	}
-
-
-	#if (cpp && windows)
-	@:functionCode('return _detectWindowsDarkMode();')
-	static function detectWindowsDarkMode():Bool {
-		return false;
-	}
-
-	public static function updateWindowTheme():Void {
-		var isDark:Bool = false;
-		
-		switch(ClientPrefs.data.windowTheme) {
-			case 'PC Theme':
-				isDark = detectWindowsDarkMode();
-			case 'White':
-				isDark = false;
-			case 'Dark':
-				isDark = true;
-		}
-		
-		if(ClientPrefs.data.windowColor == 'Default') {
-			WindowsCPP.resetWindowBorderColor();
-			WindowColorMode.setWindowColorMode(isDark);
-		} else {
-			var color:Array<Int> = getWindowColor(ClientPrefs.data.windowColor);
-			WindowColorMode.setWindowBorderColor(color, true, true);
-		}
-		
-		WindowColorMode.redrawWindowHeader();
-	}
-
-	static function getWindowColor(colorName:String):Array<Int> {
-		return switch(colorName) {
-			case 'Red': [255, 0, 0];
-			case 'Orange': [255, 165, 0];
-			case 'Yellow': [255, 255, 0];
-			case 'Green': [0, 255, 0];
-			case 'Cyan': [0, 255, 255];
-			case 'Blue': [0, 0, 255];
-			case 'Purple': [128, 0, 128];
-			case 'Pink': [255, 192, 203];
-			case 'Grey': [128, 128, 128];
-			default: [255, 255, 255];
-		}
-	}
-
-	public static function applyModWindowColor():Void {
-		if(!ClientPrefs.data.allowModWindowColor) {
-			updateWindowTheme();
-			return;
-		}
-
-		#if MODS_ALLOWED
-		try {
-			var pack:Dynamic = Mods.getPack();
-			if(pack != null && pack.windowColor != null) {
-				if(Std.isOfType(pack.windowColor, String)) {
-					var colorString:String = cast pack.windowColor;
-					if(colorString == "PC Theme" || colorString == "Default") {
-						WindowsCPP.resetWindowBorderColor();
-						updateWindowTheme();
-						return;
-					}
-					var trimmed:String = StringTools.trim(colorString);
-					if(StringTools.startsWith(trimmed, "[") && StringTools.endsWith(trimmed, "]")) {
-						var inner:String = trimmed.substring(1, trimmed.length - 1);
-						var parts:Array<String> = inner.split(",");
-						if(parts.length >= 3) {
-							var r:Int = Std.parseInt(StringTools.trim(parts[0]));
-							var g:Int = Std.parseInt(StringTools.trim(parts[1]));
-							var b:Int = Std.parseInt(StringTools.trim(parts[2]));
-							WindowColorMode.setWindowBorderColor([r, g, b], true, true);
-							WindowColorMode.redrawWindowHeader();
-							return;
-						}
-					}
-				}
-				else if(Std.isOfType(pack.windowColor, Array)) {
-					var color:Array<Int> = pack.windowColor;
-					if(color != null && color.length >= 3) {
-						WindowColorMode.setWindowBorderColor([color[0], color[1], color[2]], true, true);
-						WindowColorMode.redrawWindowHeader();
-						return;
-					}
-				}
-			}
-		} catch(e:Dynamic) {
-			trace('Error loading mod window color: ' + e);
-		}
-		#end
-
-		WindowsCPP.resetWindowBorderColor();
-		updateWindowTheme();
-	}
-	#end
 }

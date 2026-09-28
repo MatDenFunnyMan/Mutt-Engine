@@ -14,6 +14,7 @@ enum OptionType {
 	PERCENT;
 	STRING;
 	KEYBIND;
+	BUTTON;
 }
 
 class Option
@@ -41,6 +42,12 @@ class Option
 	public var defaultKeys:Keybind = null; //Only used in keybind type
 	public var keys:Keybind = null; //Only used in keybind type
 
+	public var locked:Void->Bool = null;
+	public var lockedReason:String = null;
+
+	public function isLocked():Bool
+		return locked != null && locked();
+
 	public function new(name:String, description:String = '', variable:String, type:OptionType = BOOL, ?options:Array<String> = null, ?translation:String = null)
 	{
 		_name = name;
@@ -51,7 +58,7 @@ class Option
 		this.type = type;
 		this.options = options;
 
-		if(this.type != KEYBIND) this.defaultValue = Reflect.getProperty(ClientPrefs.defaultData, variable);
+		if(this.type != KEYBIND && this.type != BUTTON) this.defaultValue = Reflect.getProperty(ClientPrefs.defaultData, variable);
 		switch(type)
 		{
 			case BOOL:
@@ -76,7 +83,11 @@ class Option
 				defaultValue = '';
 				defaultKeys = {gamepad: 'NONE', keyboard: 'NONE'};
 				keys = {gamepad: 'NONE', keyboard: 'NONE'};
+
+			case BUTTON:
+				displayFormat = '';
 		}
+		if(type == BUTTON) return;
 
 		try
 		{
@@ -104,6 +115,7 @@ class Option
 
 	dynamic public function getValue():Dynamic
 	{
+		if(type == BUTTON) return null;
 		var value = Reflect.getProperty(ClientPrefs.data, variable);
 		if(type == KEYBIND) return !Controls.instance.controllerMode ? value.keyboard : value.gamepad;
 		return value;
@@ -111,6 +123,7 @@ class Option
 
 	dynamic public function setValue(value:Dynamic)
 	{
+		if(type == BUTTON) return null;
 		if(type == KEYBIND)
 		{
 			var keys = Reflect.getProperty(ClientPrefs.data, variable);

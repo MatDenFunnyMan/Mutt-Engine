@@ -167,7 +167,10 @@ class FunkinLua extends FunkinLuaScript {
 		set('downscroll', ClientPrefs.data.downScroll);
 		set('middlescroll', ClientPrefs.data.middleScroll);
 		set('framerate', ClientPrefs.data.framerate);
-		set('ghostTapping', ClientPrefs.data.ghostTapping);
+		set('ghostTapping', funkin.game.InputSystem.ghostTapping());
+		set('inputSystem', funkin.game.InputSystem.current);
+		set('naughtyness', ClientPrefs.data.naughtyness);
+		set('subtitles', ClientPrefs.data.subtitles);
 		set('hideHud', ClientPrefs.data.hideHud);
 		set('timeBarType', ClientPrefs.data.timeBarType);
 		set('scoreZoom', ClientPrefs.data.scoreZoom);
@@ -1172,6 +1175,18 @@ class FunkinLua extends FunkinLuaScript {
 			}
 			FlxG.sound.play(Paths.sound(sound), volume);
 			return null;
+		});
+		Lua_helper.add_callback(lua, "playSubtitles", function(file:String, ?soundTag:String = null, ?margin:Null<Float> = null) {
+			if(game == null) return false;
+			var sound:FlxSound = null;
+			if(soundTag != null && soundTag.length > 0) sound = MusicBeatState.getVariables().get(LuaUtils.formatVariable('sound_$soundTag'));
+			return game.playSubtitles(file, sound, margin) != null;
+		});
+		Lua_helper.add_callback(lua, "preloadSubtitles", function(file:String) {
+			return game != null && game.preloadSubtitles(file) != null;
+		});
+		Lua_helper.add_callback(lua, "stopSubtitles", function() {
+			if(game != null) game.stopSubtitles();
 		});
 		Lua_helper.add_callback(lua, "stopSound", function(tag:String) {
 			if(tag == null || tag.length < 1)

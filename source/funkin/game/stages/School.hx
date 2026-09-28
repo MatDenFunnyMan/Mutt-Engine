@@ -63,12 +63,15 @@ class School extends BaseStage
 	var doof:DialogueBox = null;
 	function initDoof()
 	{
-		var candidates:Array<String> = [
-			Paths.txt('songs/$songName/${songName}Dialogue_${ClientPrefs.data.language}'),
-			Paths.txt('songs/$songName/${songName}Dialogue'),
-			Paths.txt('$songName/${songName}Dialogue_${ClientPrefs.data.language}'),
-			Paths.txt('$songName/${songName}Dialogue')
-		];
+		var candidates:Array<String> = [];
+		for (dialogue in funkin.backend.Naughtyness.candidates('${songName}Dialogue'))
+		{
+			for (folder in ['songs/$songName', songName])
+			{
+				candidates.push(Paths.txt('$folder/${dialogue}_${ClientPrefs.data.language}'));
+				candidates.push(Paths.txt('$folder/$dialogue'));
+			}
+		}
 
 		var file:String = null;
 		for (candidate in candidates)

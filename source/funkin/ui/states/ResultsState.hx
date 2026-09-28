@@ -63,7 +63,7 @@ class ResultsState extends MusicBeatState
 	var highscoreNew:FlxSprite;
 
 	var tallies:Array<TallyCounter> = [];
-	var atlasLayers:Array<{sprite:FlxSprite, delay:Float, sparrow:Bool}> = [];
+	var atlasLayers:Array<{sprite:FlxSprite, delay:Float, sparrow:Bool, startFrame:Int, sound:String}> = [];
 
 	var timers:Array<FlxTimer> = [];
 	var clearPercentTarget:Int = 0;
@@ -190,7 +190,7 @@ class ResultsState extends MusicBeatState
 				spr.antialiasing = ClientPrefs.data.antialiasing;
 				spr.visible = false;
 				layerChars.add(spr);
-				atlasLayers.push({sprite: spr, delay: delay, sparrow: true});
+				atlasLayers.push({sprite: spr, delay: delay, sparrow: true, startFrame: 0, sound: layer.sound});
 				continue;
 			}
 
@@ -213,9 +213,14 @@ class ResultsState extends MusicBeatState
 			atlas.scale.set(scaleValue, scaleValue);
 			atlas.antialiasing = ClientPrefs.data.antialiasing;
 			atlas.anim.onComplete.add(function() atlas.anim.play('', true, false, loopFrame));
+			if(layer.endFrame != null)
+			{
+				var endFrame:Int = layer.endFrame;
+				atlas.anim.onFrame.add(function(frame:Int) if(frame >= endFrame) atlas.anim.play('', true, false, loopFrame));
+			}
 			atlas.visible = false;
 			layerChars.add(atlas);
-			atlasLayers.push({sprite: atlas, delay: delay, sparrow: false});
+			atlasLayers.push({sprite: atlas, delay: delay, sparrow: false, startFrame: layer.startFrame != null ? layer.startFrame : 0, sound: layer.sound});
 			#end
 		}
 	}
@@ -471,6 +476,7 @@ class ResultsState extends MusicBeatState
 			wait(entry.delay, function()
 			{
 				entry.sprite.visible = true;
+				if(entry.sound != null) FlxG.sound.play(Paths.sound(entry.sound));
 
 				if(entry.sparrow)
 				{
@@ -480,7 +486,7 @@ class ResultsState extends MusicBeatState
 
 				#if flxanimate
 				var atlas:FlxAnimate = cast entry.sprite;
-				atlas.anim.play('', true);
+				atlas.anim.play('', true, false, entry.startFrame);
 				#end
 			});
 		}

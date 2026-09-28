@@ -114,7 +114,7 @@ class FunkinSoundTray extends FlxSoundTray
 			if (FlxG.save.isBound)
 			{
 				FlxG.save.data.mute = FlxG.sound.muted;
-				FlxG.save.data.volume = FlxG.sound.volume;
+				FlxG.save.data.volume = (funkin.Main.focusVolume != null) ? funkin.Main.focusVolume : FlxG.sound.volume;
 				FlxG.save.flush();
 			}
 			#end

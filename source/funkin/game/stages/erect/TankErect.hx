@@ -23,6 +23,7 @@ class TankErect extends BaseStage
 	var cutscene:funkin.game.cutscenes.PicoTankman;
 	var tankmanRim:DropShadowShader;
 	var muzzleFlash:FlxSprite;
+	static inline final INTRO_VIDEO_DELAY:Float = 1.5;
 	#if html5
 	var captainBloody_mask:BitmapData = null;
 	#end
@@ -35,14 +36,14 @@ class TankErect extends BaseStage
 
 		sniper = new FlxSprite(-346, 245);
 		sniper.frames = Paths.getSparrowAtlas('erect/sniper');
-		sniper.animation.addByPrefix("idle", "Tankmanidlebaked instance 1", 24);
-		sniper.animation.addByPrefix("sip", "tanksippingBaked instance 1", 24);
+		sniper.animation.addByPrefix("idle", "Tankmanidlebaked instance 1", 24, false);
+		sniper.animation.addByPrefix("sip", "tanksippingBaked instance 1", 24, false);
 		sniper.scale.set(1.15, 1.15);
 		add(sniper);
 
 		guy = new FlxSprite(1175, 270);
 		guy.frames = Paths.getSparrowAtlas('erect/guy');
-		guy.animation.addByPrefix("idle", "BLTank2 instance 1", 24);
+		guy.animation.addByPrefix("idle", "BLTank2 instance 1", 24, false);
 		guy.scale.set(1.15, 1.15);
 		add(guy);
 
@@ -53,9 +54,27 @@ class TankErect extends BaseStage
 		{
 			PicoCapableStage.addToGame(true);
 			cutscene = new funkin.game.cutscenes.PicoTankman(this);
-			if (!seenCutscene) setStartCallback(() -> game.startVideo('stressPicoCutscene'));
+			if (!seenCutscene) setStartCallback(startIntroVideo);
 			setEndCallback(cutscene.playCutscene);
 		}
+	}
+
+	function startIntroVideo()
+	{
+		inCutscene = true;
+		var blackCover:FlxSprite = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
+		blackCover.scale.set(FlxG.width + 100, FlxG.height + 100);
+		blackCover.updateHitbox();
+		blackCover.screenCenter();
+		blackCover.scrollFactor.set();
+		blackCover.cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
+		add(blackCover);
+		FlxTimer.wait(INTRO_VIDEO_DELAY, () ->
+		{
+			game.startVideo('stressPicoCutscene');
+			remove(blackCover);
+			blackCover.destroy();
+		});
 	}
 
 	function shootMuzzleFlash(shot:Int)
@@ -89,17 +108,33 @@ class TankErect extends BaseStage
 	override function beatHit()
 	{
 		super.beatHit();
+		var sipping:Bool = sniper.animation.name == 'sip' && !sniper.animation.finished;
 		if (curBeat % 2 == 0)
 		{
-			sniper.animation.play('idle', true);
+			if (!sipping) sniper.animation.play('idle', true);
 			guy.animation.play('idle', true);
 		}
-		if (FlxG.random.bool(2))
+		if (!sipping && FlxG.random.bool(2))
 			sniper.animation.play('sip', true);
 	}
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float) {
 		if(eventName == "EnableMask" && tankmanRim != null)
 			tankmanRim.useAltMask = true;
+
+		if(eventName == "Play Animation" && (value1 == 'redheadsAnim' || value1 == 'knifeToss'))
+		{
+			var char:Character = switch(value2.toLowerCase().trim())
+			{
+				case 'bf' | 'boyfriend': boyfriend;
+				case 'gf' | 'girlfriend': gf;
+				default: dad;
+			}
+			if(char != null)
+			{
+				char.canPlayOtherAnims = false;
+				if(value1 == 'redheadsAnim') char.animSuffix = '-bloody';
+			}
+		}
 
 		if(eventName == "Change Character" && ClientPrefs.data.shaders){
 			switch(value1.toLowerCase().trim()) {
@@ -165,7 +200,7 @@ class TankErect extends BaseStage
 				if (gf.curCharacter == 'otis-speaker')
 				{
 					var firstTank:TankmenBG = new TankmenBG(20, 500, true);
-					firstTank.resetShit(20, 1500, true,false);
+					firstTank.resetShit(20, 1500, true);
 					firstTank.strumTime = 10;
 					firstTank.visible = false;
 					tankmanRun.add(firstTank);
@@ -179,7 +214,7 @@ class TankErect extends BaseStage
 							tankBih.strumTime = TankmenBG.animationNotes[i][0];
 							tankBih.scale.set(1, 1);
 							tankBih.updateHitbox();
-							tankBih.resetShit(500, 150, TankmenBG.animationNotes[i][1] < 2,false);
+							tankBih.resetShit(500, 150, TankmenBG.animationNotes[i][1] < 2);
 
 							tankmanRun.add(tankBih);
 						}

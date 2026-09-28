@@ -341,13 +341,30 @@ class Paths
 	inline static public function lua(key:String, ?folder:String)
 		return getPath('$key.lua', TEXT, folder, true);
 
+	public static final VIDEO_EXTS:Array<String> = [VIDEO_EXT, 'mkv'];
+
 	static public function video(key:String)
 	{
-		#if MODS_ALLOWED
-		var file:String = modsVideo(key);
-		if(FileSystem.exists(file)) return file;
-		#end
+		for (candidate in funkin.backend.Naughtyness.candidates(key))
+		{
+			var found:String = findVideo(candidate);
+			if(found != null) return found;
+		}
 		return 'assets/videos/$key.$VIDEO_EXT';
+	}
+
+	static function findVideo(key:String):String
+	{
+		for (ext in VIDEO_EXTS)
+		{
+			#if MODS_ALLOWED
+			var file:String = modFolders('videos/$key.$ext');
+			if(FileSystem.exists(file)) return file;
+			#end
+			var asset:String = 'assets/videos/$key.$ext';
+			if(assetExists(asset, BINARY)) return asset;
+		}
+		return null;
 	}
 
 	inline static public function sound(key:String, ?modsAllowed:Bool = true):Sound

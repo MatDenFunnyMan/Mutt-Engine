@@ -55,7 +55,11 @@ class Spooky extends BaseStage
 			dad.playAnim('scared', true);
 
 		if(gf != null && gf.hasAnimation('scared'))
+		{
 			gf.playAnim('scared', true);
+			gf.specialAnim = true;
+			gf.heyTimer = 2;
+		}
 
 		if(ClientPrefs.data.camZooms) {
 			FlxG.camera.zoom += 0.015;

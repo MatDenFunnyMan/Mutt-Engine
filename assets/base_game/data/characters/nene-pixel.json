@@ -17,7 +17,7 @@
 			"name": "idle"
 		},
 		{
-			"offsets": [0, -10],
+			"offsets": [-12, 40],
 			"indices": [],
 			"fps": 24,
 			"anim": "raiseKnife",
@@ -25,15 +25,23 @@
 			"name": "raise"
 		},
 		{
-			"offsets": [-19, -10],
-			"indices": [],
+			"offsets": [-12, 40],
+			"indices": [6, 7],
 			"fps": 24,
 			"anim": "idleKnife",
 			"loop": false,
 			"name": "blink"
 		},
 		{
-			"offsets": [0, -10],
+			"offsets": [-126, 40],
+			"indices": [0, 1, 2, 3, 4, 5],
+			"fps": 24,
+			"anim": "idleKnifeBlink",
+			"loop": false,
+			"name": "blink"
+		},
+		{
+			"offsets": [-12, 40],
 			"indices":  [0, 1, 2, 3, 4, 5],
 			"fps": 24,
 			"anim": "lowerKnife",

@@ -102,9 +102,6 @@ class MusicBeatState extends FlxState
 			}
 		}
 
-		if(FlxG.save.data != null && FlxG.save.data.fullscreen != FlxG.fullscreen)
-			FlxG.save.data.fullscreen = FlxG.fullscreen;
-
 		#if DISCORD_ALLOWED
 		if(funkin.util.Discord.DiscordClient._pendingPresenceUpdate)
 		{

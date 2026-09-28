@@ -286,8 +286,6 @@ class ModSelectorSubstate extends MusicBeatSubstate
 				#if (cpp && windows)
 				try {
 					funkin.external.winapi.WindowsCPP.reDefineMainWindowTitle(Main.windowTitle);
-					funkin.external.winapi.WindowsCPP.resetWindowBorderColor();
-					Main.updateWindowTheme();
 				} catch(e:Dynamic) {}
 				#end
 			}
@@ -299,8 +297,6 @@ class ModSelectorSubstate extends MusicBeatSubstate
 					newTitle = pack.name;
 				lime.app.Application.current.window.title = newTitle;
 				funkin.external.winapi.WindowsCPP.reDefineMainWindowTitle(newTitle);
-
-				Main.applyModWindowColor();
 
 				var iconPath:String = Paths.modFolders('pack.png');
 				if (sys.FileSystem.exists(iconPath))

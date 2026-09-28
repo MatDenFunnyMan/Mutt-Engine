@@ -106,6 +106,13 @@ class ABotSpeaker extends FlxSpriteGroup
 		checkAnalyzer();
 		if(analyzer == null) return;
 
+		var music:FlxSound = FlxG.sound.music;
+		if(music == null || !music.playing || music.length <= 0 || music.time < 0 || music.time >= music.length)
+		{
+			for (viz in vizSprites) viz.visible = false;
+			return;
+		}
+
 		levels = analyzer.getLevels(levels);
 		var oldLevelMax = levelMax;
 		levelMax = 0;

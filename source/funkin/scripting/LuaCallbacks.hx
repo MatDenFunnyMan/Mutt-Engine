@@ -570,7 +570,7 @@ class LuaCallbacks
 		Lua_helper.add_callback(lua, "lerp", function(a:Float, b:Float, t:Float) return a + (b - a) * t);
 		Lua_helper.add_callback(lua, "setCameraZoom", function(zoom:Float) FlxG.camera.zoom = zoom);
 		Lua_helper.add_callback(lua, "getCameraZoom", function() return FlxG.camera.zoom);
-		Lua_helper.add_callback(lua, "setMouseVisible", function(visible:Bool) FlxG.mouse.visible = visible);
+		Lua_helper.add_callback(lua, "setMouseVisible", function(visible:Bool) funkin.backend.MouseVisibility.setScriptVisible(visible));
 		Lua_helper.add_callback(lua, "getMouseVisible", function() return FlxG.mouse.visible);
 		#if HSCRIPT_ALLOWED
 		Lua_helper.add_callback(lua, "runHaxeCode", function(codeToRun:String, ?varsToBring:Any = null, ?funcToRun:String = null, ?funcArgs:Array<Dynamic> = null):Dynamic {
