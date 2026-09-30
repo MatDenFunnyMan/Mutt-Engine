@@ -233,7 +233,7 @@ description_discord_rich_presence: "Desmarque esta caixa para evitar leaks acide
 setting_combo_stacking: "Acúmulo de Combo"
 description_combo_stacking: "Se desmarcado, números de combo não irão empilhar\nao acertar uma nota, isso torna o jogo mais legível."
 setting_naughtyness: "Conteúdo Impróprio"
-description_naughtyness: "Se desmarcado, palavrões e sangue são censurados\nnas músicas, cutscenes e vídeos."
+description_naughtyness: "Quando ativado, conteúdo impróprio (como palavrões, etc.) é exibido."
 setting_subtitles: "Legendas"
 description_subtitles: "Se marcado, legendas aparecem em algumas músicas,\ncutscenes e vídeos."
 setting_hide_mouse: "Esconder Mouse"

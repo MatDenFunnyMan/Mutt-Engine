@@ -144,7 +144,7 @@ class TwoPicos
 
 		seenOutcome = false;
 		playerShoots = FlxG.random.bool(50);
-		explode = ClientPrefs.data.naughtyness && FlxG.random.bool(8);
+		explode = FlxG.random.bool(8);
 		#if MEMTEST
 		if(forcePlayerShoots != null) playerShoots = forcePlayerShoots;
 		if(forceExplode != null) explode = forceExplode;

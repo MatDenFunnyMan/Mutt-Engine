@@ -1,0 +1,61 @@
+{
+	"style": "pixel",
+	"dialogue": [
+		{
+			"sound": "pixelText",
+			"speed": 0.05,
+			"portrait": "senpai-pixel",
+			"boxState": "normal",
+			"expression": "angry",
+			"text": "Seu garoto laranja nojento, com esse seu jeito horrível de 'cantar'."
+		},
+		{
+			"sound": "pixelText",
+			"speed": 0.05,
+			"portrait": "senpai-pixel",
+			"boxState": "normal",
+			"expression": "angry",
+			"text": "Você vai arruinar a vizinhança agindo assim."
+		},
+		{
+			"sound": "pixelText",
+			"speed": 0.05,
+			"portrait": "senpai-pixel",
+			"boxState": "normal",
+			"expression": "angry",
+			"text": "Continue assim e eu arranco seus dentes logo depois de engravidar sua namorada feia."
+		},
+		{
+			"sound": "pixelText",
+			"speed": 0.05,
+			"portrait": "pico-pixel",
+			"boxState": "normal",
+			"expression": "idle",
+			"text": "Ela não é minha namorada, faça o que quiser com ela."
+		},
+		{
+			"sound": "pixelText",
+			"speed": 0.05,
+			"portrait": "senpai-pixel",
+			"boxState": "normal",
+			"expression": "angry",
+			"text": "Vou adorar ver vocês dois chorando feito cachorros quando eu contar pras autoridades que você trouxe uma arma falsa pra escola!"
+		},
+		{
+			"sound": "pixelText",
+			"speed": 0.05,
+			"portrait": "nene-pixel",
+			"boxState": "normal",
+			"expression": "idle",
+			"text": "Vamos matar esse cara."
+		},
+		{
+			"sound": "pixelText",
+			"speed": 0.05,
+			"portrait": "pico-pixel",
+			"boxState": "normal",
+			"expression": "idle",
+			"text": "Fechado."
+		}
+	]
+}

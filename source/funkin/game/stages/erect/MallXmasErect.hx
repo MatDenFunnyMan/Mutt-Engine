@@ -17,8 +17,8 @@ class MallXmasErect extends BaseStage
 	var bottomBoppers:MallCrowd;
 	var santa:BGSprite;
 
-	var erectSanta:FlxAnimate;
-	var erectParents:FlxAnimate;
+	var erectSanta:animate.FlxAnimate;
+	var erectParents:animate.FlxAnimate;
 
 	override function create()
 	{
@@ -57,8 +57,8 @@ class MallXmasErect extends BaseStage
 		setDefaultGF('gf-christmas');
 
 		if(songName == "eggnog-erect" || songName == "eggnog-(pico-mix)"){
-			erectSanta = makeCutsceneAtlas(-840 + 380, 150 + 347, "christmas/santa_speaks_assets", "santa whole scene");
-			erectParents = makeCutsceneAtlas(100 - 620, 100 + 401, "christmas/parents_shoot_assets", "parents whole scene");
+			erectSanta = makeCutsceneAtlas(-1318, 138.5, "christmas/santa_speaks_assets", "santa whole scene");
+			erectParents = makeCutsceneAtlas(-624.5, 39, "christmas/parents_shoot_assets", "parents whole scene");
 			Paths.sound('santa_emotion');
 			Paths.sound('santa_shot_n_falls');
 			game.preloadSubtitles('santa-emotions');
@@ -130,9 +130,8 @@ class MallXmasErect extends BaseStage
 
 		erectSanta.anim.play("scene", true);
 		erectParents.anim.play("scene", true);
-		game.playSubtitles('santa-emotions', FlxG.sound.play(Paths.sound("santa_emotion")));
-		erectSanta.anim.onComplete.add(() -> erectSanta.anim.pause());
-		erectParents.anim.onComplete.add(() -> erectParents.anim.pause());
+		santaSound = FlxG.sound.play(Paths.sound("santa_emotion"));
+		game.playSubtitles('santa-emotions', santaSound);
 
 		inCutscene = true;
 		game.camZooming = false;
@@ -150,26 +149,65 @@ class MallXmasErect extends BaseStage
 			FlxTween.tween(camGame, {zoom: 0.79}, 9, {ease: FlxEase.quadInOut});
 		});
 
-		new FlxTimer().start(11.375, function(tmr)
-		{
-			FlxG.sound.play(Paths.sound('santa_shot_n_falls'));
-		});
+		if(ClientPrefs.data.naughtyness)
+			new FlxTimer().start(11.375, (_) -> FlxG.sound.play(Paths.sound('santa_shot_n_falls')));
+		else
+			FlxG.signals.preDraw.add(censorShot);
 
-		new FlxTimer().start(12.83, function(tmr)
+		endTimers.push(new FlxTimer().start(12.83, function(tmr)
 		{
 			camGame.shake(0.005, 0.2);
 			moveCutsceneCamera(-240, 480, 5, FlxEase.expoOut);
-		});
+		}));
 
-		new FlxTimer().start(15, function(tmr)
+		endTimers.push(new FlxTimer().start(15, function(tmr)
 		{
 			camOther.fade(0xFF000000, 1, false, null, true);
-		});
+		}));
 
-		new FlxTimer().start(16, function(tmr)
+		endTimers.push(new FlxTimer().start(16, function(tmr)
 		{
 			endSong();
-		});
+		}));
+	}
+
+	static inline final SHOT_FRAME:Int = 271;
+	static inline final SHOT_HEARD_MS:Float = 50;
+	static inline final BLACK_SCREEN_TIME:Float = 1;
+
+	var santaSound:FlxSound;
+	var shotSound:FlxSound;
+	var endTimers:Array<FlxTimer> = [];
+	var blackScreen:Bool = false;
+
+	function censorShot()
+	{
+		var frame:Int = erectParents.anim.curAnim != null ? erectParents.anim.curAnim.curFrame : 0;
+		if(shotSound == null && frame >= SHOT_FRAME - 1) shotSound = FlxG.sound.play(Paths.sound('santa_shot_n_falls'));
+		if(!blackScreen && frame >= SHOT_FRAME) cutToBlack();
+		if(shotSound != null && shotSound.time >= SHOT_HEARD_MS)
+		{
+			shotSound.stop();
+			FlxG.signals.preDraw.remove(censorShot);
+		}
+	}
+
+	function cutToBlack()
+	{
+		blackScreen = true;
+		for (timer in endTimers) timer.cancel();
+		if(santaSound != null) santaSound.stop();
+		game.stopSubtitles();
+
+		var black:FlxSprite = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
+		black.scale.set(FlxG.width * 2, FlxG.height * 2);
+		black.updateHitbox();
+		black.screenCenter();
+		black.scrollFactor.set();
+		black.cameras = [camOther];
+		add(black);
+
+		new FlxTimer().start(BLACK_SCREEN_TIME, (_) -> endSong());
 	}
 
 	function moveCutsceneCamera(x:Float, y:Float, duration:Float, ease:Float->Float)
@@ -184,12 +222,19 @@ class MallXmasErect extends BaseStage
 		if (cutsceneCamera != null) camGame.focusOn(flixel.math.FlxPoint.weak(cutsceneCamera.x, cutsceneCamera.y));
 	}
 
-	function makeCutsceneAtlas(x:Float, y:Float, path:String, symbol:String):FlxAnimate
+	function makeCutsceneAtlas(x:Float, y:Float, path:String, symbol:String):animate.FlxAnimate
 	{
-		var atlas:FlxAnimate = new FlxAnimate(x, y);
-		Paths.loadAnimateAtlas(atlas, path);
-		atlas.anim.addBySymbol('scene', symbol, 24, false);
+		var atlas:animate.FlxAnimate = new animate.FlxAnimate(x, y);
+		atlas.frames = Paths.getAnimateAtlasFrames(path);
+		atlas.useRenderTexture = true;
+		funkin.util.AtlasUtil.ModernAtlasUtil.addAnimation(atlas, 'scene', symbol, null, 24, false);
 		atlas.antialiasing = ClientPrefs.data.antialiasing;
 		return atlas;
+	}
+
+	override function destroy()
+	{
+		FlxG.signals.preDraw.remove(censorShot);
+		super.destroy();
 	}
 }

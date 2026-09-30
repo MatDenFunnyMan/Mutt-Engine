@@ -29,7 +29,7 @@ class PicoTankman
 		tankmanEnding.anim.addBySymbol('ending', 'tankman stress ending', 24, false);
 		tankmanEnding.antialiasing = ClientPrefs.data.antialiasing;
 
-		cutsceneSounds = new FlxSound().loadEmbedded(Paths.sound('erect/endCutscene'));
+		cutsceneSounds = new FlxSound().loadEmbedded(funkin.backend.Naughtyness.sound('erect/endCutscene'));
 		PlayState.instance.preloadSubtitles('end-cutscene');
 
 		bgSprite = new FlxSprite().makeGraphic(1, 1, 0xFF000000);

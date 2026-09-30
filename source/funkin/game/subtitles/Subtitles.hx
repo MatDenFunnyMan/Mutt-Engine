@@ -10,6 +10,7 @@ typedef SubtitleEntry = {
 class Subtitles extends FlxSpriteGroup
 {
 	public static inline final PADDING:Float = 6;
+	public static inline final MAX_WIDTH:Int = 1200;
 
 	public var data(default, null):SubtitleData;
 	public var timeSource:Void->Float;
@@ -18,8 +19,10 @@ class Subtitles extends FlxSpriteGroup
 	public var ignorePreference:Bool = false;
 
 	public var clock:Float = 0;
+	public var onCensor:Bool->Void;
 
 	var shown:Array<SubtitleLine> = [];
+	var censoring:Int = -1;
 	var entries:Map<SubtitleLine, SubtitleEntry> = new Map();
 
 	public function new(margin:Float = 42, alignTop:Bool = false)
@@ -39,11 +42,13 @@ class Subtitles extends FlxSpriteGroup
 		return this;
 	}
 
-	public function play(data:SubtitleData, ?timeSource:Void->Float):Subtitles
+	public function play(data:SubtitleData, ?timeSource:Void->Float, ?onCensor:Bool->Void):Subtitles
 	{
 		prepare(data);
+		endCensor();
 		this.data = data;
 		this.timeSource = timeSource;
+		this.onCensor = onCensor;
 		clock = 0;
 		hideLines();
 		return this;
@@ -52,11 +57,39 @@ class Subtitles extends FlxSpriteGroup
 	public static function soundClock(sound:FlxSound):Void->Float
 		return () -> (sound != null && (sound.playing || sound.time > 0)) ? sound.time : -1;
 
+	public static function soundMute(sound:FlxSound):Bool->Void
+	{
+		var volume:Float = sound.volume;
+		return function(mute:Bool)
+		{
+			if(mute) volume = sound.volume;
+			sound.volume = mute ? 0 : volume;
+		};
+	}
+
 	public function stop()
 	{
+		endCensor();
 		data = null;
 		timeSource = null;
+		onCensor = null;
 		hideLines();
+	}
+
+	function updateCensor(time:Float)
+	{
+		var index:Int = funkin.backend.Naughtyness.enabled ? -1 : data.censorAt(time);
+		if(index == censoring) return;
+		if(censoring < 0 && onCensor != null) onCensor(true);
+		if(index >= 0) funkin.backend.Naughtyness.playUhOh();
+		if(index < 0) endCensor();
+		censoring = index;
+	}
+
+	function endCensor()
+	{
+		if(censoring >= 0 && onCensor != null) onCensor(false);
+		censoring = -1;
 	}
 
 	public var playing(get, never):Bool;
@@ -66,15 +99,18 @@ class Subtitles extends FlxSpriteGroup
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
+		if(data == null) return;
 
-		if(data == null || (!ignorePreference && !ClientPrefs.data.subtitles))
+		clock += elapsed * 1000;
+		var time:Float = timeSource != null ? timeSource() : clock;
+		if(data.censors.length > 0) updateCensor(time);
+
+		if(!ignorePreference && !ClientPrefs.data.subtitles)
 		{
 			if(shown.length > 0) hideLines();
 			return;
 		}
 
-		clock += elapsed * 1000;
-		var time:Float = timeSource != null ? timeSource() : clock;
 		if(!sameLines(time)) showLines(data.activeLines(time));
 	}
 
@@ -163,6 +199,12 @@ class Subtitles extends FlxSpriteGroup
 		var text:FlxText = new FlxText(0, 0, 0, line.text.replace('\\n', '\n'), data.styleOf(line, 'size'));
 		text.setFormat(Paths.font(data.styleOf(line, 'font')), data.styleOf(line, 'size'), colorOf(data.styleOf(line, 'color'), FlxColor.WHITE), CENTER);
 
+		if(text.width > MAX_WIDTH)
+		{
+			text.fieldWidth = MAX_WIDTH;
+			text.wordWrap = true;
+		}
+
 		var outline:Float = data.styleOf(line, 'outline');
 		if(outline > 0)
 		{
@@ -200,6 +242,8 @@ class Subtitles extends FlxSpriteGroup
 
 	override function destroy()
 	{
+		endCensor();
+		onCensor = null;
 		data = null;
 		timeSource = null;
 		shown = [];

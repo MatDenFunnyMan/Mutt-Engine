@@ -417,7 +417,7 @@ class LimoRideErect extends BaseStage
 
 	function killHenchmen():Void
 	{
-		if (!ClientPrefs.data.lowQuality && ClientPrefs.data.naughtyness)
+		if (!ClientPrefs.data.lowQuality)
 		{
 			if (limoKillingState == WAIT)
 			{

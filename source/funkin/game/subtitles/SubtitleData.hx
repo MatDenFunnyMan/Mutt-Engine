@@ -51,6 +51,7 @@ class SubtitleData
 	public static final EXTENSIONS:Array<String> = ['json', 'srt'];
 
 	public var lines:Array<SubtitleLine> = [];
+	public var censors:Array<{start:Float, end:Float}> = [];
 	public var style:SubtitleStyle = {};
 	public var path:String = null;
 
@@ -83,8 +84,9 @@ class SubtitleData
 
 		var dot:Int = file.lastIndexOf('.');
 		var base:String = dot > file.lastIndexOf('/') ? file.substr(0, dot) : file;
-		for (ext in EXTENSIONS)
-			if(Paths.assetExists('$base.$ext')) return fromFullPath('$base.$ext');
+		for (candidate in funkin.backend.Naughtyness.candidates(base))
+			for (ext in EXTENSIONS)
+				if(Paths.assetExists('$candidate.$ext')) return fromFullPath('$candidate.$ext');
 		return null;
 	}
 
@@ -131,7 +133,25 @@ class SubtitleData
 			data.lines.push(new SubtitleLine(Std.string(Reflect.field(entry, 'text')), start, end, readStyle(entry)));
 		}
 		data.lines.sort((a, b) -> a.start < b.start ? -1 : (a.start > b.start ? 1 : 0));
+
+		var censorList:Array<Dynamic> = Reflect.field(json, 'censor');
+		if(censorList != null)
+		{
+			for (entry in censorList)
+			{
+				var start:Float = parseTime(Reflect.field(entry, 'start'));
+				var end:Float = parseTime(Reflect.field(entry, 'end'));
+				if(start >= 0 && end > start) data.censors.push({start: start, end: end});
+			}
+			data.censors.sort((a, b) -> a.start < b.start ? -1 : (a.start > b.start ? 1 : 0));
+		}
 		return data;
+	}
+
+	public function censorAt(time:Float):Int
+	{
+		for (i in 0...censors.length) if(time >= censors[i].start && time < censors[i].end) return i;
+		return -1;
 	}
 
 	public static function parseSrt(raw:String):SubtitleData

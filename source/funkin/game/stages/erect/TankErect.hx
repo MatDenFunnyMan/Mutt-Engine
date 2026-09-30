@@ -24,6 +24,7 @@ class TankErect extends BaseStage
 	var tankmanRim:DropShadowShader;
 	var muzzleFlash:FlxSprite;
 	static inline final INTRO_VIDEO_DELAY:Float = 1.5;
+	static inline final CAPTAIN_BLOODY_MASK:String = 'erect/masks/tankmanCaptainBloody_mask';
 	#if html5
 	var captainBloody_mask:BitmapData = null;
 	#end
@@ -155,6 +156,9 @@ class TankErect extends BaseStage
 			applyShader(boyfriend, 'bf');
 			if (gf != null) applyShader(gf, 'gf');
 			applyShader(dad, 'dad');
+			#if !html5
+			if (game.dadMap.exists('tankman-bloody')) Paths.image(CAPTAIN_BLOODY_MASK);
+			#end
 
 			var pico = PicoCapableStage.instance;
 			if (pico != null && pico.abot != null && game.stages.contains(pico))
@@ -275,7 +279,7 @@ class TankErect extends BaseStage
 					#if html5
 					rim.altMaskImage = captainBloody_mask;
 					#else
-					rim.altMaskImage = Paths.image("erect/masks/tankmanCaptainBloody_mask").bitmap;
+					rim.altMaskImage = Paths.image(CAPTAIN_BLOODY_MASK).bitmap;
 					#end
 					rim.maskThreshold = 1;
 					rim.useAltMask = false;

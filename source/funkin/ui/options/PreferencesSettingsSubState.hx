@@ -20,7 +20,7 @@ class PreferencesSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('Naughtyness',
-			"If unchecked, swearing and blood get censored\nin songs, cutscenes and videos.",
+			"When enabled, raunchy content (such as swearing, etc.) is displayed.",
 			'naughtyness',
 			BOOL);
 		addOption(option);

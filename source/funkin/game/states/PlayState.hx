@@ -1612,6 +1612,7 @@ class PlayState extends MusicBeatState
 		subtitles.cameras = [camOther];
 		add(subtitles);
 
+		if(!ClientPrefs.data.naughtyness) Paths.sound(funkin.backend.Naughtyness.UH_OH_SOUND);
 		songLyrics = SubtitleData.load('songs/$songName/subtitles/song-lyrics');
 		subtitles.prepare(songLyrics);
 		for (data in subtitleCache) subtitles.prepare(data);
@@ -1673,7 +1674,7 @@ class PlayState extends MusicBeatState
 		subtitlesToFront();
 		subtitles.margin = margin != null ? margin : CUTSCENE_SUBTITLES_MARGIN;
 		subtitles.alignTop = alignTop;
-		return subtitles.play(data, sound != null ? Subtitles.soundClock(sound) : null);
+		return subtitles.play(data, sound != null ? Subtitles.soundClock(sound) : null, sound != null ? Subtitles.soundMute(sound) : null);
 	}
 
 	public function stopSubtitles()

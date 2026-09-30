@@ -47,6 +47,7 @@ class MemoryTest
 		{
 			output = File.write('memtest.log', false);
 			Paths.setCurrentLevel(args[args.indexOf('--atlascompare') + 1]);
+			compareSteps = compareSteps.filter(step -> Paths.fileExists('images/${step[0]}/Animation.json', TEXT));
 			FlxG.switchState(new flixel.FlxState());
 			FlxG.signals.postUpdate.add(atlasCompareTick);
 			FlxG.stage.window.onRender.add(onRender, false, -1000);
@@ -61,6 +62,12 @@ class MemoryTest
 		if(args.contains('--optionsmenu'))
 		{
 			output = File.write('memtest.log', false);
+			if(args.contains('--lang'))
+			{
+				restoreLanguage = ClientPrefs.data.language;
+				ClientPrefs.data.language = args[args.indexOf('--lang') + 1];
+				funkin.data.Language.reloadPhrases();
+			}
 			startOptionsMenu();
 			FlxG.stage.window.onRender.add(onRender, false, -1000);
 			return true;
@@ -75,7 +82,7 @@ class MemoryTest
 			ClientPrefs.data.resolution = 'Borderless';
 			funkin.backend.DisplaySettings.applyResolution();
 			haxe.Timer.delay(() -> logWindow('borderless'), 1500);
-			haxe.Timer.delay(() -> { output.close(); Sys.exit(0); }, Std.int(hold * 1000));
+			haxe.Timer.delay(() -> { output?.close(); Sys.exit(0); }, Std.int(hold * 1000));
 			return true;
 		}
 		if(args.contains('--resultsshot'))
@@ -89,7 +96,17 @@ class MemoryTest
 		if(args.contains('--peak'))
 		{
 			output = File.write('memtest.log', false);
-			for (path in args[args.indexOf('--peak') + 1].split(','))
+			var peakList:Array<String> = [];
+			for (entry in args[args.indexOf('--peak') + 1].split(','))
+			{
+				if(sys.FileSystem.isDirectory(entry))
+				{
+					for (name in sys.FileSystem.readDirectory(entry)) if(name.endsWith('.ogg')) peakList.push('$entry/$name');
+				}
+				else peakList.push(entry);
+			}
+			var wavOut:String = args.contains('--wavout') ? args[args.indexOf('--wavout') + 1] : null;
+			for (path in peakList)
 			{
 				var decodeStart:Float = haxe.Timer.stamp();
 				var buffer:lime.media.AudioBuffer = lime.media.AudioBuffer.fromFile(path);
@@ -100,6 +117,7 @@ class MemoryTest
 				var count:Int = Std.int(buffer.data.byteLength / 2);
 				var peak:Int = 0;
 				var hot:Int = 0;
+				var onset:Int = -1;
 				for (i in 0...count)
 				{
 					var raw:Int = bytes.getUInt16(offset + i * 2);
@@ -107,22 +125,54 @@ class MemoryTest
 					var v:Int = raw < 0 ? -raw : raw;
 					if(v > peak) peak = v;
 					if(v >= 32000) hot++;
+					if(onset < 0 && v >= 16000) onset = i;
 				}
-				log('peak $path bits ${buffer.bitsPerSample} rate ${buffer.sampleRate} channels ${buffer.channels} samples $count peak $peak (${fmt(20 * Math.log(peak / 32768) / Math.log(10))} dBFS) hot $hot');
+				var frames:Int = Std.int(count / buffer.channels);
+				log('peak $path bits ${buffer.bitsPerSample} rate ${buffer.sampleRate} channels ${buffer.channels} length ${Math.round(frames / buffer.sampleRate * 1000)}ms peak $peak (${fmt(20 * Math.log(peak / 32768) / Math.log(10))} dBFS) hot $hot loudOnset ${onset < 0 ? -1 : Math.round(onset / buffer.channels / buffer.sampleRate * 1000)}ms');
+				if(wavOut != null)
+				{
+					var wav:haxe.io.BytesOutput = new haxe.io.BytesOutput();
+					wav.writeString('RIFF');
+					wav.writeInt32(36 + frames * 2);
+					wav.writeString('WAVEfmt ');
+					wav.writeInt32(16);
+					wav.writeUInt16(1);
+					wav.writeUInt16(1);
+					wav.writeInt32(buffer.sampleRate);
+					wav.writeInt32(buffer.sampleRate * 2);
+					wav.writeUInt16(2);
+					wav.writeUInt16(16);
+					wav.writeString('data');
+					wav.writeInt32(frames * 2);
+					for (f in 0...frames)
+					{
+						var sum:Int = 0;
+						for (c in 0...buffer.channels)
+						{
+							var raw:Int = bytes.getUInt16(offset + (f * buffer.channels + c) * 2);
+							if(raw >= 32768) raw -= 65536;
+							sum += raw;
+						}
+						wav.writeInt16(Std.int(sum / buffer.channels));
+					}
+					var name:String = haxe.io.Path.withoutExtension(haxe.io.Path.withoutDirectory(path));
+					var folder:String = haxe.io.Path.withoutDirectory(haxe.io.Path.directory(path));
+					File.saveBytes('$wavOut/$folder-$name.wav', wav.getBytes());
+				}
 			}
 			var textStart:Float = haxe.Timer.stamp();
 			var text:flixel.text.FlxText = new flixel.text.FlxText(0, 0, 0, 'Singing that was cool and all but...', 30);
 			text.setFormat(Paths.font('vcr.ttf'), 30, FlxColor.WHITE, CENTER);
 			text.drawFrame(true);
 			log('first subtitle text ${Math.round((haxe.Timer.stamp() - textStart) * 1000)}ms');
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}
 		if(args.contains('--naughtycheck'))
 		{
 			output = File.write('memtest.log', false);
 			naughtyCheck();
-			output.close();
+			output?.close();
 			Sys.exit(0);
 			return true;
 		}
@@ -167,6 +217,8 @@ class MemoryTest
 		if(args.contains('--novsync')) ClientPrefs.data.vsync = false;
 		if(args.contains('--noscreenshots')) ClientPrefs.data.allowScreenshots = false;
 		applyContentFlags(args);
+		if(args.contains('--jeff')) forceJeff = Std.parseInt(args[args.indexOf('--jeff') + 1]);
+		if(args.contains('--lang')) ClientPrefs.data.language = args[args.indexOf('--lang') + 1];
 		if(args.contains('--unlocked')) ClientPrefs.data.unlockedFramerate = true;
 		if(args.contains('--fps')) ClientPrefs.data.framerate = Std.parseInt(args[args.indexOf('--fps') + 1]);
 		if(args.contains('--res')) ClientPrefs.data.resolution = args[args.indexOf('--res') + 1];
@@ -185,6 +237,11 @@ class MemoryTest
 		output = File.write('memtest.log', false);
 		log('song $song difficulty $difficulty mod ${Mods.currentModDirectory} cacheOnGPU ${ClientPrefs.data.cacheOnGPU}');
 		log(prefsLine + ' naughtyness ${ClientPrefs.data.naughtyness} subtitles ${ClientPrefs.data.subtitles} downscroll ${ClientPrefs.data.downScroll}');
+		if(args.contains('--nolog'))
+		{
+			output?.close();
+			output = null;
+		}
 
 		var before:Float = MemoryUtils.getGCMemory() / 1048576;
 		cpp.vm.Gc.run(true);
@@ -275,7 +332,7 @@ class MemoryTest
 			if(stage == null)
 			{
 				log('litcheck: stage not found');
-				output.close();
+				output?.close();
 				Sys.exit(0);
 			}
 			if(FlxG.sound.music != null) FlxG.sound.music.pause();
@@ -300,7 +357,7 @@ class MemoryTest
 		if(litSteps.length < 1)
 		{
 			if(shotPending != null) return;
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}
 
@@ -406,7 +463,7 @@ class MemoryTest
 		if(neneSteps.length < 1)
 		{
 			if(shotPending != null) return;
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}
 
@@ -501,7 +558,7 @@ class MemoryTest
 		}
 		if(t > 5 && shotPending == null)
 		{
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}
 	}
@@ -565,7 +622,7 @@ class MemoryTest
 		if(endSteps.length < 1)
 		{
 			if(shotPending != null) return;
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}
 		var step:String = endSteps[0];
@@ -621,7 +678,7 @@ class MemoryTest
 		if(animSteps.length < 1)
 		{
 			if(shotPending != null) return;
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}
 		var step = animSteps[0];
@@ -667,7 +724,9 @@ class MemoryTest
 		['philly/erect/cutscenes/pico_doppleganger', 'shootPlayer', 0, -585, -609, -205, -154], ['philly/erect/cutscenes/pico_doppleganger', 'shootPlayer', 60, -585, -609, -205, -154],
 		['philly/erect/cutscenes/pico_doppleganger', 'shootOpponent', 0, -585, -609, -205, -154], ['philly/erect/cutscenes/pico_doppleganger', 'cigarettePlayer', 40, -585, -609, -205, -154],
 		['philly/erect/cutscenes/pico_doppleganger', 'explodeOpponent', 40, -585, -609, -205, -154], ['philly/erect/cutscenes/pico_doppleganger', 'loopPlayer', 0, -585, -609, -205, -154],
-		['philly/erect/cutscenes/bloodPool', 'poolAnim', 80, 1292, 610, 1000, 500]];
+		['philly/erect/cutscenes/bloodPool', 'poolAnim', 80, 1292, 610, 1000, 500],
+		['christmas/santa_speaks_assets', 'santa whole scene', 100, -858, -358.5, -365, -235], ['christmas/santa_speaks_assets', 'santa whole scene', 250, -858, -358.5, -365, -235],
+		['christmas/parents_shoot_assets', 'parents whole scene', 100, -104.5, -462, 235, -285], ['christmas/parents_shoot_assets', 'parents whole scene', 250, -104.5, -462, 235, -285]];
 	static var compareOld:FlxAnimate = null;
 	static var compareNew:animate.FlxAnimate = null;
 	static var compareTick:Int = 0;
@@ -679,7 +738,7 @@ class MemoryTest
 		if(compareSteps.length < 1)
 		{
 			if(shotPending != null) return;
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}
 
@@ -717,7 +776,7 @@ class MemoryTest
 		compareOld.visible = !compareShowNew;
 		compareNew.visible = compareShowNew;
 		FlxG.camera.bgColor = 0xFFFF00FF;
-		FlxG.camera.zoom = 2.2;
+		FlxG.camera.zoom = step.length > 7 ? step[7] : 2.2;
 		FlxG.camera.scroll.set(step[5] + 0.37, step[6] + 0.61);
 
 		compareTick++;
@@ -836,7 +895,7 @@ class MemoryTest
 			shotPending = 'cut_' + Std.string(cutsceneShots.shift()).replace('.', '_');
 		if(t > 16 && shotPending == null)
 		{
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}
 	}
@@ -876,7 +935,7 @@ class MemoryTest
 				setRes('Fullscreen'), minimize, check('fullscreen again'), f11, check('f11 after alttab'),
 				setRes('Fullscreen'), minimize, check('fullscreen third'), altEnter, check('altenter after alttab'),
 				setRes('Borderless'), minimize, check('borderless alttab'), setRes('Windowed'), check('windowed from borderless')];
-			optionSteps.push(() -> { output.close(); Sys.exit(0); return 'exit'; });
+			optionSteps.push(() -> { output?.close(); Sys.exit(0); return 'exit'; });
 			optionNext = haxe.Timer.stamp() + 1.5;
 			FlxG.signals.postUpdate.add(optionsTick);
 			return;
@@ -884,7 +943,7 @@ class MemoryTest
 		optionSteps = [check('start'), setRes('Borderless'), check('borderless'), setRes('Fullscreen'), check('fullscreen'),
 			f11, check('f11 from fullscreen'), altEnter, check('altenter'), altEnter, check('altenter back'),
 			setRes('Windowed'), check('windowed'), f11, check('f11 from windowed'), f11, check('f11 back')];
-		optionSteps.push(() -> { output.close(); Sys.exit(0); return 'exit'; });
+		optionSteps.push(() -> { output?.close(); Sys.exit(0); return 'exit'; });
 		optionNext = haxe.Timer.stamp() + 1.5;
 		FlxG.signals.postUpdate.add(optionsTick);
 	}
@@ -924,6 +983,8 @@ class MemoryTest
 		return 'NOT FOUND $name';
 	}
 
+	static var restoreLanguage:String = null;
+
 	@:access(funkin.ui.options.OptionsState)
 	static function startOptionsMenu()
 	{
@@ -936,6 +997,8 @@ class MemoryTest
 			optionSteps.push(() -> { logMenu(cat); shotPending = 'opt_$cat'; return 'shot $cat'; });
 			if(cat == 'Preferences')
 			{
+				optionSteps.push(() -> selectOption('naughtyness'));
+				optionSteps.push(() -> { shotPending = 'opt_Naughtyness'; return 'shot naughtyness'; });
 				optionSteps.push(() -> pressOption('Language'));
 				optionSteps.push(() -> { logMenu('Language'); shotPending = 'opt_Language'; return 'shot language'; });
 				optionSteps.push(() -> { cast(topSub(), flixel.FlxSubState).close(); return 'close language'; });
@@ -979,7 +1042,16 @@ class MemoryTest
 			FlxG.save.flush();
 			return 'custom cleaned ${funkin.ui.options.CustomSettingsSubState.get("exampleBool")}';
 		});
-		optionSteps.push(() -> { output.close(); Sys.exit(0); return 'exit'; });
+		optionSteps.push(() -> {
+			if(restoreLanguage != null)
+			{
+				ClientPrefs.data.language = restoreLanguage;
+				ClientPrefs.saveSettings();
+			}
+			output?.close();
+			Sys.exit(0);
+			return 'exit';
+		});
 		optionNext = haxe.Timer.stamp() + 1.5;
 		FlxG.signals.postUpdate.add(optionsTick);
 	}
@@ -994,7 +1066,7 @@ class MemoryTest
 	static function selectOption(name:String):String
 	{
 		var menu:funkin.ui.options.BaseOptionsMenu = Std.downcast(topSub(), funkin.ui.options.BaseOptionsMenu);
-		for (i => o in menu.optionsArray) if(o.name == name)
+		for (i => o in menu.optionsArray) if(o.name == name || o.variable == name)
 		{
 			menu.changeSelection(i - menu.curSelected);
 			return 'selected $name';
@@ -1051,7 +1123,7 @@ class MemoryTest
 			ClientPrefs.data.safeFrames = savedFrames;
 			return 'restored prefs';
 		});
-		optionSteps.push(() -> { output.close(); Sys.exit(0); return 'exit'; });
+		optionSteps.push(() -> { output?.close(); Sys.exit(0); return 'exit'; });
 		optionNext = haxe.Timer.stamp() + 1.5;
 		FlxG.signals.postUpdate.add(optionsTick);
 	}
@@ -1088,7 +1160,7 @@ class MemoryTest
 		optionSteps.push(check('options on again'));
 		optionSteps = optionSteps.concat([go(() -> new funkin.editors.MasterEditorMenu(), 'master editor'), show, check('master editor')]);
 		optionSteps = optionSteps.concat([go(() -> new funkin.editors.CharacterEditorState(), 'char editor'), check('char editor')]);
-		optionSteps.push(() -> { output.close(); Sys.exit(0); return 'exit'; });
+		optionSteps.push(() -> { output?.close(); Sys.exit(0); return 'exit'; });
 		optionNext = haxe.Timer.stamp() + 1.5;
 		FlxG.signals.postUpdate.add(optionsTick);
 	}
@@ -1162,7 +1234,7 @@ class MemoryTest
 
 		if(now - startTime >= duration)
 		{
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}
 	}
@@ -1208,6 +1280,9 @@ class MemoryTest
 	static var subShots:Int = 0;
 	static var lastSounds:String = null;
 	static var lastSubStamp:Float = 0;
+	static var videoMarked:Bool = false;
+	static var knownGraphics:Map<String, Bool> = new Map();
+	static var knownGraphicsReady:Bool = false;
 	static var updateStart:Float = 0;
 	static var drawStart:Float = 0;
 	static var lastUpdateMs:Float = 0;
@@ -1227,6 +1302,13 @@ class MemoryTest
 			log('subs dad ${lastDad} pos ${Math.round(Conductor.songPosition)}');
 		}
 
+		@:privateAccess for (key in FlxG.bitmap._cache.keys())
+		{
+			if(knownGraphics.exists(key)) continue;
+			knownGraphics.set(key, true);
+			if(knownGraphicsReady) log('subs newgraphic pos ${Math.round(Conductor.songPosition)} $key');
+		}
+		knownGraphicsReady = true;
 		var stamp:Float = haxe.Timer.stamp();
 		if(lastSubStamp > 0 && stamp - lastSubStamp > 0.04) log('subs hitch ${Math.round((stamp - lastSubStamp) * 1000)}ms at ${lime.system.System.getTimer()} pos ${Math.round(Conductor.songPosition)} gc ${fmt(MemoryUtils.getGCMemory() / 1048576)} bf ${game.boyfriend?.getAnimationName()} gf ${game.gf?.getAnimationName()} dad ${game.dad?.getAnimationName()} update ${Math.round(lastUpdateMs)}ms draw ${Math.round(lastDrawMs)}ms render ${Math.round(lastRenderMs)}ms');
 		lastSubStamp = stamp;
@@ -1239,7 +1321,7 @@ class MemoryTest
 			var times:Float = soundTimes.exists(sound) ? soundTimes.get(sound) : -1;
 			if(sound.time + 50 < times) log('subs sound RESTART len ${Math.round(sound.length)} at ${Math.round(sound.time)} was ${Math.round(times)}');
 			soundTimes.set(sound, sound.time);
-			sounds.push('len ${Math.round(sound.length)} vol ${fmt(sound.volume)}');
+			sounds.push('len ${Math.round(sound.length)} vol ${fmt(sound.volume)} ${soundName(sound)}');
 		}
 		var soundLine:String = sounds.join(' | ');
 		if(soundLine != lastSounds)
@@ -1259,8 +1341,20 @@ class MemoryTest
 				log('subs video $name subtitles ${game.videoCutscene.subtitles != null ? game.videoCutscene.subtitles.data.path : "none"}');
 			}
 			groups.push(game.videoCutscene.subtitles);
+			var bitmap = game.videoCutscene.videoSprite != null ? game.videoCutscene.videoSprite.bitmap : null;
+			var videoTime:Int = bitmap != null ? haxe.Int64.toInt(bitmap.time) : -1;
+			if(!videoMarked && videoTime >= 20000 && args().contains('--vidmark'))
+			{
+				videoMarked = true;
+				FlxG.sound.play(Paths.sound('hitsound'), 1);
+				log('subs vidmark video $videoTime');
+			}
 		}
 		#end
+
+		if(FlxG.state.subState != null)
+			for (member in FlxG.state.subState.members)
+				if(member != null && Std.isOfType(member, funkin.game.subtitles.Subtitles)) groups.push(cast member);
 
 		var parts:Array<String> = [];
 		for (group in groups)
@@ -1280,6 +1374,13 @@ class MemoryTest
 		if(line.length > 0 && shotPending == null && !args().contains('--noshots')) shotPending = 'subs_${++subShots}';
 	}
 
+	@:access(flixel.sound.FlxSound._sound)
+	static function soundName(sound:FlxSound):String
+	{
+		for (key => value in Paths.currentTrackedSounds) if(value == sound._sound) return key.split('/').pop();
+		return '?';
+	}
+
 	static var dialogStart:Float = 0;
 	static var dialogStep:Int = 0;
 
@@ -1287,7 +1388,9 @@ class MemoryTest
 	{
 		if(dialogStart == 0) dialogStart = now;
 		var age:Float = now - dialogStart;
-		var plan:Array<Float> = [4, 5, 8, 9, 12];
+		var lines:Int = args().contains('--dialoglines') ? Std.parseInt(args()[args().indexOf('--dialoglines') + 1]) : 3;
+		var plan:Array<Float> = [];
+		for (i in 0...lines) { plan.push(4 + i * 4); if(i < lines - 1) plan.push(5 + i * 4); }
 		if(dialogStep >= plan.length || age < plan[dialogStep] || shotPending != null) return;
 		if(dialogStep % 2 == 0) shotPending = 'dialog_${Std.int(dialogStep / 2) + 1}';
 		else
@@ -1312,7 +1415,7 @@ class MemoryTest
 		haxe.Timer.delay(() -> {
 			for (member in FlxG.state.members)
 				log('results member ${Type.getClassName(Type.getClass(member))}');
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}, 13500);
 	}
@@ -1587,7 +1690,7 @@ class MemoryTest
 				game.KillNotes();
 				game.finishSong(true);
 				log('endnow cpuControlled ${game.cpuControlled} completedRank ${funkin.ui.states.FreeplayState.completedRank}');
-				output.close();
+				output?.close();
 				Sys.exit(0);
 			}
 			else if(action == 'blur')
@@ -1670,7 +1773,7 @@ class MemoryTest
 		if(args().contains('--resultcheck') && Std.isOfType(FlxG.state, funkin.ui.states.ResultsState))
 		{
 			log('resultcheck completedRank ${funkin.ui.states.FreeplayState.completedRank}');
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}
 		if(songStarted && args().contains('--animshots') && PlayState.instance != null)
@@ -1755,7 +1858,7 @@ class MemoryTest
 				else loadSong(songList[songIndex]);
 				return;
 			}
-			output.close();
+			output?.close();
 			Sys.exit(0);
 		}
 	}
@@ -1818,8 +1921,11 @@ class MemoryTest
 	static function fmt(value:Float):String
 		return Std.string(Math.round(value * 10) / 10);
 
-	static function log(text:String)
+	public static var forceJeff:Int = 0;
+
+	public static function log(text:String)
 	{
+		if(output == null) return;
 		output.writeString(text + '\n');
 		output.flush();
 	}

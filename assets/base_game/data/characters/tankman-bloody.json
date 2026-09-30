@@ -141,7 +141,6 @@
 		240
 	],
 	"healthicon": "tankman-bloody",
-	"censored_character": "tankman",
 	"flip_x": false,
 	"healthbar_colors": [
 		225,

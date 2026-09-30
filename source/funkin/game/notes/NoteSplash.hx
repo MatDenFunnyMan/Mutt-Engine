@@ -46,7 +46,8 @@ class NoteSplash extends FlxSprite
 
 	public static var defaultNoteSplash(default, never):String = "noteSplashes/noteSplashes";
 	public static var pixelNoteSplash(default, never):String = "pixelUI/pixelNoteSplash";
-	static final PIXEL_SPLASH_SCALE:Float = 4;
+	static final PIXEL_SPLASH_SCALE:Float = 3.5;
+	static final PIXEL_SPLASH_ALPHA:Float = 1;
 	static final PIXEL_SPLASH_OFFSETS:Array<Float> = [-140.8, -135];
 
 	static function pixelOverride(splash:String):String
@@ -371,13 +372,13 @@ class NoteSplash extends FlxSprite
 
 		alpha = ClientPrefs.data.splashAlpha;
 		if (note != null) alpha = note.noteSplashData.a;
+		if (texture == pixelNoteSplash && alpha == ClientPrefs.data.splashAlpha) alpha = PIXEL_SPLASH_ALPHA;
 		baseAlpha = alpha;
 
 		antialiasing = ClientPrefs.data.antialiasing;
 		if (note != null) antialiasing = note.noteSplashData.antialiasing;
 		if (PlayState.isPixelStage && config.allowPixel) antialiasing = false;
 		if (texture == pixelNoteSplash) antialiasing = false;
-		blend = (texture == pixelNoteSplash) ? openfl.display.BlendMode.SCREEN : null;
 
 		var minFps:Int = 22;
 		var maxFps:Int = 26;

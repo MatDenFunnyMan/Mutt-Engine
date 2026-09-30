@@ -210,22 +210,20 @@ class GameOverSubstate extends MusicBeatSubstate
 				{
 					case 'tank' | 'tankmanBattlefieldErect':
 						coolStartDeath(0.2);
-						
-						var exclude:Array<Int> = ClientPrefs.data.naughtyness ? [] : [1, 3, 8, 13, 17, 21];
-						var excludePico:Array<Int> = ClientPrefs.data.naughtyness ? [] : [4, 7, 8, 9];
 
 						var jeffLine:String = switch(PlayState.SONG.player1)
 						{
-							case 'pico-playable' | 'pico-holding-nene': 'jeffGameover-pico/jeffGameover-' + FlxG.random.int(1, 9, excludePico);
-							case 'bf' | 'bf-holding-gf': 'jeffGameover/jeffGameover-' + FlxG.random.int(1, 25, exclude);
-							default: PlayState.SONG.player1.startsWith('pico') ? 'jeffGameover-pico/jeffGameover-10' : 'jeffGameover/jeffGameover-' + FlxG.random.int(1, 25, exclude);
+							case 'pico-playable' | 'pico-holding-nene': pickJeffLine(JEFF_PICO_FOLDER, 9, JEFF_PICO_SWEARS);
+							case 'bf' | 'bf-holding-gf': pickJeffLine(JEFF_FOLDER, 25, JEFF_SWEARS);
+							default: PlayState.SONG.player1.startsWith('pico') ? '$JEFF_PICO_FOLDER/jeffGameover-10' : pickJeffLine(JEFF_FOLDER, 25, JEFF_SWEARS);
 						}
-						FlxG.sound.play(Paths.sound(jeffLine), 1, false, null, true, function() {
+						var jeffSound:FlxSound = FlxG.sound.play(boostedJeffSound(jeffSoundKey(jeffLine)), 1, false, null, true, function() {
 							if(!isEnding)
 							{
 								FlxG.sound.music.fadeIn(0.2, 1, 4);
 							}
 						});
+						playJeffSubtitles(jeffLine, jeffSound);
 
 					default:
 						coolStartDeath();
@@ -238,6 +236,96 @@ class GameOverSubstate extends MusicBeatSubstate
 			}
 		}
 		PlayState.instance.callOnScripts('onUpdatePost', [elapsed]);
+	}
+
+	static inline final JEFF_FOLDER:String = 'jeffGameover';
+	static inline final JEFF_PICO_FOLDER:String = 'jeffGameover-pico';
+	static final JEFF_SWEARS:Array<Int> = [1, 3, 8, 13, 17, 21];
+	static final JEFF_PICO_SWEARS:Array<Int> = [4, 7, 8, 9];
+	static inline final JEFF_BOOST_DB:Float = 4;
+	static inline final JEFF_LIMIT:Float = 0.8;
+
+	var jeffSubtitles:funkin.game.subtitles.Subtitles;
+
+	function pickJeffLine(folder:String, count:Int, swears:Array<Int>):String
+	{
+		var pool:Array<Int> = [];
+		for (number in 1...count + 1)
+			if(ClientPrefs.data.naughtyness || !swears.contains(number) || censoredJeffKey('$folder/jeffGameover-$number') != null)
+				pool.push(number);
+		#if MEMTEST
+		funkin.debug.MemoryTest.log('jeff pool $folder ${pool.join(",")}');
+		if(funkin.debug.MemoryTest.forceJeff > 0) return '$folder/jeffGameover-${funkin.debug.MemoryTest.forceJeff}';
+		#end
+		return '$folder/jeffGameover-${pool[FlxG.random.int(0, pool.length - 1)]}';
+	}
+
+	function censoredJeffKey(line:String):String
+	{
+		var slash:Int = line.lastIndexOf('/');
+		var folder:String = line.substr(0, slash);
+		var number:String = line.substr(line.lastIndexOf('-') + 1);
+		for (key in ['$folder/censored/jeffGameover-c$number', '$folder/censored/$folder' + '_c$number', '$line-censored'])
+			if(funkin.backend.Naughtyness.soundExists(key)) return key;
+		return null;
+	}
+
+	function jeffSoundKey(line:String):String
+	{
+		if(ClientPrefs.data.naughtyness) return line;
+		var censored:String = censoredJeffKey(line);
+		return censored != null ? censored : line;
+	}
+
+	function boostedJeffSound(key:String):openfl.media.Sound
+	{
+		#if sys
+		var file:String = Paths.getPath('sounds/$key.${Paths.SOUND_EXT}', SOUND);
+		if(sys.FileSystem.exists(file))
+		{
+			var buffer:lime.media.AudioBuffer = lime.media.AudioBuffer.fromFile(file);
+			if(buffer != null && buffer.data != null && buffer.bitsPerSample == 16)
+			{
+				boostSamples(buffer, Math.pow(10, JEFF_BOOST_DB / 20));
+				return openfl.media.Sound.fromAudioBuffer(buffer);
+			}
+		}
+		#end
+		return Paths.sound(key);
+	}
+
+	static function boostSamples(buffer:lime.media.AudioBuffer, gain:Float)
+	{
+		var bytes:haxe.io.Bytes = buffer.data.buffer;
+		var offset:Int = buffer.data.byteOffset;
+		for (i in 0...Std.int(buffer.data.byteLength / 2))
+		{
+			var raw:Int = bytes.getUInt16(offset + i * 2);
+			if(raw >= 32768) raw -= 65536;
+			var value:Float = raw / 32768 * gain;
+			var level:Float = Math.abs(value);
+			if(level > JEFF_LIMIT)
+			{
+				var over:Float = (level - JEFF_LIMIT) / (1 - JEFF_LIMIT);
+				level = JEFF_LIMIT + (1 - JEFF_LIMIT) * (1 - 2 / (Math.exp(2 * over) + 1));
+			}
+			var sample:Int = Math.round((value < 0 ? -level : level) * 32767);
+			bytes.setUInt16(offset + i * 2, sample & 0xFFFF);
+		}
+	}
+
+	function playJeffSubtitles(line:String, sound:FlxSound)
+	{
+		var data:funkin.game.subtitles.SubtitleData = funkin.game.subtitles.SubtitleData.load('subtitles/$line');
+		if(data == null || sound == null) return;
+
+		if(jeffSubtitles == null)
+		{
+			jeffSubtitles = new funkin.game.subtitles.Subtitles(PlayState.CUTSCENE_SUBTITLES_MARGIN);
+			jeffSubtitles.cameras = [PlayState.instance.camOther];
+			add(jeffSubtitles);
+		}
+		jeffSubtitles.play(data, funkin.game.subtitles.Subtitles.soundClock(sound));
 	}
 
 	var isEnding:Bool = false;

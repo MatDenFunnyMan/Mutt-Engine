@@ -40,6 +40,8 @@ class PixelDialogueBox extends FlxSpriteGroup
 	static final ALPHA_FADE_SCALE:Float = 3;
 	static final UPDATE_THRESHOLD:Float = 0.05;
 	static final CLOSE_SOUND:String = 'clickText';
+	static final TEXT_SIZES:Array<Int> = [32, 28, 24];
+	static inline final MAX_TEXT_LINES:Int = 4;
 
 	public var finishThing:Void->Void;
 	public var nextDialogueThing:Void->Void = null;
@@ -64,6 +66,20 @@ class PixelDialogueBox extends FlxSpriteGroup
 	var cumulatedElapsed:Float = 0;
 	var offsetY:Float = FlxG.height - 700;
 	var centerOffset:Float = (FlxG.width - FlxG.initialWidth) / 2;
+
+	public static function fitText(field:FlxTypeText, content:String)
+	{
+		field.size = TEXT_SIZES[0];
+		field.text = [for (i in 0...MAX_TEXT_LINES) 'A'].join('\n');
+		var maxHeight:Float = field.textField.textHeight;
+		for (size in TEXT_SIZES)
+		{
+			field.size = size;
+			field.text = content;
+			if(field.textField.textHeight <= maxHeight) break;
+		}
+		field.text = '';
+	}
 
 	public static function parse(path:String):PixelDialogueFile
 	{
@@ -381,6 +397,7 @@ class PixelDialogueBox extends FlxSpriteGroup
 		lastBoxType = boxType;
 
 		setSound((line.sound == null || line.sound.trim().length < 1) ? 'dialogue' : line.sound);
+		fitText(swagDialogue, line.text);
 		swagDialogue.resetText(line.text);
 		swagDialogue.delay = line.speed;
 		lineDone = false;

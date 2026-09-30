@@ -222,6 +222,7 @@ class DialogueBox extends FlxSpriteGroup
 		// add(theDialog);
 
 		// swagDialogue.text = ;
+		PixelDialogueBox.fitText(swagDialogue, dialogueList[0]);
 		swagDialogue.resetText(dialogueList[0]);
 		swagDialogue.start(0.04, true);
 		swagDialogue.completeCallback = function() {

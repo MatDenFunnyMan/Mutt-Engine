@@ -86,7 +86,7 @@ class VideoSprite extends FlxSpriteGroup {
 		if(subtitleData != null)
 		{
 			subtitles = new funkin.game.subtitles.Subtitles(42);
-			subtitles.play(subtitleData, () -> haxe.Int64.toInt(videoSprite.bitmap.time));
+			subtitles.play(subtitleData, () -> haxe.Int64.toInt(videoSprite.bitmap.time), (mute) -> if(videoSprite.bitmap != null) videoSprite.bitmap.volumeAdjust = mute ? 0 : 1);
 			add(subtitles);
 		}
 		options.push(':sub-language=' + ((subtitleData != null || !ClientPrefs.data.subtitles) ? 'none' : 'English'));
