@@ -42,7 +42,7 @@ class ControlsSubState extends MusicBeatSubstate
 		[false, 'DEBUG'],
 		[false, 'Key 1', 'debug_1', 'Debug Key #1'],
 		[false, 'Key 2', 'debug_2', 'Debug Key #2'],
-		[false, 'Modchart', 'modchart_editor', 'Modchart Editor'],
+		[false, 'Key 3', 'modchart_editor', 'Debug Key #3'],
 		[false, 'Screenshot', 'screenshot', 'Screenshot'],
 		[false, 'Fullscreen', 'fullscreen', 'Fullscreen'],
 		[false, 'Console', 'debug_console', 'Debug Console']
@@ -50,6 +50,21 @@ class ControlsSubState extends MusicBeatSubstate
 	var curOptions:Array<Int>;
 	var curOptionsValid:Array<Int>;
 	static var defaultKey:String = 'Reset to Default Keys';
+
+	static inline final MENU_SCALE:Float = 0.8;
+	static inline final CENTER_X:Float = 640;
+	static final NAME_X:Float = CENTER_X + (475 - CENTER_X) * MENU_SCALE;
+	static final NAME_Y:Float = 300;
+	static final BIND_X:Float = CENTER_X + (560 - CENTER_X) * MENU_SCALE;
+	static final BIND_Y:Float = NAME_Y + (248 - NAME_Y) * MENU_SCALE;
+	static final BOX_X:Float = CENTER_X + (550 - CENTER_X) * MENU_SCALE - NAME_X;
+	static final BOX_Y:Float = -6 * MENU_SCALE;
+	static final BOX_WIDTH:Int = Std.int(250 * MENU_SCALE);
+	static final BOX_HEIGHT:Int = Std.int(78 * MENU_SCALE);
+	static final COLUMN_SPACING:Float = 300 * MENU_SCALE;
+	static final ROW_DISTANCE:Float = 60 * MENU_SCALE;
+	static final HEADER_OFFSET:Float = 55 * MENU_SCALE;
+	static final BIND_MAX_WIDTH:Float = 230 * MENU_SCALE;
 
 	var bg:FlxSprite;
 	var grpDisplay:FlxTypedGroup<Alphabet>;
@@ -95,7 +110,7 @@ class ControlsSubState extends MusicBeatSubstate
 		grpBlacks = new FlxTypedGroup<AttachedSprite>();
 		add(grpBlacks);
 		selectSpr = new AttachedSprite();
-		selectSpr.makeGraphic(250, 78, FlxColor.WHITE);
+		selectSpr.makeGraphic(BOX_WIDTH, BOX_HEIGHT, FlxColor.WHITE);
 		selectSpr.copyAlpha = false;
 		selectSpr.alpha = 0.75;
 		add(selectSpr);
@@ -144,10 +159,11 @@ class ControlsSubState extends MusicBeatSubstate
 					var str:String = option[1];
 					var keyStr:String = option[2];
 					if(isDefaultKey) str = Language.getPhrase(str);
-					var text:Alphabet = new Alphabet(475, 300, !isDisplayKey ? Language.getPhrase('key_$keyStr', str) : Language.getPhrase('keygroup_$str', str), !isDisplayKey);
+					var text:Alphabet = new Alphabet(NAME_X, NAME_Y, !isDisplayKey ? Language.getPhrase('key_$keyStr', str) : Language.getPhrase('keygroup_$str', str), !isDisplayKey);
+					text.setScale(MENU_SCALE);
 					text.isMenuItem = true;
 					text.changeX = false;
-					text.distancePerItem.y = 60;
+					text.distancePerItem.y = ROW_DISTANCE;
 					text.targetY = myID;
 					text.ID = myID;
 					lastID = myID;
@@ -177,8 +193,8 @@ class ControlsSubState extends MusicBeatSubstate
 	{
 		text.alignment = LEFT;
 		text.screenCenter(X);
-		text.y -= 55;
-		text.startPosition.y -= 55;
+		text.y -= HEADER_OFFSET;
+		text.startPosition.y -= HEADER_OFFSET;
 	}
 	function addKeyText(text:Alphabet, option:Array<Dynamic>, id:Int)
 	{
@@ -198,10 +214,11 @@ class ControlsSubState extends MusicBeatSubstate
 			else
 				key = InputFormatter.getGamepadName((gmpds[n] != null) ? gmpds[n] : NONE);
 
-			var attach:Alphabet = new Alphabet(560 + n * 300, 248, key, false);
+			var attach:Alphabet = new Alphabet(BIND_X + n * COLUMN_SPACING, BIND_Y, key, false);
+			attach.setScale(MENU_SCALE);
 			attach.isMenuItem = true;
 			attach.changeX = false;
-			attach.distancePerItem.y = 60;
+			attach.distancePerItem.y = ROW_DISTANCE;
 			attach.targetY = text.targetY;
 			attach.ID = Math.floor(grpBinds.length / 2);
 			attach.snapToPosition();
@@ -209,18 +226,23 @@ class ControlsSubState extends MusicBeatSubstate
 			grpBinds.add(attach);
 
 			playstationCheck(attach);
-			attach.scaleX = Math.min(1, 230 / attach.width);
+			fitBind(attach);
 			//attach.text = key;
 
 			// spawn black bars at the right of the key name
 			var black:AttachedSprite = new AttachedSprite();
-			black.makeGraphic(250, 78, FlxColor.BLACK);
+			black.makeGraphic(BOX_WIDTH, BOX_HEIGHT, FlxColor.BLACK);
 			black.alphaMult = 0.4;
 			black.sprTracker = text;
-			black.yAdd = -6;
-			black.xAdd = 75 + n * 300;
+			black.yAdd = BOX_Y;
+			black.xAdd = BOX_X + n * COLUMN_SPACING;
 			grpBlacks.add(black);
 		}
+	}
+
+	function fitBind(attach:Alphabet)
+	{
+		if(attach.width > BIND_MAX_WIDTH) attach.scaleX = MENU_SCALE * BIND_MAX_WIDTH / attach.width;
 	}
 
 	function playstationCheck(alpha:Alphabet)
@@ -247,17 +269,18 @@ class ControlsSubState extends MusicBeatSubstate
 	function updateBind(num:Int, text:String)
 	{
 		var bind:Alphabet = grpBinds.members[num];
-		var attach:Alphabet = new Alphabet(350 + (num % 2) * 300, 248, text, false);
+		var attach:Alphabet = new Alphabet(BIND_X + (num % 2) * COLUMN_SPACING, BIND_Y, text, false);
+		attach.setScale(MENU_SCALE);
 		attach.isMenuItem = true;
 		attach.changeX = false;
-		attach.distancePerItem.y = 60;
+		attach.distancePerItem.y = ROW_DISTANCE;
 		attach.targetY = bind.targetY;
 		attach.ID = bind.ID;
 		attach.x = bind.x;
 		attach.y = bind.y;
 		
 		playstationCheck(attach);
-		attach.scaleX = Math.min(1, 230 / attach.width);
+		fitBind(attach);
 		//attach.text = text;
 
 		bind.kill();

@@ -59,6 +59,15 @@ class MemoryTest
 			startResCycle();
 			return true;
 		}
+		if(args.contains('--lagmenu'))
+		{
+			output = File.write('memtest.log', false);
+			lagLate = args.contains('--laglate') ? Std.parseFloat(args[args.indexOf('--laglate') + 1]) : 40;
+			FlxG.switchState(new funkin.ui.options.OptionsState());
+			FlxG.signals.postUpdate.add(lagMenuTick);
+			FlxG.stage.window.onRender.add(onRender, false, -1000);
+			return true;
+		}
 		if(args.contains('--optionsmenu'))
 		{
 			output = File.write('memtest.log', false);
@@ -985,6 +994,137 @@ class MemoryTest
 
 	static var restoreLanguage:String = null;
 
+	static var lagLate:Float = 40;
+	static var lagStep:Int = 0;
+	static var lagStart:Float = 0;
+	static var lagNextBeat:Float = -1;
+	static var lagRelease:Array<Int> = [];
+	static var lagLastText:String = '';
+	static var lagHits:Array<funkin.game.notes.Note> = [];
+	static var lagShots:Int = 0;
+	static var lagSavedOffset:Int = 0;
+	static var lagSelectTime:Float = 0;
+
+	static function lagKey(keyCode:Int, down:Bool)
+		FlxG.stage.dispatchEvent(new openfl.events.KeyboardEvent(down ? openfl.events.KeyboardEvent.KEY_DOWN : openfl.events.KeyboardEvent.KEY_UP, true, false, keyCode, keyCode));
+
+	@:access(funkin.ui.options.LagAdjustmentSubState)
+	@:access(funkin.ui.options.OptionsState)
+	static function lagMenuTick()
+	{
+		var now:Float = haxe.Timer.stamp();
+		for (key in lagRelease) lagKey(key, false);
+		lagRelease = [];
+		if(!Std.isOfType(FlxG.state, funkin.ui.options.OptionsState) || shotPending != null) return;
+		if(lagStart == 0) lagStart = now;
+		var age:Float = now - lagStart;
+		var lag:funkin.ui.options.LagAdjustmentSubState = Std.downcast(FlxG.state.subState, funkin.ui.options.LagAdjustmentSubState);
+		if(lag != null && lag.jumpInText.text != lagLastText)
+		{
+			lagLastText = lag.jumpInText.text;
+			log('lag text ${Math.round(lag.songPosition)} "${lagLastText.split("\n").join(" / ")}"');
+		}
+
+		switch(lagStep)
+		{
+			case 0 if(age > 1):
+				var options:funkin.ui.options.OptionsState = cast FlxG.state;
+				log('lag music before ${FlxG.sound.music != null ? Math.round(FlxG.sound.music.length) : -1} vol ${FlxG.sound.music != null ? FlxG.sound.music.volume : -1} noteOffset ${ClientPrefs.data.noteOffset}');
+				lagSavedOffset = ClientPrefs.data.noteOffset;
+				options.selectOption('Lag Adjustment');
+				lagSelectTime = now;
+				lagStep++;
+			case 1 if(lag != null && lagSelectTime > 0):
+				log('lag opened after ${Math.round((now - lagSelectTime) * 1000)}ms');
+				lagSelectTime = 0;
+			case 1 if(age > 5):
+				log('lag music ${Math.round(FlxG.sound.music.length)} vol ${FlxG.sound.music.volume} drums ${lag.drums != null}');
+				shotPending = 'lag_menu';
+				lagStep++;
+			case 2:
+				lag.curSelected = 2;
+				lag.changeSelection();
+				lag.accept();
+				lagStep++;
+			case 3 if(lag.mode == 1 && lag.calibrating):
+				if(lagNextBeat < 0) lagNextBeat = Math.ceil(lag.musicTime() / 600) + 1;
+				if(lagShots == 0 && lag.arrows.length > 0 && lag.arrows[0].sprite.y < 500 && lag.arrows[0].sprite.y > 250)
+				{
+					shotPending = 'lag_arrow';
+					lagShots = -1;
+				}
+				if(lag.musicTime() >= lagNextBeat * 600 + lagLate)
+				{
+					lagKey(32, true);
+					lagRelease.push(32);
+					lagNextBeat++;
+					if(lag.differences.length == 3) shotPending = 'lag_calibration';
+				if(lag.differences.length < 10) log('lag arrows hit ${lag.differences.length} beat ${Math.round(lag.musicTime() / 6) / 100} arrows ${[for (arrow in lag.arrows) arrow.beat + "@" + Math.round(arrow.sprite.y)].join(",")}');
+				}
+			case 3 if(lag.mode == 0 && lagNextBeat > 0):
+				log('lag calibrated noteOffset ${ClientPrefs.data.noteOffset} shown ${lag.valueText.text}');
+				lag.curSelected = 3;
+				lag.changeSelection();
+				lag.accept();
+				lagStep++;
+				lagStart = now;
+			case 4 if(lag.mode == 1 && !lag.calibrating):
+				for (test in lag.testNotes)
+				{
+					if(lagHits.contains(test.note) || lag.musicTime() < test.time) continue;
+					lagHits.push(test.note);
+					var key:Int = ClientPrefs.keyBinds.get(['note_left', 'note_down', 'note_up', 'note_right'][test.direction])[0];
+					lagKey(key, true);
+					lagRelease.push(key);
+				}
+				var phase:Float = lag.musicTime() % 600;
+				if(lag.differences.length >= 8 && lagShots <= 0 && phase > 250 && phase < 350)
+				{
+					shotPending = 'lag_test';
+					lagShots = 1;
+				}
+				else if(lag.differences.length >= 12 && lagShots == 1 && lagRelease.length > 0)
+				{
+					shotPending = 'lag_confirm';
+					lagShots++;
+				}
+				if(lag.differences.length >= 16)
+				{
+					log('lag test average ${lag.getAverage()} hits ${lag.differences.length}');
+					lag.exitCalibration(true);
+					lagStep++;
+					lagStart = now;
+				}
+			case 5 if(lag.mode == 0):
+				lag.leave();
+				lagStep++;
+				lagStart = now;
+			case 6 if(age > 1.5):
+				log('lag music after ${FlxG.sound.music != null ? Math.round(FlxG.sound.music.length) : -1} vol ${FlxG.sound.music != null ? FlxG.sound.music.volume : -1} playing ${FlxG.sound.music != null && FlxG.sound.music.playing} noteOffset ${ClientPrefs.data.noteOffset} sounds ${FlxG.sound.list.length}');
+				shotPending = 'lag_after';
+				lagStep++;
+			case 7:
+				ClientPrefs.data.noteOffset = lagSavedOffset;
+				ClientPrefs.saveSettings();
+				output?.close();
+				Sys.exit(0);
+			default:
+		}
+	}
+
+	@:access(funkin.ui.options.ControlsSubState)
+	static function selectControl(name:String):String
+	{
+		var menu:funkin.ui.options.ControlsSubState = Std.downcast(topSub(), funkin.ui.options.ControlsSubState);
+		if(menu == null) return 'NO CONTROLS';
+		for (i => index in menu.curOptions) if(menu.options[index][1] == name)
+		{
+			menu.updateText(i - menu.curSelected);
+			return 'selected control $name';
+		}
+		return 'NOT FOUND $name';
+	}
+
 	@:access(funkin.ui.options.OptionsState)
 	static function startOptionsMenu()
 	{
@@ -1003,6 +1143,11 @@ class MemoryTest
 				optionSteps.push(() -> { logMenu('Language'); shotPending = 'opt_Language'; return 'shot language'; });
 				optionSteps.push(() -> { cast(topSub(), flixel.FlxSubState).close(); return 'close language'; });
 				optionSteps.push(() -> { logMenu('backToPrefs'); shotPending = 'opt_Preferences_back'; return 'shot prefs back'; });
+			}
+			if(cat == 'Controls')
+			{
+				optionSteps.push(() -> selectControl('Key 2'));
+				optionSteps.push(() -> { shotPending = 'opt_Controls_debug'; return 'shot controls debug'; });
 			}
 			if(cat == 'Notes')
 			{

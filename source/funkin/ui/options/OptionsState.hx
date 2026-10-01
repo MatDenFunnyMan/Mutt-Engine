@@ -29,8 +29,7 @@ class OptionsState extends MusicBeatState
 	private var camFollowPos:FlxObject;
 
 	function openSelectedSubstate(label:String) {
-		if (label != 'Lag Adjustment')
-			funnyCam.visible = persistentUpdate = false;
+		funnyCam.visible = persistentUpdate = false;
 
 		switch(label)
 		{
@@ -41,7 +40,7 @@ class OptionsState extends MusicBeatState
 			case 'Controls':
 				SubStateManager.open(this, 'ControlsSubState', () -> new funkin.ui.options.ControlsSubState());
 			case 'Lag Adjustment':
-				MusicBeatState.switchState(new funkin.ui.options.NoteOffsetState());
+				SubStateManager.open(this, 'LagAdjustmentSubState', () -> new funkin.ui.options.LagAdjustmentSubState());
 			case 'Graphics':
 				SubStateManager.open(this, 'GraphicsSettingsSubState', () -> new funkin.ui.options.GraphicsSettingsSubState());
 			case 'Gameplay':
@@ -53,6 +52,11 @@ class OptionsState extends MusicBeatState
 
 	var selectorLeft:Alphabet;
 	var selectorRight:Alphabet;
+	var flickering:Bool = false;
+
+	static inline final FLICKER_TIME:Float = 1;
+	static inline final FLICKER_INTERVAL:Float = 0.06;
+	static final FLICKER_OPTIONS:Array<String> = ['Lag Adjustment'];
 
 	override function create()
 	{
@@ -117,7 +121,7 @@ class OptionsState extends MusicBeatState
 
 	override function update(elapsed:Float) {
 		super.update(elapsed);
-		if(exiting) return;
+		if(exiting || flickering) return;
 
 		if (controls.UI_UP_P)
 			changeSelection(-1);
@@ -139,9 +143,25 @@ class OptionsState extends MusicBeatState
 			}
 			else StateManager.switchState('MainMenuState');
 		}
-		else if (controls.ACCEPT) openSelectedSubstate(options[curSelected]);
+		else if (controls.ACCEPT) selectOption(options[curSelected]);
 	}
 	
+	function selectOption(label:String)
+	{
+		if(!FLICKER_OPTIONS.contains(label))
+		{
+			openSelectedSubstate(label);
+			return;
+		}
+
+		flickering = true;
+		FlxG.sound.play(Paths.sound('confirmMenu'));
+		flixel.effects.FlxFlicker.flicker(grpOptions.members[curSelected], FLICKER_TIME, FLICKER_INTERVAL, true, false, (_) -> {
+			flickering = false;
+			openSelectedSubstate(label);
+		});
+	}
+
 	function changeSelection(change:Int = 0)
 	{
 		if(change != 0) FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
