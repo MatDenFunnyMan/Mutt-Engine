@@ -322,7 +322,6 @@ class PlayState extends MusicBeatState
 	{
 		//trace('Playback Rate: ' + playbackRate);
 		_lastLoadedModDirectory = Mods.currentModDirectory;
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'playstate start'; #end
 		Paths.clearStoredMemory();
 		if(nextReloadAll)
 		{
@@ -444,7 +443,6 @@ class PlayState extends MusicBeatState
 		dadGroup = new FlxSpriteGroup(DAD_X, DAD_Y);
 		gfGroup = new FlxSpriteGroup(GF_X, GF_Y);
 
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'stage'; #end
 		switch (curStage)
 		{
 			case 'stage': new StageWeek1(); 			//Week 1
@@ -477,7 +475,6 @@ class PlayState extends MusicBeatState
 		add(luaDebugGroup);
 		#end
 
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'gf and dad'; #end
 		if (!stageData.hide_girlfriend)
 		{
 			if(SONG.gfVersion == null || SONG.gfVersion.length < 1) SONG.gfVersion = 'gf'; //Fix for the Chart Editor
@@ -493,7 +490,6 @@ class PlayState extends MusicBeatState
 			dadGroup.add(dad);
 		}
 
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'bf'; #end
 		boyfriend = new Character(0, 0, SONG.player1, true);
 		startCharacterPos(boyfriend);
 		boyfriendGroup.add(boyfriend);
@@ -525,7 +521,6 @@ class PlayState extends MusicBeatState
 			}
 		}
 		
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'stage objects'; #end
 		if(stageData.objects != null && stageData.objects.length > 0)
 		{
 			var list:Map<String, FlxSprite> = StageData.addObjectsToState(stageData.objects, !stageData.hide_girlfriend ? gfGroup : null, dadGroup, boyfriendGroup, this);
@@ -629,7 +624,6 @@ class PlayState extends MusicBeatState
 		#end
 		#end
 			
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'scripts done'; #end
 		var camPos:FlxPoint = FlxPoint.get(girlfriendCameraOffset[0], girlfriendCameraOffset[1]);
 		if(gf != null)
 		{
@@ -688,10 +682,8 @@ class PlayState extends MusicBeatState
 			timeTxt.y += 3;
 		}
 
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'generate song'; #end
 		generateSong();
 
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'after generate song'; #end
 		playfieldRenderer = new PlayfieldRenderer(strumLineNotes, notes, this);
 		noteGroup.add(playfieldRenderer);
 
@@ -839,7 +831,6 @@ class PlayState extends MusicBeatState
 		}
 
 		createSubtitles();
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'start callback'; #end
 		startCallback();
 		RecalculateRating(false, false);
 
@@ -853,7 +844,6 @@ class PlayState extends MusicBeatState
 
 		resetRPC();
 
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'create post'; #end
 		stagesFunc(function(stage:BaseStage) stage.createPost());
 		ModchartFuncs.loadLuaFunctions();
 		callOnScripts('onCreatePost');
@@ -862,18 +852,14 @@ class PlayState extends MusicBeatState
 		grpNoteSplashes.add(splash);
 		splash.alpha = 0.000001; //cant make it invisible or it won't allow precaching
 
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'super create'; #end
 		super.create();
 		Paths.clearUnusedMemory();
 
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'cache ui'; #end
 		cacheCountdown();
 		cachePopUpScore();
 
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'precache events'; #end
 		if(eventNotes.length < 1) checkEventNote();
 		else precacheEvents();
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'first frames'; #end
 	}
 
 	function set_songSpeed(value:Float):Float

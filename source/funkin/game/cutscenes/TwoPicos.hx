@@ -9,10 +9,6 @@ class TwoPicos
 	static inline final CUTSCENE_BPM:Float = 150;
 	static final OPPONENT_FOCUS:Array<Float> = [246, -73];
 	static final PLAYER_FOCUS:Array<Float> = [-238, -69];
-	#if MEMTEST
-	public static var forcePlayerShoots:Null<Bool> = null;
-	public static var forceExplode:Null<Bool> = null;
-	#end
 
 	var cutsceneHandler:CutsceneHandler;
 	public var imposterPico:PicoDopplegangerSprite;
@@ -145,10 +141,6 @@ class TwoPicos
 		seenOutcome = false;
 		playerShoots = FlxG.random.bool(50);
 		explode = FlxG.random.bool(8);
-		#if MEMTEST
-		if(forcePlayerShoots != null) playerShoots = forcePlayerShoots;
-		if(forceExplode != null) explode = forceExplode;
-		#end
 
 		cutsceneHandler.endTime = 13;
 		cutsceneHandler.music = explode ? 'cutscene/cutscene2' : 'cutscene/cutscene';

@@ -485,7 +485,7 @@ class Paths
 	inline static public function soundRandom(key:String, min:Int, max:Int, ?modsAllowed:Bool = true)
 		return sound(key + FlxG.random.int(min, max), modsAllowed);
 
-	public static var COLLECT_AFTER_UPLOAD:Float = 8388608;
+	static inline final COLLECT_AFTER_UPLOAD:Float = 8388608;
 	static var uploadedSinceCollect:Float = 0;
 
 	public static var currentTrackedAssets:Map<String, FlxGraphic> = [];

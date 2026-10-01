@@ -50,7 +50,7 @@ class LoadingState extends MusicBeatState
 	static var requestedSizes:Map<String, Float> = [];
 	static var mutex:Mutex;
 
-	public static var DECODE_BUDGET:Float = 33554432;
+	static inline final DECODE_BUDGET:Float = 33554432;
 	static var pendingBytes:Float = 0;
 	static var loadGeneration:Int = 0;
 	static var threadPool:FixedThreadPool = null;
@@ -710,7 +710,6 @@ class LoadingState extends MusicBeatState
 	public static function startThreads()
 	{
 		mutex = new Mutex();
-		#if MEMTEST funkin.debug.MemoryTest.phase = 'preload'; #end
 		loadGeneration++;
 		pendingBytes = 0;
 		if (ClientPrefs.data.streamSongs) songsToPrepare = [];

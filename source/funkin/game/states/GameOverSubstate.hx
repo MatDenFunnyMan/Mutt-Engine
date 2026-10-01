@@ -253,10 +253,6 @@ class GameOverSubstate extends MusicBeatSubstate
 		for (number in 1...count + 1)
 			if(ClientPrefs.data.naughtyness || !swears.contains(number) || censoredJeffKey('$folder/jeffGameover-$number') != null)
 				pool.push(number);
-		#if MEMTEST
-		funkin.debug.MemoryTest.log('jeff pool $folder ${pool.join(",")}');
-		if(funkin.debug.MemoryTest.forceJeff > 0) return '$folder/jeffGameover-${funkin.debug.MemoryTest.forceJeff}';
-		#end
 		return '$folder/jeffGameover-${pool[FlxG.random.int(0, pool.length - 1)]}';
 	}
 
