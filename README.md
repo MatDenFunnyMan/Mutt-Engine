@@ -13,6 +13,7 @@ Base used: Cheese Engine by [@Chris](https://github.com/whenkenas) - Version 1.6
 - **Stage Editor** - TONS of bug fixes, Pixel Stage support, Atlas support (coming soon)
 - Custom States/Substates, softcoded in LUA/HX
 - Modcharting, using [@TheZoroForce420's Modcharting Tools](https://github.com/TheZoroForce240/FNF-Modcharting-Tools) as a base. (Will be changed w Funkin Modchart in future updates)
+- [@MaybeMaru](https://github.com/MaybeMaru/flixel-animate) for better Animate Atlas support, boosting performance.
 
 **AND MORE!!**
 
