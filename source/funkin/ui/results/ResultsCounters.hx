@@ -172,7 +172,7 @@ class TallyNumber extends FlxSprite
 
 class ResultScore extends FlxTypedSpriteGroup<ScoreNum>
 {
-	public static var DIGIT_SPACING:Float = 85;
+	public static var DIGIT_SPACING:Float = 65;
 
 	public var scoreValue(default, set):Int = 0;
 

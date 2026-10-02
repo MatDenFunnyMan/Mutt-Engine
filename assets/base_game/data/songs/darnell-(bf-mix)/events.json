@@ -4,9 +4,12 @@
 			0,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -14,9 +17,12 @@
 			3096.77419354839,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -24,9 +30,12 @@
 			6193,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -34,9 +43,12 @@
 			9290,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -44,9 +56,12 @@
 			12387,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -54,9 +69,12 @@
 			18580,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -64,9 +82,12 @@
 			24774.1935483871,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -74,9 +95,12 @@
 			30967.7419354839,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -84,9 +108,12 @@
 			37161.2903225806,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -94,9 +121,12 @@
 			43354.8387096774,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -104,9 +134,12 @@
 			49548,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -114,9 +147,12 @@
 			53032.2580645161,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -124,9 +160,12 @@
 			55741,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -134,9 +173,12 @@
 			58838,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -144,9 +186,12 @@
 			61935,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -154,9 +199,12 @@
 			65032,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -164,9 +212,12 @@
 			68129,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -174,9 +225,12 @@
 			71225,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -184,9 +238,12 @@
 			74322.5806451613,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -194,9 +251,12 @@
 			80516.1290322581,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -204,9 +264,12 @@
 			86709.6774193548,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -214,9 +277,12 @@
 			92903.2258064516,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -224,9 +290,12 @@
 			99096,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -234,9 +303,12 @@
 			102193.548387097,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -244,9 +316,12 @@
 			105289,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -254,9 +329,12 @@
 			108386,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -264,9 +342,12 @@
 			111483.387096774,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -274,9 +355,12 @@
 			114580.64516129,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -284,9 +368,12 @@
 			117677.64516129,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"dad",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -294,9 +381,12 @@
 			120773.64516129,
 			[
 				[
-					"(STEPS) Target Follow Pos",
+					"Cam Follow Pos",
 					"bf",
-					""
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		]

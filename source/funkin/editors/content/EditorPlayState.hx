@@ -57,9 +57,10 @@ class EditorPlayState extends MusicBeatSubstate
 	var showRating:Bool = true;
 
 	// Originals
-	var startOffset:Float = 0;
 	var startPos:Float = 0;
 	var timerToStart:Float = 0;
+	var countdownCrochet:Float = 0;
+	var countdownTick:Int = -1;
 
 	var scoreTxt:FlxText;
 	var dataTxt:FlxText;
@@ -85,9 +86,9 @@ class EditorPlayState extends MusicBeatSubstate
 	override function create()
 	{
 		Conductor.safeZoneOffset = (funkin.game.InputSystem.safeFrames() / 60) * 1000 * playbackRate;
-		Conductor.songPosition -= startOffset;
-		startOffset = Conductor.crochet;
-		timerToStart = startOffset;
+		countdownCrochet = Conductor.getBPMFromSeconds(startPos).stepCrochet * 4;
+		timerToStart = countdownCrochet * 5;
+		Conductor.songPosition = startPos - timerToStart;
 
 		cachePopUpScore();
 		guitarHeroSustains = funkin.game.InputSystem.sustainsAsOneNote();
@@ -169,19 +170,27 @@ class EditorPlayState extends MusicBeatSubstate
 		
 		if (startingSong)
 		{
-			timerToStart -= elapsed * 1000;
+			timerToStart -= elapsed * 1000 * playbackRate;
 			Conductor.songPosition = startPos - timerToStart;
-			if(timerToStart < 0) startSong();
+
+			var tick:Int = Math.floor((countdownCrochet * 5 - timerToStart) / countdownCrochet) - 1;
+			while(countdownTick < Std.int(Math.min(tick, 3)))
+			{
+				countdownTick++;
+				playCountdownTick(countdownTick);
+			}
+			if(timerToStart <= 0) startSong();
 		}
 		else
 		{
 			Conductor.songPosition += elapsed * 1000 * playbackRate;
 			if (Conductor.songPosition >= 0)
 			{
-				var timeDiff:Float = Math.abs((inst.time + Conductor.offset) - Conductor.songPosition);
-				Conductor.songPosition = FlxMath.lerp(inst.time + Conductor.offset, Conductor.songPosition, Math.exp(-elapsed * 2.5));
-				if (timeDiff > 1000 * playbackRate)
-					Conductor.songPosition = Conductor.songPosition + 1000 * FlxMath.signOf(timeDiff);
+				var instPosition:Float = inst.time + Conductor.offset;
+				if (Math.abs(instPosition - Conductor.songPosition) > 1000 * playbackRate)
+					Conductor.songPosition = instPosition;
+				else
+					Conductor.songPosition = FlxMath.lerp(instPosition, Conductor.songPosition, Math.exp(-elapsed * 2.5));
 			}
 		}
 
@@ -253,6 +262,47 @@ class EditorPlayState extends MusicBeatSubstate
 		lastBeatHit = curBeat;
 	}
 	
+	override function stepHit()
+	{
+		super.stepHit();
+		if(startingSong || finishTimer != null || inst == null || !inst.playing) return;
+
+		var instTime:Float = inst.time;
+		for (voc in [vocals, opponentVocals])
+		{
+			if(voc != null && voc.playing && instTime < voc.length && Math.abs(voc.time - instTime) > 50 * playbackRate)
+				voc.time = instTime;
+		}
+	}
+
+	function playCountdownTick(tick:Int)
+	{
+		var suffix:String = PlayState.isPixelStage ? '-pixel' : '';
+		var sounds:Array<String> = ['intro3', 'intro2', 'intro1', 'introGo'];
+		FlxG.sound.play(Paths.sound(sounds[tick] + suffix), 0.6);
+		if(tick < 1) return;
+
+		var images:Array<String> = switch(PlayState.stageUI)
+		{
+			case 'pixel': ['pixelUI/ready-pixel', 'pixelUI/set-pixel', 'pixelUI/date-pixel'];
+			case 'normal': ['ready', 'set', 'go'];
+			default: ['${PlayState.uiPrefix}UI/ready${PlayState.uiPostfix}', '${PlayState.uiPrefix}UI/set${PlayState.uiPostfix}', '${PlayState.uiPrefix}UI/go${PlayState.uiPostfix}'];
+		}
+
+		var spr:FlxSprite = new FlxSprite().loadGraphic(Paths.image(images[tick - 1]));
+		spr.scrollFactor.set();
+		if(PlayState.isPixelStage) spr.setGraphicSize(Std.int(spr.width * PlayState.daPixelZoom));
+		spr.updateHitbox();
+		spr.screenCenter();
+		spr.antialiasing = ClientPrefs.data.antialiasing && !PlayState.isPixelStage;
+		add(spr);
+		FlxTween.tween(spr, {alpha: 0}, countdownCrochet / 1000 / playbackRate, {ease: FlxEase.cubeInOut, onComplete: function(_)
+		{
+			remove(spr);
+			spr.destroy();
+		}});
+	}
+
 	override function sectionHit()
 	{
 		if (PlayState.SONG.notes[curSection] != null)
@@ -284,10 +334,14 @@ class EditorPlayState extends MusicBeatSubstate
 		FlxG.sound.list.add(inst);
 
 		FlxG.sound.music.pause();
-		inst.play();
-		vocals.play();
-		opponentVocals.play();
-		inst.time = vocals.time = opponentVocals.time = startPos - Conductor.offset;
+		var startTime:Float = Math.max(0, startPos - timerToStart - Conductor.offset);
+		#if FLX_PITCH
+		inst.pitch = vocals.pitch = opponentVocals.pitch = playbackRate;
+		#end
+		inst.play(true, startTime);
+		vocals.play(true, startTime);
+		opponentVocals.play(true, startTime);
+		Conductor.songPosition = startTime + Conductor.offset;
 
 		// Song duration in a float, useful for the time left feature
 		songLength = inst.length;

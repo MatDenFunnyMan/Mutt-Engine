@@ -4,7 +4,8 @@
 			14181.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1.0833",
 					"4"
 				]
@@ -14,7 +15,8 @@
 			17090.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1",
 					"4"
 				]
@@ -24,7 +26,8 @@
 			20000.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1.0833",
 					"4"
 				]
@@ -34,7 +37,8 @@
 			22909.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1",
 					"4"
 				]
@@ -44,7 +48,8 @@
 			25818.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1.0833",
 					"4"
 				]
@@ -54,7 +59,8 @@
 			28727.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1",
 					"4"
 				]
@@ -64,7 +70,8 @@
 			31636.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1.0833",
 					"4"
 				]
@@ -74,7 +81,8 @@
 			57818.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1",
 					"4"
 				]
@@ -84,7 +92,8 @@
 			60727.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1.0833",
 					"4"
 				]
@@ -94,7 +103,8 @@
 			63636.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1",
 					"4"
 				]
@@ -104,7 +114,8 @@
 			66545.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1.0833",
 					"4"
 				]
@@ -114,7 +125,8 @@
 			69454.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1",
 					"4"
 				]
@@ -124,7 +136,8 @@
 			72363.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1.0833",
 					"4"
 				]
@@ -134,7 +147,8 @@
 			75272.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1",
 					"4"
 				]
@@ -144,7 +158,8 @@
 			78181.6363636364,
 			[
 				[
-					"Change Scroll Speed",
+					"Set Note Speed",
+					"All",
 					"1.0833",
 					"4"
 				]
@@ -155,8 +170,10 @@
 			[
 				[
 					"Play Animation",
+					"BF",
 					"burpShit",
-					"boyfriend"
+					"false",
+					"false"
 				]
 			]
 		],
@@ -165,8 +182,10 @@
 			[
 				[
 					"Play Animation",
+					"BF",
 					"burpSmileLong",
-					"boyfriend"
+					"false",
+					"false"
 				]
 			]
 		]

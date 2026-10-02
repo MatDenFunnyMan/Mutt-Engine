@@ -1243,6 +1243,7 @@ class PlayState extends MusicBeatState
 	public var countdownSet:FlxSprite;
 	public var countdownGo:FlxSprite;
 	public static var startOnTime:Float = 0;
+	var songStartPosition:Float = 0;
 
 	function cacheCountdown()
 	{
@@ -1330,8 +1331,9 @@ class PlayState extends MusicBeatState
 			var swagCounter:Int = 0;
 			if (startOnTime > 0) {
 				clearNotesBefore(startOnTime);
-				setSongTime(startOnTime - 350);
-				return true;
+				songStartPosition = startOnTime;
+				Conductor.bpm = Conductor.getBPMFromSeconds(startOnTime).bpm;
+				Conductor.songPosition = startOnTime - Conductor.crochet * 5 + Conductor.offset;
 			}
 			else if (skipCountdown)
 			{
@@ -1678,7 +1680,7 @@ class PlayState extends MusicBeatState
 		opponentVocals.play();
 
 		var wasSkipped:Bool = startOnTime > 0;
-		setSongTime(Math.max(0, startOnTime - 500) + Conductor.offset);
+		setSongTime(songStartPosition + Conductor.offset);
 		startOnTime = 0;
 
 		if(paused) {
@@ -2051,6 +2053,12 @@ class PlayState extends MusicBeatState
 			case 'Play Sound':
 				Paths.sound(event.value1); //Precache sound
 
+			case 'Play Video':
+				#if VIDEOS_ALLOWED
+				if(event.value1 != null && event.value1.trim().length > 0)
+					Paths.video(event.value1.trim());
+				#end
+
 			case 'Video Player':
 				#if VIDEOS_ALLOWED
 				var params:Array<String> = event.value1.split(',');
@@ -2421,12 +2429,11 @@ class PlayState extends MusicBeatState
 	var freezeCamera:Bool = false;
 	var camZoomTweens:Array<FlxTween> = [];
 	var camZoomTween:FlxTween;
-	var camZoomTweenEndTime:Float = -999;
 
 	override public function update(elapsed:Float)
 	{
 		if(!inCutscene && !paused && !freezeCamera) {
-			FlxG.camera.followLerp = 0.04 * cameraSpeed * playbackRate;
+			FlxG.camera.followLerp = (camFollowEventTween != null) ? 1 : 0.04 * cameraSpeed * playbackRate;
 			var idleAnim:Bool = (boyfriend.getAnimationName().startsWith('idle') || boyfriend.getAnimationName().startsWith('danceLeft') || boyfriend.getAnimationName().startsWith('danceRight'));
 			if(!startingSong && !endingSong && idleAnim) {
 				boyfriendIdleTime += elapsed;
@@ -2439,6 +2446,9 @@ class PlayState extends MusicBeatState
 		}
 		else FlxG.camera.followLerp = 0;
 		callOnScripts('onUpdate', [elapsed]);
+
+		if(healthDrainPersistent && healthDrainAmount > 0 && !paused && !inCutscene && !startingSong && !endingSong && generatedMusic)
+			drainHealth(healthDrainAmount * elapsed);
 
 		super.update(elapsed);
 
@@ -2496,7 +2506,7 @@ class PlayState extends MusicBeatState
 		if (startedCountdown && !paused)
 		{
 			Conductor.songPosition += elapsed * 1000 * playbackRate;
-			if (Conductor.songPosition >= Conductor.offset)
+			if (!startingSong && Conductor.songPosition >= Conductor.offset)
 			{
 				if (FlxG.sound.music != null && FlxG.sound.music.playing)
 				{
@@ -2524,7 +2534,7 @@ class PlayState extends MusicBeatState
 
 		if (startingSong)
 		{
-			if (startedCountdown && Conductor.songPosition >= Conductor.offset)
+			if (startedCountdown && Conductor.songPosition >= songStartPosition + Conductor.offset)
 				startSong();
 			else if(!startedCountdown)
 				Conductor.songPosition = -Conductor.crochet * 5 + Conductor.offset;
@@ -2589,7 +2599,7 @@ class PlayState extends MusicBeatState
 				if(dunceNote.isSustainNote)
 				{
 					var noteChar:Character = dunceNote.mustPress ? boyfriend : (dunceNote.gfNote ? gf : dad);
-					if(noteChar != null && noteChar.vsliceSustains)
+					if(noteChar != null && (noteChar.vsliceSustains || InputSystem.isVSlice()))
 						dunceNote.noAnimation = true;
 				}
 				callOnLuas('onSpawnNote', [notes.members.indexOf(dunceNote), dunceNote.noteData, dunceNote.noteType, dunceNote.isSustainNote]);
@@ -2776,6 +2786,8 @@ class PlayState extends MusicBeatState
 		chartingMode = true;
 		paused = true;
 
+		if(songStartPosition > 0) ChartingState.goToTime = songStartPosition;
+
 		if(FlxG.sound.music != null)
 			FlxG.sound.music.stop();
 		if(vocals != null)
@@ -2834,7 +2846,7 @@ class PlayState extends MusicBeatState
 		chartingMode = true;
 		paused = true;
 
-		var timeToPass:Float = Conductor.songPosition;
+		var timeToPass:Float = (songStartPosition > 0) ? songStartPosition : Conductor.songPosition;
 		ChartingState.goToTime = timeToPass;
 
 		if(FlxG.sound.music != null)
@@ -2985,7 +2997,7 @@ class PlayState extends MusicBeatState
 		if(Math.isNaN(flValue1)) flValue1 = null;
 		if(Math.isNaN(flValue2)) flValue2 = null;
 
-		switch(eventName) {
+		if(!triggerModernEvent(eventName, [value1, value2].concat(extraValues), strumTime)) switch(eventName) {
 			case 'Hey!':
 				var value:Int = 2;
 				switch(value1.toLowerCase().trim()) {
@@ -3019,6 +3031,7 @@ class PlayState extends MusicBeatState
 				gfSpeed = Math.round(flValue1);
 
 			case 'Add Camera Zoom':
+				if(camZoomTween == null) camZooming = true;
 				if(ClientPrefs.data.camZooms && FlxG.camera.zoom < 1.35) {
 					if(flValue1 == null) flValue1 = 0.015;
 					if(flValue2 == null) flValue2 = 0.03;
@@ -3030,6 +3043,7 @@ class PlayState extends MusicBeatState
 			case 'Set Camera Bopping':
 				camZoomingFrequency = (flValue1 != null && flValue1 > 0) ? flValue1 : 0;
 				camZoomingMult = (flValue2 != null) ? flValue2 : 1;
+				if(camZoomingFrequency > 0 && camZoomTween == null) camZooming = true;
 
 			case 'Play Animation':
 				//trace('Anim to play: ' + value1);
@@ -3512,137 +3526,16 @@ class PlayState extends MusicBeatState
 				}
 
 			case 'Change Note Skin':
-				var rawNoteSkin:String = value1.trim();
-				if(rawNoteSkin.length > 0)
-				{
-					if(!rawNoteSkin.contains('/') && !Paths.fileExists('images/$rawNoteSkin.png', IMAGE)
-						&& Paths.fileExists('images/noteSkins/$rawNoteSkin.png', IMAGE))
-						rawNoteSkin = 'noteSkins/$rawNoteSkin';
-					SONG.arrowSkin = rawNoteSkin;
-				}
-				else
-					SONG.arrowSkin = null;
-				var noteTarget:String = value2.trim().toLowerCase();
-				for (note in notes)
-				{
-					if(note == null) continue;
-					if(note.strumTime < strumTime) continue;
-					if(noteTarget == 'bf' && !note.mustPress) continue;
-					if(noteTarget == 'dad' && note.mustPress) continue;
-					note.texture = '';
-					note.reloadNote();
-				}
-				for (note in unspawnNotes)
-				{
-					if(note == null) continue;
-					if(noteTarget == 'bf' && !note.mustPress) continue;
-					if(noteTarget == 'dad' && note.mustPress) continue;
-					note.texture = '';
-					note.reloadNote();
-				}
+				changeNoteSkinEvent(value1, value2, strumTime);
 
 			case 'Change NoteStrum Skin':
-				var strumTarget:String = value2.trim().toLowerCase();
-				var strumSkin:String = value1.trim();
-				if(strumSkin.length > 0 && !strumSkin.contains('/')
-					&& !Paths.fileExists('images/$strumSkin.png', IMAGE)
-					&& Paths.fileExists('images/noteSkins/$strumSkin.png', IMAGE))
-					strumSkin = 'noteSkins/$strumSkin';
-				for (strum in strumLineNotes)
-				{
-					if(strum == null) continue;
-					var isPlayerStrum:Bool = playerStrums.members.contains(strum);
-					var isExtraStrum:Bool = !isPlayerStrum && !opponentStrums.members.contains(strum);
-					if(strumTarget == 'bf' && !isPlayerStrum && !isExtraStrum) continue;
-					if(strumTarget == 'dad' && isPlayerStrum) continue;
-					strum.texture = strumSkin;
-				}
+				changeStrumSkinEvent(value1, value2, strumTime);
 
 			case 'Change Hold Cover Skin':
-				var rawCoverSkin:String = value1.trim();
-				if(rawCoverSkin.length > 0)
-				{
-					if(!rawCoverSkin.contains('/') && !Paths.fileExists('images/$rawCoverSkin.png', IMAGE)
-					&& (Paths.fileExists('images/holdCovers/$rawCoverSkin.png', IMAGE)
-						|| Paths.fileExists('images/holdCovers/$rawCoverSkin.json', TEXT)))
-					rawCoverSkin = 'holdCovers/$rawCoverSkin';
-					SONG.holdCoverSkin = rawCoverSkin;
-				}
-				else
-					SONG.holdCoverSkin = null;
-				if(holdCovers.keys().hasNext())
-				{
-					var coverTarget:String = value2.trim().toLowerCase();
-					for (i in 0...4)
-					{
-						var colorName:String = HoldCover.getColorName(i);
-						if(coverTarget != 'dad')
-						{
-							var oldBF:HoldCover = holdCovers.get('hold' + colorName + 'BF');
-							if(oldBF != null)
-							{
-								grpHoldCovers.remove(oldBF, true);
-								noteGroup.remove(oldBF, true);
-							}
-							var newBF:HoldCover = new HoldCover(i, false, isPixelStage, camHUD);
-							holdCovers.set('hold' + colorName + 'BF', newBF);
-							grpHoldCovers.add(newBF);
-							noteGroup.add(newBF);
-							if(playerStrums.members[i] != null)
-								playerStrums.members[i].holdCover = newBF;
-						}
-						if(coverTarget != 'bf')
-						{
-							var oldDAD:HoldCover = holdCovers.get('hold' + colorName + 'DAD');
-							if(oldDAD != null)
-							{
-								grpHoldCovers.remove(oldDAD, true);
-								noteGroup.remove(oldDAD, true);
-							}
-							var newDAD:HoldCover = new HoldCover(i, true, isPixelStage, camHUD);
-							holdCovers.set('hold' + colorName + 'DAD', newDAD);
-							grpHoldCovers.add(newDAD);
-							noteGroup.add(newDAD);
-							if(opponentStrums.members[i] != null)
-								opponentStrums.members[i].holdCover = newDAD;
-						}
-					}
-					applyRGBShadersToHoldCovers();
-				}
+				changeHoldCoverSkinEvent(value1, value2, strumTime);
 
 			case 'Change Note Splash Skin':
-				var rawSplashSkin:String = value1.trim();
-				if(rawSplashSkin.length > 0)
-				{
-					if(!rawSplashSkin.contains('/') && !Paths.fileExists('images/$rawSplashSkin.png', IMAGE)
-					&& (Paths.fileExists('images/noteSplashes/$rawSplashSkin.png', IMAGE)
-						|| Paths.fileExists('images/noteSplashes/$rawSplashSkin.json', TEXT)))
-					rawSplashSkin = 'noteSplashes/$rawSplashSkin';
-					SONG.splashSkin = rawSplashSkin;
-				}
-				else
-					SONG.splashSkin = null;
-				var splashTarget:String = value2.trim().toLowerCase();
-				for (note in notes)
-				{
-					if(note == null) continue;
-					if(note.strumTime < strumTime) continue;
-					if(splashTarget == 'bf' && !note.mustPress) continue;
-					if(splashTarget == 'dad' && note.mustPress) continue;
-					note.noteSplashData.texture = SONG.splashSkin;
-				}
-				for (note in unspawnNotes)
-				{
-					if(note == null) continue;
-					if(splashTarget == 'bf' && !note.mustPress) continue;
-					if(splashTarget == 'dad' && note.mustPress) continue;
-					note.noteSplashData.texture = SONG.splashSkin;
-				}
-				for (splash in grpNoteSplashes)
-				{
-					if(splash == null) continue;
-					splash.loadSplash(rawSplashSkin.length > 0 ? rawSplashSkin : null);
-				}
+				changeSplashSkinEvent(value1, value2, strumTime);
 
 			case 'Set Property':
 				try
@@ -3916,7 +3809,6 @@ class PlayState extends MusicBeatState
 								}
 								defaultCamZoom = FlxG.camera.zoom;
 								camZoomTween = null;
-								camZoomTweenEndTime = haxe.Timer.stamp();
 								camZooming = true;
 							}
 						});
@@ -4235,7 +4127,6 @@ class PlayState extends MusicBeatState
 								if(twn != camZoomTween) return;
 								defaultCamZoom = FlxG.camera.zoom;
 								camZoomTween = null;
-								camZoomTweenEndTime = haxe.Timer.stamp();
 								camZooming = true;
 							}
 						});
@@ -4705,8 +4596,605 @@ class PlayState extends MusicBeatState
 		callOnScripts('onEvent', scriptArgs);
 	}
 
+	static inline final HEALTH_DRAIN_FLOOR:Float = 0.1;
+
+	public var camFollowLocked:Bool = false;
+	public var healthDrainAmount:Float = 0;
+	public var healthDrainPersistent:Bool = false;
+	public var opponentNoteSpeed(default, set):Float = 1;
+	public var playerNoteSpeed(default, set):Float = 1;
+	var camFollowEventTween:FlxTween;
+	var opponentSpeedTween:FlxTween;
+	var playerSpeedTween:FlxTween;
+
+	function triggerModernEvent(eventName:String, values:Array<String>, strumTime:Float):Bool
+	{
+		inline function str(i:Int):String
+			return (i < values.length && values[i] != null) ? Std.string(values[i]).trim() : '';
+
+		function num(i:Int, def:Float):Float
+		{
+			var value:Float = Std.parseFloat(str(i));
+			return Math.isNaN(value) ? def : value;
+		}
+
+		function bool(i:Int, def:Bool):Bool
+		{
+			return switch(str(i).toLowerCase())
+			{
+				case 'true': true;
+				case 'false': false;
+				default: def;
+			}
+		}
+
+		var hasExtraValues:Bool = false;
+		for (i in 2...values.length)
+			if(str(i).length > 0) hasExtraValues = true;
+
+		switch(eventName)
+		{
+			case 'Add Cam Zoom':
+				if(camZoomTween == null) camZooming = true;
+				if(ClientPrefs.data.camZooms && FlxG.camera.zoom < 1.35)
+				{
+					FlxG.camera.zoom += num(0, 0.015);
+					camHUD.zoom += num(1, 0.03);
+				}
+
+			case 'Cam Bopping':
+				var frequency:Float = num(0, 0);
+				camZoomingFrequency = (frequency > 0) ? frequency : 0;
+				camZoomingMult = (frequency > 0) ? num(1, 1) : 1;
+				if(frequency > 0 && camZoomTween == null) camZooming = true;
+
+			case 'Set Cam Zoom':
+				if(!hasExtraValues) return false;
+				var zoom:Float = num(0, Math.NaN);
+				if(Math.isNaN(zoom)) return true;
+				if(str(2).toLowerCase() == 'classic') setCamZoomClassic(zoom, bool(4, true));
+				else setCamZoomEvent(zoom, num(1, 0), eventEase(str(2), str(3)), bool(4, true));
+
+			case 'Cam Follow Pos':
+				var duration:Float = num(1, 0);
+				var classic:Bool = (str(2).toLowerCase() == 'classic');
+				var ease:Float->Float = eventEase(str(2), str(3));
+				if(str(0).length < 1)
+				{
+					releaseCameraEvent(classic ? -1 : duration, ease);
+					return true;
+				}
+
+				var point:FlxPoint = eventCameraPoint(str(0));
+				if(point != null)
+				{
+					if(classic) moveCameraClassic(point.x, point.y, bool(4, true));
+					else moveCameraEvent(point.x, point.y, duration, ease, bool(4, true));
+					point.put();
+				}
+
+			case 'Center Camera':
+				var bfPoint:FlxPoint = eventCameraPoint('bf');
+				var dadPoint:FlxPoint = eventCameraPoint('dad');
+				if(bfPoint != null && dadPoint != null)
+				{
+					var centerX:Float = (bfPoint.x + dadPoint.x) / 2;
+					var centerY:Float = (bfPoint.y + dadPoint.y) / 2;
+					if(str(1).toLowerCase() == 'classic') moveCameraClassic(centerX, centerY, true);
+					else moveCameraEvent(centerX, centerY, num(0, 0), eventEase(str(1), str(2)), true);
+				}
+				if(bfPoint != null) bfPoint.put();
+				if(dadPoint != null) dadPoint.put();
+
+			case 'Cam Flash':
+				if(!ClientPrefs.data.flashing) return true;
+				var duration:Float = num(0, 1);
+				if(duration <= 0) duration = 1;
+				var color:FlxColor = eventColor(str(1));
+				switch(str(2).toLowerCase())
+				{
+					case 'game':
+						camGame.flash(color, duration, null, true);
+					case 'other':
+						camOther.flash(color, duration, null, true);
+					default:
+						var flash:FlxSprite = CoolUtil.makeSolid(new FlxSprite(), FlxG.width, FlxG.height, color);
+						flash.scrollFactor.set();
+						flash.cameras = [camHUD];
+						insert(members.indexOf(strumlineBackgroundOpponent), flash);
+						FlxTween.tween(flash, {alpha: 0}, duration, {ease: FlxEase.linear, onComplete: function(_)
+						{
+							remove(flash);
+							flash.destroy();
+						}});
+				}
+
+			case 'Cam Shake':
+				var strength:Float = FlxMath.bound(num(1, 1), 0, 3);
+				var duration:Float = num(2, 0.5);
+				if(strength <= 0 || duration <= 0) return true;
+				var cams:Array<FlxCamera> = switch(str(0).toLowerCase())
+				{
+					case 'hud': [camHUD];
+					case 'other': [camOther];
+					case 'all': [camGame, camHUD, camOther];
+					default: [camGame];
+				}
+				for (cam in cams) cam.shake(strength * 0.015, duration / playbackRate);
+
+			case 'Set Char Idle Alt':
+				var char:Character = eventCharacter(str(0), dad);
+				if(char != null)
+				{
+					char.idleSuffix = str(1);
+					char.recalculateDanceIdle();
+				}
+
+			case 'Play Animation':
+				if(!hasExtraValues && !(isCharacterToken(str(0)) && !isCharacterToken(str(1)))) return false;
+				var char:Character = eventCharacter(str(0), dad);
+				if(char == null) return true;
+				var anim:String = str(1);
+				if(anim.length < 1) char.stopSpecialAnim();
+				else if(char.hasAnimation(anim) || char.animation.exists(anim)) char.playSpecialAnim(anim, bool(2, false), bool(3, false));
+
+			case 'Change Notes':
+				var target:String = str(0).toLowerCase();
+				var skins:Array<String> = [str(1), str(2), str(3), str(4)];
+				for (i in 0...skins.length)
+				{
+					if(skins[i].length < 1) continue;
+					var skin:String = (skins[i].toLowerCase() == 'default') ? '' : skins[i];
+					switch(i)
+					{
+						case 0: changeNoteSkinEvent(skin, target, strumTime);
+						case 1: changeStrumSkinEvent(skin, target, strumTime);
+						case 2: changeSplashSkinEvent(skin, target, strumTime);
+						case 3: changeHoldCoverSkinEvent(skin, target, strumTime);
+					}
+				}
+
+			case 'Set Note Speed':
+				if(songSpeedType == 'constant') return true;
+				var mult:Float = num(1, 1);
+				var duration:Float = num(2, 0);
+				switch(str(0).toLowerCase())
+				{
+					case 'opponent':
+						tweenNoteSpeed(false, mult, duration);
+					case 'player':
+						tweenNoteSpeed(true, mult, duration);
+					default:
+						var newValue:Float = SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed') * mult;
+						if(songSpeedTween != null) songSpeedTween.cancel();
+						songSpeedTween = null;
+						if(duration <= 0) songSpeed = newValue;
+						else songSpeedTween = FlxTween.tween(this, {songSpeed: newValue}, duration / playbackRate, {onComplete: function(_) songSpeedTween = null});
+						tweenNoteSpeed(false, 1, duration);
+						tweenNoteSpeed(true, 1, duration);
+				}
+
+			case 'Play Video':
+				#if VIDEOS_ALLOWED
+				var videoName:String = str(0);
+				if(videoName.length < 1) return true;
+				var cam:FlxCamera = switch(str(1).toLowerCase())
+				{
+					case 'game': camGame;
+					case 'hud': camHUD;
+					default: camOther;
+				}
+				var layer:Null<Int> = Std.parseInt(str(2));
+				var video:VideoSprite = startVideo(videoName, bool(4, true), bool(3, false), bool(5, false), bool(6, true), cam);
+				if(video != null && layer != null)
+				{
+					remove(video);
+					insert(layer, video);
+				}
+				#end
+
+			case 'Health Drain':
+				healthDrainAmount = Math.max(0, num(0, 0)) / 100 * 2;
+				healthDrainPersistent = bool(1, false);
+
+			default:
+				return false;
+		}
+		return true;
+	}
+
+	function eventEase(name:String, direction:String):Float->Float
+	{
+		if(name == null || name.length < 1 || name.toLowerCase() == 'linear' || name.toLowerCase() == 'classic') return FlxEase.linear;
+		if(direction == null || direction.length < 1) direction = 'InOut';
+		return LuaUtils.getTweenEaseByString(name + direction);
+	}
+
+	function eventColor(value:String):FlxColor
+	{
+		if(value == null || value.length < 1) return FlxColor.WHITE;
+		if(~/^[0-9a-fA-F]{6}$/.match(value)) value = '#' + value;
+		var color:Null<FlxColor> = FlxColor.fromString(value);
+		return (color != null) ? color : FlxColor.WHITE;
+	}
+
+	static function isCharacterToken(value:String):Bool
+	{
+		var key:String = value.trim().toLowerCase();
+		if(['bf', 'boyfriend', 'player', 'dad', 'opponent', 'gf', 'girlfriend'].contains(key)) return true;
+		var parsed:Null<Int> = Std.parseInt(key);
+		return parsed != null && Std.string(parsed) == key;
+	}
+
+	function eventCharacter(value:String, fallback:Character):Character
+	{
+		var key:String = value.trim().toLowerCase();
+		switch(key)
+		{
+			case 'bf' | 'boyfriend' | 'player': return boyfriend;
+			case 'dad' | 'opponent': return dad;
+			case 'gf' | 'girlfriend': return gf;
+		}
+
+		var parsed:Null<Int> = Std.parseInt(key);
+		if(parsed == null) return fallback;
+		switch(parsed)
+		{
+			case 0: return boyfriend;
+			case 1: return dad;
+			case 2: return gf;
+		}
+		var extraIdx:Int = parsed - 3;
+		return (extraIdx >= 0 && extraIdx < extraCharacters.length && extraCharacters[extraIdx] != null) ? extraCharacters[extraIdx] : fallback;
+	}
+
+	function eventCameraPoint(value:String):FlxPoint
+	{
+		var parts:Array<String> = [for (part in value.split(',')) part.trim()];
+		var point:FlxPoint = null;
+		switch(parts[0].toLowerCase())
+		{
+			case 'bf' | 'boyfriend' | 'player':
+				if(boyfriend == null) return null;
+				var mid:FlxPoint = boyfriend.getMidpoint();
+				point = FlxPoint.get(mid.x - 100 - (boyfriend.cameraPosition[0] - boyfriendCameraOffset[0]), mid.y - 100 + boyfriend.cameraPosition[1] + boyfriendCameraOffset[1]);
+				mid.put();
+			case 'dad' | 'opponent':
+				if(dad == null) return null;
+				var mid:FlxPoint = dad.getMidpoint();
+				point = FlxPoint.get(mid.x + 150 + dad.cameraPosition[0] + opponentCameraOffset[0], mid.y - 100 + dad.cameraPosition[1] + opponentCameraOffset[1]);
+				mid.put();
+			case 'gf' | 'girlfriend':
+				if(gf == null) return null;
+				var mid:FlxPoint = gf.getMidpoint();
+				point = FlxPoint.get(mid.x + gf.cameraPosition[0] + girlfriendCameraOffset[0], mid.y + gf.cameraPosition[1] + girlfriendCameraOffset[1]);
+				mid.put();
+			default:
+				var x:Float = Std.parseFloat(parts[0]);
+				if(Math.isNaN(x)) return null;
+				if(parts.length == 1)
+				{
+					var extraIdx:Int = Std.int(x) - 3;
+					if(x == Math.ffloor(x) && extraIdx >= 0 && extraIdx < extraCharacters.length && extraCharacters[extraIdx] != null)
+					{
+						var pos = getExtraCharTargetPos(extraIdx);
+						return FlxPoint.get(pos.x, pos.y);
+					}
+					return FlxPoint.get(x, camFollow.y);
+				}
+				var y:Float = Std.parseFloat(parts[1]);
+				return FlxPoint.get(x, Math.isNaN(y) ? camFollow.y : y);
+		}
+
+		if(parts.length > 1)
+		{
+			var offsetX:Float = Std.parseFloat(parts[1]);
+			if(!Math.isNaN(offsetX)) point.x += offsetX;
+		}
+		if(parts.length > 2)
+		{
+			var offsetY:Float = Std.parseFloat(parts[2]);
+			if(!Math.isNaN(offsetY)) point.y += offsetY;
+		}
+		return point;
+	}
+
+	function cancelCameraEventTweens()
+	{
+		for (twn in [camFollowEventTween, targetCameraEventTween, cameraFollowPosTween])
+			if(twn != null) twn.cancel();
+		camFollowEventTween = null;
+		targetCameraEventTween = null;
+		cameraFollowPosTween = null;
+		targetCameraEventInstant = false;
+	}
+
+	public function moveCameraEvent(x:Float, y:Float, duration:Float, ease:Float->Float, forced:Bool)
+	{
+		cancelCameraEventTweens();
+		if(duration <= 0)
+		{
+			camFollowLocked = forced;
+			FlxG.camera.follow(null);
+			camFollow.setPosition(x, y);
+			FlxG.camera.focusOn(camFollow.getPosition());
+			FlxG.camera.follow(camFollow, LOCKON, 0);
+			return;
+		}
+
+		camFollowLocked = true;
+		camFollow.setPosition(FlxG.camera.scroll.x + FlxG.camera.width * 0.5 - camFollow.width * 0.5, FlxG.camera.scroll.y + FlxG.camera.height * 0.5 - camFollow.height * 0.5);
+		camFollowEventTween = FlxTween.tween(camFollow, {x: x, y: y}, duration / playbackRate, {ease: ease, onComplete: function(_)
+		{
+			camFollowEventTween = null;
+			camFollowLocked = forced;
+		}});
+	}
+
+	public function moveCameraClassic(x:Float, y:Float, forced:Bool)
+	{
+		cancelCameraEventTweens();
+		camFollowLocked = forced;
+		camFollow.setPosition(x, y);
+	}
+
+	function releaseCameraEvent(duration:Float, ease:Float->Float)
+	{
+		cancelCameraEventTweens();
+		camFollowLocked = false;
+		isCameraOnForcedPos = false;
+		if(duration < 0)
+		{
+			moveCameraSection();
+			return;
+		}
+
+		var lastX:Float = camFollow.x;
+		var lastY:Float = camFollow.y;
+		moveCameraSection();
+		var targetX:Float = camFollow.x;
+		var targetY:Float = camFollow.y;
+		camFollow.setPosition(lastX, lastY);
+		moveCameraEvent(targetX, targetY, duration, ease, false);
+	}
+
+	function setCamZoomClassic(zoom:Float, keepZoom:Bool)
+	{
+		for (twn in camZoomTweens) twn.cancel();
+		camZoomTweens = [];
+		camZoomTween = null;
+
+		if(keepZoom) defaultCamZoom = zoom;
+		else FlxG.camera.zoom = zoom;
+		camZooming = true;
+	}
+
+	function setCamZoomEvent(zoom:Float, duration:Float, ease:Float->Float, keepZoom:Bool)
+	{
+		for (twn in camZoomTweens) twn.cancel();
+		camZoomTweens = [];
+		camZoomTween = null;
+
+		if(duration <= 0)
+		{
+			FlxG.camera.zoom = zoom;
+			if(keepZoom) defaultCamZoom = zoom;
+			camZooming = true;
+			return;
+		}
+
+		camZooming = false;
+		var newTween:FlxTween = FlxTween.tween(FlxG.camera, {zoom: zoom}, duration / playbackRate, {ease: ease, onComplete: function(twn:FlxTween)
+		{
+			if(twn != camZoomTween) return;
+			if(keepZoom) defaultCamZoom = zoom;
+			camZoomTween = null;
+			camZooming = true;
+		}});
+		camZoomTween = newTween;
+		camZoomTweens.push(newTween);
+	}
+
+	function tweenNoteSpeed(player:Bool, value:Float, duration:Float)
+	{
+		var current:FlxTween = player ? playerSpeedTween : opponentSpeedTween;
+		if(current != null) current.cancel();
+		if(player) playerSpeedTween = null;
+		else opponentSpeedTween = null;
+
+		if(duration <= 0)
+		{
+			if(player) playerNoteSpeed = value;
+			else opponentNoteSpeed = value;
+			return;
+		}
+
+		var twn:FlxTween = FlxTween.num(player ? playerNoteSpeed : opponentNoteSpeed, value, duration / playbackRate, {onComplete: function(_)
+		{
+			if(player) playerSpeedTween = null;
+			else opponentSpeedTween = null;
+		}}, function(v:Float)
+		{
+			if(player) playerNoteSpeed = v;
+			else opponentNoteSpeed = v;
+		});
+		if(player) playerSpeedTween = twn;
+		else opponentSpeedTween = twn;
+	}
+
+	inline function isPlayerSideNote(note:Note):Bool
+		return (opponentMode && note.spawned) ? !note.mustPress : note.mustPress;
+
+	function applyNoteSpeedRatio(player:Bool, ratio:Float)
+	{
+		if(ratio == 1 || Math.isNaN(ratio)) return;
+		for (note in notes.members)
+			if(note != null && isPlayerSideNote(note) == player) note.multSpeed *= ratio;
+		for (note in unspawnNotes)
+			if(note != null && isPlayerSideNote(note) == player) note.multSpeed *= ratio;
+	}
+
+	function set_opponentNoteSpeed(value:Float):Float
+	{
+		if(generatedMusic && opponentNoteSpeed != 0) applyNoteSpeedRatio(false, value / opponentNoteSpeed);
+		return opponentNoteSpeed = value;
+	}
+
+	function set_playerNoteSpeed(value:Float):Float
+	{
+		if(generatedMusic && playerNoteSpeed != 0) applyNoteSpeedRatio(true, value / playerNoteSpeed);
+		return playerNoteSpeed = value;
+	}
+
+	function drainHealth(amount:Float)
+	{
+		if(amount <= 0 || health <= HEALTH_DRAIN_FLOOR) return;
+		health = Math.max(HEALTH_DRAIN_FLOOR, health - amount);
+	}
+
+	function changeNoteSkinEvent(value1:String, value2:String, strumTime:Float)
+	{
+		var rawNoteSkin:String = value1.trim();
+		if(rawNoteSkin.length > 0)
+		{
+			if(!rawNoteSkin.contains('/') && !Paths.fileExists('images/$rawNoteSkin.png', IMAGE)
+				&& Paths.fileExists('images/noteSkins/$rawNoteSkin.png', IMAGE))
+				rawNoteSkin = 'noteSkins/$rawNoteSkin';
+			SONG.arrowSkin = rawNoteSkin;
+		}
+		else
+			SONG.arrowSkin = null;
+		var noteTarget:String = value2.trim().toLowerCase();
+		for (note in notes)
+		{
+			if(note == null) continue;
+			if(note.strumTime < strumTime) continue;
+			if(noteTarget == 'bf' && !note.mustPress) continue;
+			if(noteTarget == 'dad' && note.mustPress) continue;
+			note.texture = '';
+			note.reloadNote();
+		}
+		for (note in unspawnNotes)
+		{
+			if(note == null) continue;
+			if(noteTarget == 'bf' && !note.mustPress) continue;
+			if(noteTarget == 'dad' && note.mustPress) continue;
+			note.texture = '';
+			note.reloadNote();
+		}
+	}
+
+	function changeStrumSkinEvent(value1:String, value2:String, strumTime:Float)
+	{
+		var strumTarget:String = value2.trim().toLowerCase();
+		var strumSkin:String = value1.trim();
+		if(strumSkin.length > 0 && !strumSkin.contains('/')
+			&& !Paths.fileExists('images/$strumSkin.png', IMAGE)
+			&& Paths.fileExists('images/noteSkins/$strumSkin.png', IMAGE))
+			strumSkin = 'noteSkins/$strumSkin';
+		for (strum in strumLineNotes)
+		{
+			if(strum == null) continue;
+			var isPlayerStrum:Bool = playerStrums.members.contains(strum);
+			var isExtraStrum:Bool = !isPlayerStrum && !opponentStrums.members.contains(strum);
+			if(strumTarget == 'bf' && !isPlayerStrum && !isExtraStrum) continue;
+			if(strumTarget == 'dad' && isPlayerStrum) continue;
+			strum.texture = strumSkin;
+		}
+	}
+
+	function changeHoldCoverSkinEvent(value1:String, value2:String, strumTime:Float)
+	{
+		var rawCoverSkin:String = value1.trim();
+		if(rawCoverSkin.length > 0)
+		{
+			if(!rawCoverSkin.contains('/') && !Paths.fileExists('images/$rawCoverSkin.png', IMAGE)
+			&& (Paths.fileExists('images/holdCovers/$rawCoverSkin.png', IMAGE)
+				|| Paths.fileExists('images/holdCovers/$rawCoverSkin.json', TEXT)))
+			rawCoverSkin = 'holdCovers/$rawCoverSkin';
+			SONG.holdCoverSkin = rawCoverSkin;
+		}
+		else
+			SONG.holdCoverSkin = null;
+		if(holdCovers.keys().hasNext())
+		{
+			var coverTarget:String = value2.trim().toLowerCase();
+			for (i in 0...4)
+			{
+				var colorName:String = HoldCover.getColorName(i);
+				if(coverTarget != 'dad')
+				{
+					var oldBF:HoldCover = holdCovers.get('hold' + colorName + 'BF');
+					if(oldBF != null)
+					{
+						grpHoldCovers.remove(oldBF, true);
+						noteGroup.remove(oldBF, true);
+					}
+					var newBF:HoldCover = new HoldCover(i, false, isPixelStage, camHUD);
+					holdCovers.set('hold' + colorName + 'BF', newBF);
+					grpHoldCovers.add(newBF);
+					noteGroup.add(newBF);
+					if(playerStrums.members[i] != null)
+						playerStrums.members[i].holdCover = newBF;
+				}
+				if(coverTarget != 'bf')
+				{
+					var oldDAD:HoldCover = holdCovers.get('hold' + colorName + 'DAD');
+					if(oldDAD != null)
+					{
+						grpHoldCovers.remove(oldDAD, true);
+						noteGroup.remove(oldDAD, true);
+					}
+					var newDAD:HoldCover = new HoldCover(i, true, isPixelStage, camHUD);
+					holdCovers.set('hold' + colorName + 'DAD', newDAD);
+					grpHoldCovers.add(newDAD);
+					noteGroup.add(newDAD);
+					if(opponentStrums.members[i] != null)
+						opponentStrums.members[i].holdCover = newDAD;
+				}
+			}
+			applyRGBShadersToHoldCovers();
+		}
+	}
+
+	function changeSplashSkinEvent(value1:String, value2:String, strumTime:Float)
+	{
+		var rawSplashSkin:String = value1.trim();
+		if(rawSplashSkin.length > 0)
+		{
+			if(!rawSplashSkin.contains('/') && !Paths.fileExists('images/$rawSplashSkin.png', IMAGE)
+			&& (Paths.fileExists('images/noteSplashes/$rawSplashSkin.png', IMAGE)
+				|| Paths.fileExists('images/noteSplashes/$rawSplashSkin.json', TEXT)))
+			rawSplashSkin = 'noteSplashes/$rawSplashSkin';
+			SONG.splashSkin = rawSplashSkin;
+		}
+		else
+			SONG.splashSkin = null;
+		var splashTarget:String = value2.trim().toLowerCase();
+		for (note in notes)
+		{
+			if(note == null) continue;
+			if(note.strumTime < strumTime) continue;
+			if(splashTarget == 'bf' && !note.mustPress) continue;
+			if(splashTarget == 'dad' && note.mustPress) continue;
+			note.noteSplashData.texture = SONG.splashSkin;
+		}
+		for (note in unspawnNotes)
+		{
+			if(note == null) continue;
+			if(splashTarget == 'bf' && !note.mustPress) continue;
+			if(splashTarget == 'dad' && note.mustPress) continue;
+			note.noteSplashData.texture = SONG.splashSkin;
+		}
+		for (splash in grpNoteSplashes)
+		{
+			if(splash == null) continue;
+			splash.loadSplash(rawSplashSkin.length > 0 ? rawSplashSkin : null);
+		}
+	}
+
 	public function moveCameraSection(?sec:Null<Int>):Void {
-		if(isCameraOnForcedPos) return;
+		if(isCameraOnForcedPos || camFollowLocked || camFollowEventTween != null) return;
 		if(targetCameraEventTween != null) return;
 		if(targetCameraEventInstant) return;
 		
@@ -4770,7 +5258,7 @@ class PlayState extends MusicBeatState
 	
 	public function moveCameraToGirlfriend()
 	{
-		if(isCameraOnForcedPos) return;
+		if(isCameraOnForcedPos || camFollowLocked || camFollowEventTween != null) return;
 		
 		camFollow.setPosition(gf.getMidpoint().x, gf.getMidpoint().y);
 		camFollow.x += gf.cameraPosition[0] + girlfriendCameraOffset[0];
@@ -4815,7 +5303,7 @@ class PlayState extends MusicBeatState
 	var cameraFollowPosTween:FlxTween;
 	public function moveCamera(isDad:Bool)
 {
-	if(isCameraOnForcedPos) return;
+	if(isCameraOnForcedPos || camFollowLocked || camFollowEventTween != null) return;
 	
 	if(isDad)
 	{
@@ -6065,6 +6553,9 @@ class PlayState extends MusicBeatState
 				handleHoldCoverHit(note, true);
 		}
 
+		if(!healthDrainPersistent && healthDrainAmount > 0 && !note.isSustainNote)
+			drainHealth(healthDrainAmount);
+
 		stagesFunc(function(stage:BaseStage) stage.opponentNoteHit(note));
 		var result:Dynamic = callOnLuas('opponentNoteHit', [notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
 		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) callOnHScript('opponentNoteHit', [note]);
@@ -6600,7 +7091,7 @@ class PlayState extends MusicBeatState
 
 	function canCameraBop():Bool
 	{
-		return camZooming && camZoomTween == null && FlxG.camera.zoom < 1.35 && ClientPrefs.data.camZooms && (haxe.Timer.stamp() - camZoomTweenEndTime) > 1.0;
+		return camZooming && camZoomTween == null && FlxG.camera.zoom < 1.35 && ClientPrefs.data.camZooms;
 	}
 
 	public function characterBopper(beat:Int):Void

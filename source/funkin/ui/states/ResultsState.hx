@@ -5,6 +5,7 @@ import flixel.effects.FlxFlicker;
 import flixel.graphics.frames.FlxBitmapFont;
 import flixel.group.FlxGroup;
 import flixel.math.FlxPoint;
+import flixel.math.FlxRect;
 import flixel.text.FlxBitmapText;
 import flixel.util.FlxGradient;
 import funkin.ui.results.ResultsRank;
@@ -35,6 +36,10 @@ class ResultsState extends MusicBeatState
 
 	public static var SCORE_X:Float = 70;
 	public static var SCORE_Y:Float = 610;
+
+	public static var DIFFICULTY_X:Float = 555;
+	public static var TOP_BAR_Y:Float = 122;
+	public static var SONG_NAME_CLIP_X:Float = 520;
 
 	var data:ResultsData;
 	var onContinue:Void->Void;
@@ -69,6 +74,10 @@ class ResultsState extends MusicBeatState
 	var clearPercentTarget:Int = 0;
 	var canExit:Bool = false;
 
+	var songNameMoving:Bool = false;
+	var songNameDirection:FlxPoint = FlxPoint.get(-1, 1);
+	var songNameSpeed:FlxPoint = FlxPoint.get(-1, 1);
+
 	public function new(data:ResultsData, onContinue:Void->Void)
 	{
 		super();
@@ -87,7 +96,7 @@ class ResultsState extends MusicBeatState
 		DiscordClient.changePresence('Results Screen', data.songName);
 		#end
 
-		clearPercentTarget = Math.round(data.accuracy * 100);
+		clearPercentTarget = Math.floor(CoolUtil.floorDecimal(data.accuracy * 100, 2));
 
 		setupCameras();
 		setupLayers();
@@ -230,33 +239,28 @@ class ResultsState extends MusicBeatState
 		var diffKey:String = 'results/diff_' + data.difficulty.toLowerCase();
 		if(!Paths.fileExists('images/$diffKey.png', IMAGE)) diffKey = 'results/diff_normal';
 
-		difficultySprite = new FlxSprite(555, 0);
+		difficultySprite = new FlxSprite(DIFFICULTY_X, 0);
 		if(Paths.fileExists('images/$diffKey.png', IMAGE))
 		{
 			difficultySprite.loadGraphic(Paths.image(diffKey));
 			difficultySprite.antialiasing = ClientPrefs.data.antialiasing;
 		}
 		else difficultySprite.makeGraphic(1, 1, FlxColor.TRANSPARENT);
-
-		difficultySprite.y = -difficultySprite.height;
 		layerTop.add(difficultySprite);
-		FlxTween.tween(difficultySprite, {y: 122}, 0.5, {ease: FlxEase.expoOut, startDelay: 0.8});
 
-		clearPercentSmall = new ClearPercentCounter(difficultySprite.x + difficultySprite.width + 60, 0, clearPercentTarget, true);
-		clearPercentSmall.y = -clearPercentSmall.height;
+		clearPercentSmall = new ClearPercentCounter(0, 0, clearPercentTarget, true);
 		clearPercentSmall.visible = false;
 		layerTop.add(clearPercentSmall);
 
-		songNameText = new FlxBitmapText(FlxBitmapFont.fromMonospace(Paths.image('results/tardlingSpritesheet'), FONT_LETTERS, FlxPoint.get(49, 62)));
+		songNameText = new FlxBitmapText(FlxBitmapFont.fromMonospace(Paths.image('results/tardlingSpritesheet'), FONT_LETTERS, FlxPoint.get(49, 61)));
 		songNameText.text = data.songName;
 		songNameText.letterSpacing = -15;
 		songNameText.angle = -4.4;
-		songNameText.x = clearPercentSmall.x + 94;
-		songNameText.y = -songNameText.height;
 		layerTop.add(songNameText);
 
-		var nudge:Float = 10 * (songNameText.text.length / 15);
-		FlxTween.tween(songNameText, {y: 122 - 25 - nudge}, 0.5, {ease: FlxEase.expoOut, startDelay: 0.9});
+		var angleRad:Float = songNameText.angle * Math.PI / 180;
+		songNameDirection.set(-Math.cos(angleRad), -Math.sin(angleRad));
+		resetSongName(1.0, false);
 
 		blackTopBar = new FlxSprite(0, 0);
 		if(Paths.fileExists('images/results/topBarBlack.png', IMAGE))
@@ -267,6 +271,54 @@ class ResultsState extends MusicBeatState
 		blackTopBar.y = -blackTopBar.height;
 		layerTop.add(blackTopBar);
 		FlxTween.tween(blackTopBar, {y: 0}, 7 / 24, {ease: FlxEase.quartOut, startDelay: 3 / 24});
+	}
+
+	function resetSongName(delay:Float, autoScroll:Bool)
+	{
+		songNameMoving = false;
+
+		difficultySprite.x = DIFFICULTY_X;
+		difficultySprite.y = -difficultySprite.height;
+		FlxTween.tween(difficultySprite, {y: TOP_BAR_Y}, 0.5, {ease: FlxEase.expoOut, startDelay: 0.8});
+
+		clearPercentSmall.x = difficultySprite.x + difficultySprite.width + 60;
+		clearPercentSmall.y = -clearPercentSmall.height;
+		if(clearPercentSmall.visible)
+			FlxTween.tween(clearPercentSmall, {y: TOP_BAR_Y - 5}, 0.5, {ease: FlxEase.expoOut, startDelay: 0.85});
+
+		var nudge:Float = 10 * (songNameText.text.length / 15);
+		songNameText.x = clearPercentSmall.x + 94;
+		songNameText.y = -songNameText.height;
+		FlxTween.tween(songNameText, {y: TOP_BAR_Y - 25 - nudge}, 0.5, {ease: FlxEase.expoOut, startDelay: 0.9});
+
+		wait(delay, function()
+		{
+			songNameSpeed.set(0, 0);
+			FlxTween.tween(songNameSpeed, {x: songNameDirection.x, y: songNameDirection.y}, 0.7, {ease: FlxEase.quadIn});
+			songNameMoving = autoScroll;
+		});
+	}
+
+	function moveSongName(elapsed:Float)
+	{
+		var moveX:Float = songNameSpeed.x * 60 * elapsed;
+		var moveY:Float = songNameSpeed.y * 60 * elapsed;
+
+		var moving:Array<FlxSprite> = [songNameText, difficultySprite, clearPercentSmall];
+		for(obj in moving)
+		{
+			obj.x += moveX;
+			obj.y += moveY;
+		}
+
+		if(songNameText.x + songNameText.width < 100) resetSongName(3.0, true);
+	}
+
+	function clipTopBar()
+	{
+		songNameText.clipRect = FlxRect.get(Math.max(0, SONG_NAME_CLIP_X - songNameText.x), 0, FlxG.width, songNameText.height);
+		difficultySprite.clipRect = FlxRect.get(Math.max(0, DIFFICULTY_X - 30 - difficultySprite.x), 0, FlxG.width, difficultySprite.height);
+		clearPercentSmall.forEachAlive(spr -> spr.clipRect = FlxRect.get(Math.max(0, SONG_NAME_CLIP_X - spr.x), 0, FlxG.width, spr.height));
 	}
 
 	function buildSoundSystem()
@@ -467,8 +519,10 @@ class ResultsState extends MusicBeatState
 		{
 			clearPercentSmall.visible = true;
 			clearPercentSmall.curNumber = clearPercentTarget;
-			FlxTween.tween(clearPercentSmall, {y: 117}, 0.5, {ease: FlxEase.expoOut});
+			FlxTween.tween(clearPercentSmall, {y: TOP_BAR_Y - 5}, 0.5, {ease: FlxEase.expoOut});
 		}
+
+		wait(2.5, function() songNameMoving = true);
 
 		for(layer in atlasLayers)
 		{
@@ -547,6 +601,9 @@ class ResultsState extends MusicBeatState
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
+
+		if(songNameMoving) moveSongName(elapsed);
+		clipTopBar();
 
 		if(canExit && (controls.ACCEPT || controls.BACK))
 		{

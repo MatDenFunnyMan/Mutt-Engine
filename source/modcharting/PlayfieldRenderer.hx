@@ -266,7 +266,7 @@ class PlayfieldRenderer extends FlxSprite //extending flxsprite just so i can ed
             strumTimeOffset += Conductor.stepCrochet; //fix upscroll lol
         #end
         var distance = (Conductor.songPosition - notes.members[noteIndex].strumTime) + strumTimeOffset;
-        return distance*getCorrectScrollSpeed();
+        return distance*getCorrectScrollSpeed()*notes.members[noteIndex].multSpeed;
     }
     private function getLane(noteIndex:Int)
     {

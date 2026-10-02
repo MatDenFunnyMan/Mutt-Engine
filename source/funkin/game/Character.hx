@@ -20,6 +20,7 @@ typedef CharacterFile = {
 	var healthicon:String;
 	@:optional var healthicon_antialiasing:Null<Bool>;
 	@:optional var censored_character:String;
+	@:optional var pause_music:String;
 
 	var position:Array<Float>;
 	var camera_position:Array<Float>;
@@ -63,12 +64,14 @@ class Character extends animate.FlxAnimate
 	public var idleSuffix:String = '';
 	public var animSuffix:String = '';
 	public var canPlayOtherAnims:Bool = true;
+	public var loopAnim:String = null;
 	public var danceIdle:Bool = false; //Character use "danceLeft" and "danceRight" instead of "idle"
 	public var skipDance:Bool = false;
 
 	public var healthIcon:String = 'face';
 	public var healthIconAntialiasing:Null<Bool> = null;
 	public var censoredCharacter:String = null;
+	public var pauseMusic:String = null;
 	public var animationsArray:Array<AnimArray> = [];
 
 	public var positionArray:Array<Float> = [0, 0];
@@ -224,6 +227,7 @@ class Character extends animate.FlxAnimate
 		healthIcon = json.healthicon;
 		healthIconAntialiasing = json.healthicon_antialiasing;
 		censoredCharacter = json.censored_character;
+		pauseMusic = json.pause_music;
 		singDuration = json.sing_duration;
 		flipX = (json.flip_x != isPlayer);
 		healthColorArray = (json.healthbar_colors != null && json.healthbar_colors.length > 2) ? json.healthbar_colors : [161, 161, 161];
@@ -301,6 +305,14 @@ class Character extends animate.FlxAnimate
 				}
 				heyTimer = 0;
 			}
+		}
+		else if(loopAnim != null && isAnimationFinished())
+		{
+			var forced:Bool = !canPlayOtherAnims;
+			canPlayOtherAnims = true;
+			playAnim(loopAnim, true);
+			specialAnim = true;
+			canPlayOtherAnims = !forced;
 		}
 		else if(specialAnim && isAnimationFinished())
 		{
@@ -421,6 +433,24 @@ class Character extends animate.FlxAnimate
 		}
 	}
 
+	public function playSpecialAnim(name:String, forced:Bool = false, loop:Bool = false)
+	{
+		loopAnim = null;
+		canPlayOtherAnims = true;
+		playAnim(name, true);
+		specialAnim = true;
+		canPlayOtherAnims = !forced;
+		if(loop) loopAnim = getAnimationName();
+	}
+
+	public function stopSpecialAnim()
+	{
+		loopAnim = null;
+		canPlayOtherAnims = true;
+		specialAnim = false;
+		dance();
+	}
+
 	public function playAnim(AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0):Void
 	{
 		if(!canPlayOtherAnims)
@@ -431,6 +461,7 @@ class Character extends animate.FlxAnimate
 		if(animSuffix.length > 0 && hasAnimation(AnimName + animSuffix)) AnimName += animSuffix;
 
 		specialAnim = false;
+		if(loopAnim != null && AnimName != loopAnim) loopAnim = null;
 		if(!isAnimateAtlas)
 		{
 			animation.play(AnimName, Force, Reversed, Frame);

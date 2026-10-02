@@ -39,6 +39,9 @@ import funkin.data.WeekData.WeekFile;
 import funkin.data.StageData;
 import funkin.save.Highscore;
 import funkin.data.Difficulty;
+import funkin.data.EventDefinitions;
+import funkin.data.EventConverter;
+import funkin.ui.states.FreeplayState;
 import funkin.backend.StateManager;
 import funkin.util.CursorLoader.PointerCursor;
 import funkin.util.CursorLoader.GrabbingCursor;
@@ -76,39 +79,6 @@ enum abstract ChartingTheme(String)
 class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
 	public static var goToTime:Float = 0;
-	public static final defaultEvents:Array<Array<String>> =
-	[
-		['', "Nothing. Yep, that's right."], //Always leave this one empty pls
-		['Dadbattle Spotlight', "Used in Dad Battle,\nValue 1: 0/1 = ON/OFF,\n2 = Target Dad\n3 = Target BF"],
-		['Hey!', "Plays the \"Hey!\" animation from Bopeebo,\nValue 1: BF = Only Boyfriend, GF = Only Girlfriend,\nSomething else = Both.\nValue 2: Custom animation duration,\nleave it blank for 0.6s"],
-		['Set GF Speed', "Sets GF head bopping speed,\nValue 1: 1 = Normal speed,\n2 = 1/2 speed, 4 = 1/4 speed etc.\nUsed on Fresh during the beatbox parts.\n\nWarning: Value must be integer!"],
-		['Philly Glow', "Exclusive to Week 3\nValue 1: 0/1/2 = OFF/ON/Reset Gradient\n \nNo, i won't add it to other weeks."],
-		['Kill Henchmen', "For Mom's songs, don't use this please, i love them :("],
-		['Add Camera Zoom', "Used on MILF on that one \"hard\" part\nValue 1: Camera zoom add (Default: 0.015)\nValue 2: UI zoom add (Default: 0.03)\nLeave the values blank if you want to use Default."],
-		['Set Camera Bopping', "Makes the camera bop every few beats\ninstead of every section.\n\nValue 1: Every how many beats\nLeave blank or 0 to go back to every section.\nValue 2: Bop strength (Default: 1, 0 = no bop)"],
-		['BG Freaks Expression', "Should be used only in \"school\" Stage!"],
-		['Trigger BG Ghouls', "Should be used only in \"schoolEvil\" Stage!"],
-		['Play Animation', "Plays an animation on a Character,\nonce the animation is completed,\nthe animation changes to Idle\n\nValue 1: Animation to play.\nValue 2: Character (Dad, BF, GF)\nOr strumline number (3, 4, 5...)"],
-		['Target Follow Pos', "Locks camera to a specific position or character.\n\nValue 1: Position or Target\n- BF, GF, Dad (follows character)\n- Or absolute position: X, Y (e.g., 400, 800)\n- Leave empty to unlock and return to normal\n\nValue 2: Tween settings or instant\n- Leave empty or 'instant' for instant movement\n- Format: duration, easeName\n- Example: 1.5, sineInOut\n- Available eases: linear, quadIn, quadOut, quadInOut, cubeIn, cubeOut, cubeInOut, sineIn, sineOut, sineInOut, etc.\n\nNote: Camera stays locked until you clear it (empty Value 1) or use Target Camera event"],
-		['Camera Follow Pos', "Value 1: X\nValue 2: Y\n\nThe camera won't change the follow point\nafter using this, for getting it back\nto normal, leave both values blank."],
-		['Alt Idle Animation', "Sets a specified postfix after the idle animation name.\nYou can use this to trigger 'idle-alt' if you set\nValue 2 to -alt\n\nValue 1: Character to set (Dad, BF, GF)\nOr strumline number (3, 4, 5...)\nValue 2: New postfix (Leave it blank to disable)"],
-		['Screen Shake', "Value 1: Camera shake\nValue 2: HUD shake\n\nEvery value works as the following example: \"1, 0.05\".\nThe first number (1) is the duration.\nThe second number (0.05) is the intensity."],
-		['Change Character', "Value 1: Character to change\n- Dad, BF, GF\n- Or strumline number (3, 4, 5...)\nValue 2: New character's name"],
-		['Change Scroll Speed', "Value 1: Scroll Speed Multiplier (1 is default)\nValue 2: Time it takes to change fully in seconds."],
-		['Set Property', "Value 1: Variable name\nValue 2: New value"],
-		['Play Sound', "Value 1: Sound file name\nValue 2: Volume (Default: 1), ranges from 0 to 1"],
-		['Flash Camera', "Value 1: Duration in seconds (Default: 1)\nValue 2: Color name or hex code (#FFFFFF)\nSupported colors: white, black, red, green, blue, yellow, cyan, magenta, purple, orange, pink, lime, gray, brown"],
-		['Video Player', "Plays a video file.\n\nValue 1: Video Name, Camera, Layer\n- Format: videoName, camera, layer\n- Example: cutscene1, hud, 0\n- Camera options: game, hud, other (default: other)\n- Layer: number (0 = bottom, leave empty for default)\n\nValue 2: Can Skip, Mid-Song, Loop, Play On Load\n- Format: true/false, true/false, true/false, true/false\n- Example: false, true, false, true\n- Can Skip: allows skipping (default: false)\n- Mid-Song: continues music during video (default: true)\n- Loop: repeats video (default: false)\n- Play On Load: auto-play (default: true)"],
-		['Set Cam Zoom', "Value 1: Camera zoom level\n- Example: 1.05\n\nValue 2: Tween settings or instant\n- Leave empty or 'instant' for instant zoom\n- Format: duration, easeName\n- Example: 1.5, cubeInOut\n- Available eases: linear, quadIn, quadOut, quadInOut, cubeIn, cubeOut, cubeInOut, sineIn, sineOut, sineInOut, etc."],
-		['Target Camera', "Moves camera to a specific target or position.\n\nValue 1: Target\n- BF, GF, Dad\n- Or strumline number (3, 4, 5...)\n- Or absolute position: X, Y (e.g., 400, 800)\n- Or target + offset: BF, 300 (character + X offset)\n\nValue 2: Tween settings\n- Format: easeName, duration\n- Example: sineInOut, 0.3\n- Available eases: linear, quadIn, quadOut, quadInOut, cubeIn, cubeOut, cubeInOut, sineIn, sineOut, sineInOut, elasticIn, elasticOut, elasticInOut, etc.\n\nNote: Overrides mustHitSection until tween completes"],
-		['(STEPS) Set Cam Zoom', "Like Set Cam Zoom, but the tween duration uses steps instead of seconds.\n\nValue 1: Camera zoom level\n- Example: 1.05\n\nValue 2: Tween settings or instant\n- Leave empty or 'instant' for instant zoom\n- Format: steps, easeName\n- Example: 16, cubeInOut"],
-		['(STEPS) Target Camera', "Like Target Camera, but the tween duration uses steps instead of seconds.\n\nValue 1: Target\n- BF, GF, Dad\n- Or absolute position: X, Y (e.g., 400, 800)\n- Or target + offset: BF, 300 (character + X offset)\n\nValue 2: Tween settings\n- Format: easeName, steps\n- Example: sineInOut, 8\n\nNote: Overrides mustHitSection until tween completes"],
-		['(STEPS) Target Follow Pos', "Like Target Follow Pos, but the tween duration uses steps instead of seconds.\n\nValue 1: Position or Target\n- BF, GF, Dad (follows character)\n- Or absolute position: X, Y (e.g., 400, 800)\n- Leave empty to unlock and return to normal\n\nValue 2: Tween settings or instant\n- Leave empty or 'instant' for instant movement\n- Format: steps, easeName\n- Example: 8, sineInOut\n\nNote: Camera stays locked until you clear it (empty Value 1) or use Target Camera event"],
-		['Change Note Skin', "Changes the falling note skin.\n\nValue 1: Skin name or path\n(e.g. myNote or noteSkins/myNote)\nLeave blank to use default.\n\nValue 2: Target\n- BF\n- Dad\n- Both (default)"],
-		['Change NoteStrum Skin', "Changes the strum arrows skin.\n\nValue 1: Skin name or path\n(e.g. myNote or noteSkins/myNote)\nLeave blank to use default.\n\nValue 2: Target\n- BF\n- Dad\n- Both (default)"],
-		['Change Hold Cover Skin', "Changes the hold cover skin.\n\nValue 1: Skin name or path\n(e.g. myCover or holdCovers/myCover)\nLeave blank to use default.\n\nValue 2: Target\n- BF\n- Dad\n- Both (default)"],
-		['Change Note Splash Skin', "Changes the note splash skin.\n\nValue 1: Skin name or path\n(e.g. mySplash or noteSplashes/mySplash)\nLeave blank to use default.\n\nValue 2: Target\n- BF\n- Dad\n- Both (default)"]
-	];
 	
 	public static var keysArray:Array<FlxKey> = [ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT]; //Used for Vortex Editor
 	public static var SHOW_EVENT_COLUMN = true;
@@ -1256,9 +1226,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		if(file.toLowerCase().endsWith('.json')) file = file.substr(0, file.length - 5);
 		file = Paths.formatToSongPath(file);
 
-		var songKey:String = Paths.formatToSongPath(PlayState.SONG.song);
 		for (i in 0...diffs.length)
-			if(file == songKey + Difficulty.getFilePath(i)) return i;
+			if(file == difficultyChartFile(PlayState.SONG.song, i)) return i;
 
 		return defaultDifficultyIndex(diffs);
 	}
@@ -1296,9 +1265,9 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			return;
 		}
 
-		var songName:String = PlayState.SONG.song;
+		var songName:String = difficultySongFolder(PlayState.SONG.song, index);
 		var diffName:String = diffs[index];
-		var chartFile:String = Paths.formatToSongPath(songName) + Difficulty.getFilePath(index);
+		var chartFile:String = difficultyChartFile(PlayState.SONG.song, index);
 
 		var alreadyThere:Bool = false;
 		try { alreadyThere = (Song.getChart(chartFile, songName) != null); }
@@ -1486,12 +1455,12 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	{
 		difficultiesForSong(songName);
 
-		var chartFile:String = Paths.formatToSongPath(songName) + Difficulty.getFilePath(diffIndex);
+		var chartFile:String = difficultyChartFile(songName, diffIndex);
 		var loaded:Bool = false;
 
 		try
 		{
-			Song.loadFromJson(chartFile, songName);
+			Song.loadFromJson(chartFile, difficultySongFolder(songName, diffIndex));
 			Song.chartPath = Song.chartPath.replace('\\', '/');
 			loadChart(PlayState.SONG);
 			pushRecentChart(Song.chartPath);
@@ -1711,25 +1680,90 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		return null;
 	}
 
+	var difficultyFolders:Map<String, String> = new Map<String, String>();
 	function difficultiesForSong(songName:String):Array<String>
 	{
-		var weekName:String = weekOfSong(songName);
+		var baseSong:String = baseSongOf(songName);
+		var weekName:String = weekOfSong(baseSong);
 		var week:WeekData = (weekName != null) ? WeekData.weeksLoaded.get(weekName) : null;
 
 		if(week != null) Difficulty.loadFromWeek(week);
 		else Difficulty.resetList();
 
+		difficultyFolders.clear();
+		var formatted:String = Paths.formatToSongPath(baseSong);
+		var erectFolder:String = formatted + '-erect';
+		for (diff in FreeplayState.ERECT_DIFFICULTIES)
+		{
+			var suffix:String = FreeplayState.difficultySuffix(diff);
+			var index:Int = difficultyIndexOf(diff);
+			if(index > -1 && Song.findChartPath(formatted + suffix, formatted) != null) continue;
+			if(Song.findChartPath(erectFolder + suffix, erectFolder) == null) continue;
+
+			if(index < 0) Difficulty.list.push(diff);
+			difficultyFolders.set(Paths.formatToSongPath(diff), erectFolder);
+		}
+
 		return Difficulty.list.copy();
 	}
+
+	function difficultyIndexOf(name:String):Int
+	{
+		var key:String = Paths.formatToSongPath(name);
+		for (i in 0...Difficulty.list.length)
+			if(Paths.formatToSongPath(Difficulty.list[i]) == key) return i;
+		return -1;
+	}
+
+	function baseSongOf(songName:String):String
+	{
+		if(songName == null || weekOfSong(songName) != null) return songName;
+
+		var formatted:String = Paths.formatToSongPath(songName);
+		if(!formatted.endsWith('-erect')) return songName;
+
+		var base:String = formatted.substr(0, formatted.length - '-erect'.length);
+		return (weekOfSong(base) != null) ? base : songName;
+	}
+
+	function difficultySongFolder(songName:String, index:Int):String
+	{
+		var diff:String = Difficulty.list[index];
+		var folder:String = (diff != null) ? difficultyFolders.get(Paths.formatToSongPath(diff)) : null;
+		return (folder != null) ? folder : baseSongOf(songName);
+	}
+
+	inline function difficultyChartFile(songName:String, index:Int):String
+		return Paths.formatToSongPath(difficultySongFolder(songName, index)) + Difficulty.getFilePath(index);
 
 	function refreshStartupRecents()
 	{
 		if(startupPrompt == null) return;
 
-		var paths:Array<String> = recentChartList();
+		var paths:Array<String> = recentChartList().filter(recentChartVisible);
 		var labels:Array<String> = [];
 		for (path in paths) labels.push(recentChartLabel(path));
 		startupPrompt.setRecents(paths, labels);
+	}
+
+	function recentChartVisible(path:String):Bool
+	{
+		var full:String = readablePath(path).toLowerCase();
+
+		#if MODS_ALLOWED
+		var gameMods:String = readablePath(Paths.mods()).toLowerCase();
+		if(!gameMods.endsWith('/')) gameMods += '/';
+		if(full.startsWith(gameMods))
+		{
+			var parts:Array<String> = full.substr(gameMods.length).split('/');
+			if(parts.length < 2 || Mods.ignoreModFolders.contains(parts[0])) return true;
+
+			var current:String = Mods.currentModDirectory;
+			return (current != null && current.toLowerCase() == parts[0]);
+		}
+		#end
+
+		return !full.contains('/mods/');
 	}
 
 	function openRecentChart(path:String)
@@ -3179,11 +3213,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 							trace('Added event at time: $strumTime');
 							var didAdd:Bool = false;
 
-							var _useEase:Bool = (easeDropDown != null && easeDropDown.visible);
-							var _val2Create:String = _useEase ? (valueInputTexts[2].text.trim().length > 0 ? valueInputTexts[1].text + ', ' + valueInputTexts[2].text.trim() : valueInputTexts[1].text) : valueInputTexts[1].text;
-							var _evData:Array<Dynamic> = [eventsList[Std.int(Math.max(eventDropDown.selectedIndex, 0))][0], valueInputTexts[0].text, _val2Create, _useEase ? '' : valueInputTexts[2].text];
-							for(_i in 3...valueInputTexts.length) _evData.push(valueInputTexts[_i].text);
-							var eventAdded:EventMetaNote = createEvent([strumTime, [_evData]]);
+							var eventAdded:EventMetaNote = createEvent([strumTime, [currentEventData()]]);
 							for (num in sectionFirstEventID...events.length)
 							{
 								var event = events[num];
@@ -3666,6 +3696,11 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	function showOutput(message:String, isError:Bool = false)
 	{
+		if(pendingConvertedEvents > 0 && !isError)
+		{
+			message += '\nConverted $pendingConvertedEvents old events to the new format, save the chart to keep them.';
+			pendingConvertedEvents = 0;
+		}
 		trace(message);
 		outputTxt.text = message;
 		outputTxt.y = FlxG.height - outputTxt.height - 30;
@@ -3843,6 +3878,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			if(myEvent != null)
 			{
 				var eventName:String = (myEvent[0] != null) ? myEvent[0] : '';
+				var found:Bool = false;
 				for (num => event in eventsList)
 				{
 					if(event[0] == eventName)
@@ -3850,33 +3886,18 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 						eventDropDown.selectedIndex = num;
 						if(eventDescriptionText != null)
 							eventDescriptionText.text = event[1];
+						found = true;
 						break;
 					}
 				}
-				valueInputTexts[0].text = (myEvent[1] != null) ? myEvent[1] : '';
-				if(eventName == 'Set Cam Zoom' || eventName == 'Target Camera' || eventName == 'Target Follow Pos' || eventName == '(STEPS) Set Cam Zoom' || eventName == '(STEPS) Target Camera' || eventName == '(STEPS) Target Follow Pos')
+				if(!found)
 				{
-					var rawVal2:String = (myEvent[2] != null) ? myEvent[2] : '';
-					var parts:Array<String> = rawVal2.split(',');
-					var _seconds:String = parts[0].trim();
-					var _ease:String = parts.length > 1 ? parts[1].trim() : '';
-					if(_seconds.length == 0 && _ease.length > 0)
-					{
-						myEvent[2] = _ease;
-						rawVal2 = _ease;
-					}
-					else if(_seconds.length > 0 && _ease.length > 0)
-					{
-						myEvent[2] = _seconds + ', ' + _ease;
-					}
-					valueInputTexts[1].text = _seconds;
-					valueInputTexts[2].text = _ease;
+					eventDropDown.selectedLabel = '';
+					if(eventDescriptionText != null)
+						eventDescriptionText.text = EventDefinitions.isHidden(eventName) ? 'Built-in event "$eventName".\nIt can\'t be added anymore,\nbut its values can still be edited.' : 'Unknown event "$eventName".\nIts values can still be edited.';
 				}
-				else
-				{
-					for(i in 1...valueInputTexts.length)
-						valueInputTexts[i].text = (myEvent[i + 1] != null) ? myEvent[i + 1] : '';
-				}
+				for(i in 0...valueInputTexts.length)
+					valueInputTexts[i].text = (myEvent[i + 1] != null) ? Std.string(myEvent[i + 1]) : '';
 				updateEventSpecialUI(eventName);
 				updateEventDescriptionHeight();
 				_syncCustomUIFromValues();
@@ -3929,8 +3950,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var cachedSectionTimes:Array<Float>;
 	var cachedSectionCrochets:Array<Float>;
 	var cachedSectionBPMs:Array<Float>;
+	var pendingConvertedEvents:Int = 0;
 	function loadChart(song:SwagSong)
 	{
+		pendingConvertedEvents = EventConverter.convertList(song.events, EventConverter.stepSecondsForSong(song));
 		PlayState.SONG = song;
 		StageData.loadDirectory(PlayState.SONG);
 		Conductor.bpm = PlayState.SONG.bpm;
@@ -5006,9 +5029,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	}
 
 	var eventDropDown:PsychUIDropDownMenu;
-	var easeDropDown:PsychUIDropDownMenu;
-	var easeInOutDropDown:PsychUIDropDownMenu;
-	var easeInOutLabel:FlxText;
 	var valueInputTexts:Array<PsychUIInputText> = [];
 	var valueLabels:Array<FlxText> = [];
 	static inline var MAX_EVENT_VALUES:Int = 10;
@@ -5019,28 +5039,136 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var _customUIReplacedIndices:Array<Int> = [];
 	var _lastCustomUIEvent:String = null;
 	var _pendingUIData:Array<Dynamic> = null;
+	var _currentUIData:Array<Dynamic> = null;
 
 	var eventsList:Array<Array<String>>;
 	var curEventSelected:Int = 0;
 
 	function _changeEventValue(str:String, n:Int)
 	{
+		function setValue(data:Array<String>)
+		{
+			while(data.length < n) data.push('');
+			data[n] = str;
+		}
+
 		if(selectedNotes.length > 1)
 		{
 			for (note in selectedNotes)
 			{
 				if(note == null || !note.isEvent) continue;
 				var event:EventMetaNote = cast (note, EventMetaNote);
-				event.events[event.events.length - 1][n] = str;
+				setValue(event.events[event.events.length - 1]);
 				event.updateEventText();
 			}
 		}
 		else if(selectedNotes.length == 1 && selectedNotes[0].isEvent)
 		{
 			var event:EventMetaNote = cast (selectedNotes[0], EventMetaNote);
-			event.events[Std.int(FlxMath.bound(curEventSelected, 0, event.events.length - 1))][n] = str;
+			setValue(event.events[Std.int(FlxMath.bound(curEventSelected, 0, event.events.length - 1))]);
 			event.updateEventText();
 		}
+	}
+
+	function selectedEventName():String
+	{
+		if(eventDropDown == null || eventsList == null) return '';
+		var index:Int = Std.int(FlxMath.bound(eventDropDown.selectedIndex, 0, eventsList.length - 1));
+		return eventsList[index][0];
+	}
+
+	function currentEventData():Array<String>
+	{
+		var name:String = selectedEventName();
+		var count:Int = eventValueLabels(name).length;
+		var data:Array<String> = [name];
+		for (i in 0...Std.int(Math.min(count, valueInputTexts.length))) data.push(valueInputTexts[i].text);
+		while(data.length < 3) data.push('');
+		return data;
+	}
+
+	function eventUIData(eventName:String):Array<Dynamic>
+	{
+		var def:EventDefinition = EventDefinitions.get(eventName);
+		if(def != null) return EventDefinitions.uiData(def);
+		return getEventUIData(eventName);
+	}
+
+	function eventValueLabels(eventName:String):Array<String>
+	{
+		var def:EventDefinition = EventDefinitions.get(eventName);
+		if(def != null) return [for (field in def.fields) field.label];
+		if(eventName == null || eventName.length < 1) return [];
+
+		var labels:Array<String> = [];
+		var listed:Bool = false;
+		if(eventsList != null) for (ev in eventsList)
+		{
+			if(ev[0] != eventName) continue;
+			listed = true;
+			var detected:String = (ev.length > 2) ? ev[2] : '1,2';
+			for (part in detected.split(','))
+			{
+				var trimmed:String = part.trim();
+				var colon:Int = trimmed.indexOf(':');
+				var parsed:Null<Int> = Std.parseInt(colon >= 0 ? trimmed.substr(0, colon) : trimmed);
+				if(parsed == null || parsed < 1 || parsed > MAX_EVENT_VALUES) continue;
+				var n:Int = parsed;
+
+				var name:String = (colon >= 0) ? trimmed.substr(colon + 1).trim() : '';
+				while(labels.length < n) labels.push(null);
+				if(name.length > 0) labels[n - 1] = name.charAt(0).toUpperCase() + name.substr(1);
+			}
+			break;
+		}
+
+		if(!listed && selectedNotes.length == 1 && selectedNotes[0].isEvent)
+		{
+			var event:EventMetaNote = cast (selectedNotes[0], EventMetaNote);
+			var data:Array<String> = event.events[Std.int(FlxMath.bound(curEventSelected, 0, event.events.length - 1))];
+			var used:Int = 0;
+			for (i in 1...data.length)
+				if(data[i] != null && Std.string(data[i]).trim().length > 0) used = i;
+			while(labels.length < Std.int(Math.min(used, MAX_EVENT_VALUES))) labels.push(null);
+		}
+
+		if(_currentUIData != null && _lastCustomUIEvent == eventName)
+		{
+			for (item in _currentUIData)
+			{
+				var n:Int = Reflect.hasField(item, 'value') ? Std.int(Reflect.field(item, 'value')) : 1;
+				if(n < 1 || n > MAX_EVENT_VALUES) continue;
+				while(labels.length < n) labels.push(null);
+				if(Reflect.hasField(item, 'label')) labels[n - 1] = Std.string(Reflect.field(item, 'label'));
+			}
+		}
+
+		while(labels.length < 2) labels.push(null);
+		for (i in 0...labels.length)
+			if(labels[i] == null) labels[i] = 'Value ${i + 1}';
+		return labels;
+	}
+
+	function applyEventDefaults(eventName:String)
+	{
+		var def:EventDefinition = EventDefinitions.get(eventName);
+		for (i in 0...valueInputTexts.length)
+		{
+			var value:String = '';
+			if(def != null && i < def.fields.length && def.fields[i].defaultValue != null)
+				value = def.fields[i].defaultValue;
+			else if(def == null && _currentUIData != null)
+			{
+				for (item in _currentUIData)
+				{
+					var n:Int = Reflect.hasField(item, 'value') ? Std.int(Reflect.field(item, 'value')) : 1;
+					if(n == i + 1 && Reflect.hasField(item, 'defaultValue'))
+						value = Std.string(Reflect.field(item, 'defaultValue'));
+				}
+			}
+			valueInputTexts[i].text = value;
+		}
+		_syncCustomUIFromValues();
 	}
 
 	function getEventUIData(eventName:String):Array<Dynamic>
@@ -5341,6 +5469,14 @@ end
 					_customUIAll.remove(lblText);
 			}
 		}
+
+		var drops:Array<PsychUIDropDownMenu> = [for (ctrl in _customUIAll) if(Std.isOfType(ctrl, PsychUIDropDownMenu)) cast ctrl];
+		drops.reverse();
+		for (drop in drops)
+		{
+			tab_group.remove(drop, true);
+			tab_group.insert(tab_group.members.indexOf(eventDropDown), drop);
+		}
 	}
 
 	function _syncCustomUIFromValues()
@@ -5402,175 +5538,39 @@ end
 
 	function updateEventSpecialUI(eventName:String)
 	{
-		if(easeDropDown == null) return;
+		if(valueInputTexts.length < 1) return;
 		if(eventName != _lastCustomUIEvent)
 		{
 			_clearCustomUI();
 			_lastCustomUIEvent = eventName;
-			_pendingUIData = getEventUIData(eventName);
+			_currentUIData = eventUIData(eventName);
+			_pendingUIData = _currentUIData;
 		}
-		var useEaseDropDown:Bool = (eventName == 'Set Cam Zoom' || eventName == 'Target Camera' || eventName == 'Target Follow Pos' || eventName == '(STEPS) Set Cam Zoom' || eventName == '(STEPS) Target Camera' || eventName == '(STEPS) Target Follow Pos');
-		var isSetCamZoom:Bool = (eventName == 'Set Cam Zoom' || eventName == '(STEPS) Set Cam Zoom');
-		var isTargetCamera:Bool = (eventName == 'Target Camera' || eventName == '(STEPS) Target Camera');
-		var isTargetFollow:Bool = (eventName == 'Target Follow Pos' || eventName == '(STEPS) Target Follow Pos');
-		var useSteps:Bool = (eventName == '(STEPS) Set Cam Zoom' || eventName == '(STEPS) Target Camera' || eventName == '(STEPS) Target Follow Pos');
 
-		var defaultValueCounts:Map<String, Int> = [
-			'' => 1,
-			'Dadbattle Spotlight' => 1,
-			'Hey!' => 2,
-			'Set GF Speed' => 1,
-			'Philly Glow' => 1,
-			'Kill Henchmen' => 0,
-			'Add Camera Zoom' => 2,
-			'Set Camera Bopping' => 2,
-			'BG Freaks Expression' => 0,
-			'Trigger BG Ghouls' => 0,
-			'Play Animation' => 2,
-			'Target Follow Pos' => 2,
-			'Camera Follow Pos' => 2,
-			'Alt Idle Animation' => 2,
-			'Screen Shake' => 2,
-			'Change Character' => 2,
-			'Change Scroll Speed' => 2,
-			'Set Property' => 2,
-			'Play Sound' => 2,
-			'Flash Camera' => 2,
-			'Video Player' => 2,
-			'Set Cam Zoom' => 2,
-			'Target Camera' => 2,
-			'(STEPS) Set Cam Zoom' => 2,
-			'(STEPS) Target Camera' => 2,
-			'(STEPS) Target Follow Pos' => 2,
-			'Change Note Skin' => 2,
-			'Change NoteStrum Skin' => 2
-		];
-
-		var detectedIndices:Array<Int> = [];
-		var detectedNames:Array<String> = [];
-		if(defaultValueCounts.exists(eventName))
-		{
-			var count:Int = defaultValueCounts.get(eventName);
-			for(n in 1...count + 1)
-			{
-				detectedIndices.push(n);
-				detectedNames.push(null);
-			}
-		}
-		else
-		{
-			for(ev in eventsList)
-			{
-				if(ev[0] == eventName && ev.length > 2)
-				{
-					for(part in ev[2].split(','))
-					{
-						var trimmed:String = part.trim();
-						if(trimmed.indexOf(':') >= 0)
-						{
-							var colonPos:Int = trimmed.indexOf(':');
-							var n:Int = Std.parseInt(trimmed.substr(0, colonPos));
-							var name:String = trimmed.substr(colonPos + 1).trim();
-							if(n > 0)
-							{
-								detectedIndices.push(n);
-								detectedNames.push(name.length > 0 ? name : null);
-							}
-						}
-						else
-						{
-							var n:Int = Std.parseInt(trimmed);
-							if(n > 0)
-							{
-								detectedIndices.push(n);
-								detectedNames.push(null);
-							}
-						}
-					}
-					break;
-				}
-			}
-		}
-		if(detectedIndices.length == 0)
-		{
-			detectedIndices = [1, 2];
-			detectedNames = [null, null];
-		}
-		var detectedValues:Int = detectedIndices.length;
-
+		var labels:Array<String> = eventValueLabels(eventName);
 		var baseX:Float = valueInputTexts[0].x;
-		var baseX2:Float = valueInputTexts[0].x + 150;
+		var baseX2:Float = baseX + 150;
 		var rowY:Float = valueInputTexts[0].y;
 		var rowH:Float = 40;
 
-		for(i in 0...valueInputTexts.length)
+		for (i in 0...valueInputTexts.length)
 		{
-			var n:Int = i + 1;
-			var isEaseSeconds:Bool = useEaseDropDown && i == 1;
-			var isEaseType:Bool = useEaseDropDown && i == 2;
-			var show:Bool = n <= detectedValues && !(useEaseDropDown && i >= 2);
-
-			var labelN:Int = (detectedIndices.length > i) ? detectedIndices[i] : n;
-			var customName:String = (detectedNames.length > i) ? detectedNames[i] : null;
-			if(customName != null && customName.length > 0)
-				customName = customName.charAt(0).toUpperCase() + customName.substr(1);
-			valueLabels[i].text = (i == 0) ? (isSetCamZoom ? 'New Zoom:' : (isTargetCamera ? 'Target:' : (isTargetFollow ? 'Target:' : (customName != null ? '$customName:' : 'Value ${detectedIndices[0]}:')))) : (isEaseSeconds ? (useSteps ? 'Steps:' : 'Seconds:') : (isEaseType ? 'Ease:' : (customName != null ? '$customName:' : 'Value $labelN:')));
+			var show:Bool = i < labels.length;
+			valueLabels[i].text = show ? '${labels[i]}:' : '';
 			if(!_customUIReplacedIndices.contains(i))
 			{
-				valueLabels[i].visible = show || isEaseSeconds || isEaseType;
+				valueLabels[i].visible = show;
 				valueInputTexts[i].visible = valueInputTexts[i].active = show;
 			}
 
-			var col:Int = i % 2;
-			var row:Int = Std.int(i / 2);
-			var x:Float = col == 0 ? baseX : baseX2;
-			var y:Float = rowY + row * rowH;
-			valueLabels[i].x = x;
-			valueLabels[i].y = y - 15;
-			valueInputTexts[i].x = x;
-			valueInputTexts[i].y = y;
+			var x:Float = (i % 2 == 0) ? baseX : baseX2;
+			var y:Float = rowY + Std.int(i / 2) * rowH;
+			valueLabels[i].setPosition(x, y - 15);
+			valueInputTexts[i].setPosition(x, y);
 		}
 
-		easeDropDown.visible = easeDropDown.active = useEaseDropDown;
-		easeInOutDropDown.visible = easeInOutDropDown.active = useEaseDropDown;
-		if(easeInOutLabel != null) easeInOutLabel.visible = useEaseDropDown;
-		if(useEaseDropDown)
-		{
-			easeDropDown.x = valueInputTexts[2].x;
-			easeDropDown.y = valueInputTexts[2].y;
-			easeInOutDropDown.x = valueInputTexts[3].x;
-			easeInOutDropDown.y = valueInputTexts[3].y;
-		}
+		eventDescriptionText.y = (labels.length > 0) ? rowY + (Std.int((labels.length - 1) / 2) + 1) * rowH : rowY - 15;
 
-		var lastRow:Int = useEaseDropDown ? 1 : Std.int(Math.max(0, detectedValues - 1) / 2);
-		eventDescriptionText.y = rowY + (lastRow + 1) * rowH;
-
-		if(useEaseDropDown)
-		{
-			var easeVal:String = valueInputTexts[2].text.trim();
-			var baseEase:String = easeVal;
-			var direction:String = 'In';
-			if(easeVal.endsWith('InOut')) { direction = 'InOut'; baseEase = easeVal.substr(0, easeVal.length - 5); }
-			else if(easeVal.endsWith('In')) { direction = 'In'; baseEase = easeVal.substr(0, easeVal.length - 2); }
-			else if(easeVal.endsWith('Out')) { direction = 'Out'; baseEase = easeVal.substr(0, easeVal.length - 3); }
-
-			var prevOnChange = easeDropDown.onChange;
-			easeDropDown.onChange = null;
-			if(baseEase.length > 0 && easeDropDown.list.contains(baseEase))
-				easeDropDown.selectedLabel = baseEase;
-			else
-				easeDropDown.selectedLabel = '';
-			easeDropDown.showDropDown(false);
-			easeDropDown.onChange = prevOnChange;
-
-			var prevOnChange2 = easeInOutDropDown.onChange;
-			easeInOutDropDown.onChange = null;
-			var _noDir:Bool = (baseEase == '' || baseEase == 'instant' || baseEase == 'linear');
-			easeInOutDropDown.list = _noDir ? [''] : ['In', 'Out', 'InOut'];
-			easeInOutDropDown.selectedLabel = _noDir ? '' : direction;
-			easeInOutDropDown.showDropDown(false);
-			easeInOutDropDown.onChange = prevOnChange2;
-		}
 		if(_pendingUIData != null)
 		{
 			_buildCustomUI(_pendingUIData);
@@ -5584,16 +5584,31 @@ end
 		var objX = 10;
 		var objY = 25;
 
-		eventDropDown = new PsychUIDropDownMenu(objX, objY, [], function(id:Int, character:String)
+		eventDropDown = new PsychUIDropDownMenu(objX, objY, [], function(id:Int, _:String)
 		{
-			var eventSelected:Array<String> = eventsList[id];
-			var eventName:String = eventSelected[0];
-			var description:String = eventSelected[1];
-			eventDescriptionText.text = description;
-			var _useEase:Bool = (eventName == 'Set Cam Zoom' || eventName == 'Target Camera' || eventName == 'Target Follow Pos' || eventName == '(STEPS) Set Cam Zoom' || eventName == '(STEPS) Target Camera' || eventName == '(STEPS) Target Follow Pos');
-			if(!_useEase) valueInputTexts[2].text = '';
+			var eventName:String = eventsList[id][0];
+			eventDescriptionText.text = eventsList[id][1];
+
+			var previousName:String = null;
+			if(selectedNotes.length == 1 && selectedNotes[0].isEvent)
+			{
+				var event:EventMetaNote = cast (selectedNotes[0], EventMetaNote);
+				var data:Array<String> = event.events[Std.int(FlxMath.bound(curEventSelected, 0, event.events.length - 1))];
+				if(data != null) previousName = data[0];
+			}
+
+			updateEventSpecialUI(eventName);
+			if(previousName == eventName)
+			{
+				updateEventDescriptionHeight();
+				return;
+			}
+
+			applyEventDefaults(eventName);
 			updateEventSpecialUI(eventName);
 			updateEventDescriptionHeight();
+
+			var newData:Array<String> = currentEventData();
 			if(selectedNotes.length > 1)
 			{
 				for (note in selectedNotes)
@@ -5601,14 +5616,14 @@ end
 					if(note == null || !note.isEvent) continue;
 
 					var event:EventMetaNote = cast (note, EventMetaNote);
-					event.events[event.events.length - 1][0] = eventName;
+					event.events[event.events.length - 1] = newData.copy();
 					event.updateEventText();
 				}
 			}
 			else if(selectedNotes.length == 1 && selectedNotes[0].isEvent)
 			{
 				var event:EventMetaNote = cast (selectedNotes[0], EventMetaNote);
-				event.events[Std.int(FlxMath.bound(curEventSelected, 0, event.events.length - 1))][0] = eventName;
+				event.events[Std.int(FlxMath.bound(curEventSelected, 0, event.events.length - 1))] = newData;
 				event.updateEventText();
 			}
 		});
@@ -5660,11 +5675,7 @@ end
 		{
 			genericEventButton(function(event:EventMetaNote)
 			{
-				var _useEase:Bool = (easeDropDown != null && easeDropDown.visible);
-			var val2Push:String = _useEase ? (valueInputTexts[2].text.trim().length > 0 ? valueInputTexts[1].text + ', ' + valueInputTexts[2].text.trim() : valueInputTexts[1].text) : valueInputTexts[1].text;
-			var _evData:Array<String> = [eventsList[Std.int(Math.max(eventDropDown.selectedIndex, 0))][0], valueInputTexts[0].text, val2Push, _useEase ? '' : valueInputTexts[2].text];
-			for(_i in 3...valueInputTexts.length) _evData.push(valueInputTexts[_i].text);
-			event.events.push(_evData);
+				event.events.push(currentEventData());
 				event.updateEventText();
 				curEventSelected++;
 			});
@@ -5685,110 +5696,24 @@ end
 		selectedEventText = new FlxText(150, objY + 30, 150, '');
 		selectedEventText.visible = false;
 
-		function changeEventsValue(str:String, n:Int)
-		{
-			if(selectedNotes.length > 1)
-			{
-				for (note in selectedNotes)
-				{
-					if(note == null || !note.isEvent) continue;
-
-					var event:EventMetaNote = cast (note, EventMetaNote);
-					event.events[event.events.length - 1][n] = str;
-					event.updateEventText();
-				}
-			}
-			else if(selectedNotes.length == 1 && selectedNotes[0].isEvent)
-			{
-				var event:EventMetaNote = cast (selectedNotes[0], EventMetaNote);
-				event.events[Std.int(FlxMath.bound(curEventSelected, 0, event.events.length - 1))][n] = str;
-				event.updateEventText();
-			}
-		}
-
 		objY += 70;
 		for(i in 0...MAX_EVENT_VALUES)
 		{
 			var inp:PsychUIInputText = new PsychUIInputText(objX + (i % 2 == 0 ? 0 : 150), objY + Std.int(i / 2) * 40, 120, '', 8);
 			var idx:Int = i;
-			inp.onChange = function(old:String, cur:String)
-			{
-				if(idx == 1 && easeDropDown != null && easeDropDown.visible)
-				{
-					var ease:String = valueInputTexts[2].text.trim();
-					var combined:String = ease.length > 0 ? (cur.length > 0 ? cur + ', ' + ease : ease) : cur;
-					changeEventsValue(combined, 2);
-				}
-				else if(idx == 2)
-				{
-					if(easeDropDown == null || !easeDropDown.visible)
-						changeEventsValue(cur, idx + 1);
-				}
-				else
-					changeEventsValue(cur, idx + 1);
-			};
+			inp.onChange = function(old:String, cur:String) _changeEventValue(cur, idx + 1);
 			valueInputTexts.push(inp);
 		}
 		objY += Std.int(MAX_EVENT_VALUES / 2) * 40;
-		eventDescriptionText = new FlxText(objX, objY, 280, defaultEvents[0][1]);
-
-		var easeList:Array<String> = [
-			'',
-			'instant',
-			'linear',
-			'back', 'bounce', 'circ', 'cube', 'elastic', 'expo',
-			'quad', 'quart', 'quint', 'sine', 'smoothStep', 'smootherStep'
-		];
-		easeDropDown = new PsychUIDropDownMenu(valueInputTexts[2].x, valueInputTexts[2].y, easeList, function(id:Int, base:String)
-		{
-			var noDir:Bool = (base == '' || base == 'instant' || base == 'linear');
-			var dir:String = (easeInOutDropDown != null && !noDir) ? easeInOutDropDown.selectedLabel : '';
-			var ease:String = noDir ? base : base + dir;
-			valueInputTexts[2].text = ease;
-			if(easeInOutDropDown != null)
-			{
-				easeInOutDropDown.list = noDir ? [''] : ['In', 'Out', 'InOut'];
-				var validDir:String = (dir == 'In' || dir == 'Out' || dir == 'InOut') ? dir : 'In';
-				easeInOutDropDown.selectedLabel = noDir ? '' : validDir;
-				easeInOutDropDown.showDropDown(false);
-			}
-			if(easeDropDown != null && easeDropDown.visible)
-			{
-				var seconds:String = valueInputTexts[1].text.trim();
-				var combined:String = ease.length > 0 ? (seconds.length > 0 ? seconds + ', ' + ease : ease) : seconds;
-				changeEventsValue(combined, 2);
-				changeEventsValue('', 3);
-			}
-		}, 100);
-		easeDropDown.selectedLabel = '';
-		easeDropDown.visible = easeDropDown.active = false;
-
-		easeInOutDropDown = new PsychUIDropDownMenu(valueInputTexts[3].x, valueInputTexts[3].y, ['In', 'Out', 'InOut'], function(id:Int, dir:String)
-		{
-			var base:String = (easeDropDown != null) ? easeDropDown.selectedLabel : '';
-			var noDir:Bool = (base == '' || base == 'instant' || base == 'linear');
-			var ease:String = noDir ? base : base + dir;
-			valueInputTexts[2].text = ease;
-			if(easeInOutDropDown != null && easeInOutDropDown.visible)
-			{
-				var seconds:String = valueInputTexts[1].text.trim();
-				var combined:String = ease.length > 0 ? (seconds.length > 0 ? seconds + ', ' + ease : ease) : seconds;
-				changeEventsValue(combined, 2);
-				changeEventsValue('', 3);
-			}
-		}, 100);
-		easeInOutDropDown.autoSort = false;
-		easeInOutDropDown.selectedLabel = 'In';
-		easeInOutDropDown.visible = easeInOutDropDown.active = false;
+		eventDescriptionText = new FlxText(objX, objY, 280, EventDefinitions.NOTHING_DESCRIPTION);
 
 		for(i in 0...MAX_EVENT_VALUES)
 		{
-			var lbl:FlxText = new FlxText(valueInputTexts[i].x, valueInputTexts[i].y - 15, 80, 'Value ${i + 1}:');
+			var lbl:FlxText = new FlxText(valueInputTexts[i].x, valueInputTexts[i].y - 15, 140, 'Value ${i + 1}:');
 			lbl.visible = false;
 			valueLabels.push(lbl);
 		}
 
-		tab_group.add(new FlxText(eventDropDown.x, eventDropDown.y - 15, 80, 'Event:'));
 		tab_group.add(new FlxText(eventDropDown.x, eventDropDown.y - 15, 80, 'Event:'));
 		for(lbl in valueLabels) tab_group.add(lbl);
 
@@ -5800,11 +5725,6 @@ end
 
 		for(inp in valueInputTexts) tab_group.add(inp);
 		tab_group.add(eventDescriptionText);
-		tab_group.add(easeDropDown);
-		easeInOutLabel = new FlxText(easeInOutDropDown.x, easeInOutDropDown.y - 15, 80, 'Direction:');
-		easeInOutLabel.visible = false;
-		tab_group.add(easeInOutLabel);
-		tab_group.add(easeInOutDropDown);
 
 		tab_group.add(eventDropDown); //lowest priority to display properly
 
@@ -6332,18 +6252,18 @@ end
 		// Event drop down
 		if(eventDropDown != null)
 		{
-			eventsList = [];
+			eventsList = [['', EventDefinitions.NOTHING_DESCRIPTION]];
+			for (def in EventDefinitions.BUILT_IN)
+				eventsList.push([def.name, def.description]);
+
 			var eventFiles:Array<String> = loadFileList('custom_events/', ['.txt']);
 			for (file in eventFiles)
 			{
+				if(EventDefinitions.get(file) != null) continue;
 				var desc:String = Paths.getTextFromFile('custom_events/$file.txt');
 				var detectedVals:Array<String> = detectEventValues(file);
 				eventsList.push([file, desc, detectedVals.join(',')]);
 			}
-
-			for (id => event in defaultEvents)
-				if(!eventsList.contains(event))
-					eventsList.insert(id, event);
 			
 			var eventsSlice:Array<Array<String>> = eventsList.slice(1);
 			eventsSlice.sort((a, b) -> a[0].toLowerCase() < b[0].toLowerCase() ? -1 : 1);
@@ -6855,6 +6775,7 @@ end
 						}
 	
 						var loadedEvents:Array<Dynamic> = eventsFile.events;
+						pendingConvertedEvents = EventConverter.convertList(loadedEvents, EventConverter.stepSecondsForSong(PlayState.SONG));
 						if(loadedEvents.length < 1)
 						{
 							showOutput('Events file loaded is empty.', true);

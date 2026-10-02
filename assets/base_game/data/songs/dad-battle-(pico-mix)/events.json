@@ -5,8 +5,10 @@
 			[
 				[
 					"Play Animation",
+					"BF",
 					"hey",
-					"boyfriend"
+					"false",
+					"false"
 				]
 			]
 		],
@@ -15,8 +17,10 @@
 			[
 				[
 					"Play Animation",
+					"BF",
 					"cheer",
-					"boyfriend"
+					"false",
+					"false"
 				]
 			]
 		],

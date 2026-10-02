@@ -6,8 +6,8 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 {
 	static final INPUT_DESCRIPTIONS:Map<String, String> = [
 		InputSystem.PSYCH => "Psych Engine's input. Sustains count as one note:\nmiss the start or let go and the whole hold is lost.",
-		InputSystem.VSLICE => "Funkin's own input: timing-based score,\nBads and Shits break your combo,\nno Ghost Tapping and Safe Frames locked to 8.",
-		InputSystem.LEGACY => "Old Psych Engine input: every piece of a hold\ncounts as its own note, Safe Frames go up to 6."
+		InputSystem.VSLICE => "Funkin's own input: timing-based score,\nBads and Shits break your combo,\nno Ghost Tapping and Safe Frames locked to 9.6.",
+		InputSystem.LEGACY => "Old Psych Engine input: every piece of a hold\ncounts as its own note, Safe Frames go up to 9."
 	];
 
 	var inputOption:Option;
@@ -70,7 +70,7 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		option.changeValue = 0.1;
 		option.getValue = () -> InputSystem.safeFrames();
 		option.locked = InputSystem.safeFramesLocked;
-		option.lockedReason = Language.getPhrase('locked_by_vslice_frames', 'Always 8 with the V-Slice Input System.');
+		option.lockedReason = Language.getPhrase('locked_by_vslice_frames', 'Always 9.6 with the V-Slice Input System.');
 		safeFramesOption = addOption(option);
 
 		var option:Option = new Option('Disable Results',
@@ -90,6 +90,8 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 
 	function onChangeInputSystem()
 	{
+		if(InputSystem.current == InputSystem.PSYCH)
+			safeFramesOption.setValue(safeFramesOption.defaultValue);
 		safeFramesOption.maxValue = InputSystem.maxSafeFrames();
 		inputOption.description = inputDescription();
 		refreshOptions();

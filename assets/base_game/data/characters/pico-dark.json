@@ -162,6 +162,7 @@
 		300
 	],
 	"healthicon": "pico",
+	"pause_music": "breakfast-(pico)",
 	"flip_x": true,
 	"camera_position": [
 		211.5,

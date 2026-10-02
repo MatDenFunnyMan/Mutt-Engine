@@ -3,6 +3,7 @@ package funkin.game.states;
 import funkin.data.WeekData;
 import funkin.save.Highscore;
 import funkin.data.Song;
+import funkin.game.Character;
 
 import flixel.util.FlxStringUtil;
 
@@ -41,6 +42,7 @@ class PauseSubState extends MusicBeatSubstate
 	var missingText:FlxText;
 
 	public static var songName:String = null;
+	public static var currentSong:String = null;
 
 	var rotatingCreditText:FlxText;
 	var creditRotationTimer:FlxTimer;
@@ -78,7 +80,8 @@ class PauseSubState extends MusicBeatSubstate
 		pauseMusic = new FlxSound();
 		pauseMusic.volume = 0;
 		FlxG.sound.list.add(pauseMusic);
-		loadPauseMusic(getPauseSong());
+		currentSong = getPauseSong();
+		loadPauseMusic(currentSong);
 
 		var bg:FlxSprite = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
 		bg.scale.set(FlxG.width, FlxG.height);
@@ -302,13 +305,21 @@ class PauseSubState extends MusicBeatSubstate
 		pauseMusic.play(false, FlxG.random.int(0, Std.int(pauseMusic.length / 2)));
 	}
 
-	function getPauseSong()
+	function getPauseSong():String
 	{
 		var formattedSongName:String = (songName != null ? Paths.formatToSongPath(songName) : '');
 		var formattedPauseMusic:String = Paths.formatToSongPath(ClientPrefs.data.pauseMusic);
 		if(formattedSongName == 'none' || (formattedSongName != 'none' && formattedPauseMusic == 'none')) return null;
+		if(formattedSongName != '') return formattedSongName;
 
-		return (formattedSongName != '') ? formattedSongName : formattedPauseMusic;
+		var game:PlayState = PlayState.instance;
+		var player:Character = (game != null) ? (game.opponentMode ? game.dad : game.boyfriend) : null;
+		if(player != null && player.pauseMusic != null && player.pauseMusic.trim().length > 0)
+		{
+			var formattedCharacterMusic:String = Paths.formatToSongPath(player.pauseMusic);
+			return (formattedCharacterMusic != 'none') ? formattedCharacterMusic : null;
+		}
+		return formattedPauseMusic;
 	}
 
 	var holdTime:Float = 0;
@@ -471,9 +482,9 @@ class PauseSubState extends MusicBeatSubstate
 					PlayState.instance.vocals.volume = 0;
 					PlayState.instance.canResync = false;
 					MusicBeatState.switchState(new OptionsState());
-					if(ClientPrefs.data.pauseMusic != 'None')
+					if(currentSong != null)
 					{
-						FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath(ClientPrefs.data.pauseMusic)), pauseMusic.volume);
+						FlxG.sound.playMusic(Paths.music(currentSong), pauseMusic.volume);
 						FlxTween.tween(FlxG.sound.music, {volume: 1}, 0.8);
 						FlxG.sound.music.time = pauseMusic.time;
 					}

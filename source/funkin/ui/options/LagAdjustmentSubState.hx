@@ -8,6 +8,7 @@ import funkin.data.Song.SwagSong;
 import funkin.game.notes.Note;
 import funkin.game.notes.StrumNote;
 import funkin.game.notes.NoteSplash;
+import funkin.game.states.PauseSubState;
 
 typedef LatencyArrow =
 {
@@ -254,7 +255,7 @@ class LagAdjustmentSubState extends MusicBeatSubstate
 	{
 		if(!Std.isOfType(FlxG.state, OptionsState)) return;
 		if(!OptionsState.onPlayState) FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
-		else if(ClientPrefs.data.pauseMusic != 'None') FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath(ClientPrefs.data.pauseMusic)), 0);
+		else if(PauseSubState.currentSong != null) FlxG.sound.playMusic(Paths.music(PauseSubState.currentSong), 0);
 		else
 		{
 			FlxG.sound.music.stop();

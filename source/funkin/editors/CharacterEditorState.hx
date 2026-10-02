@@ -57,6 +57,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 	var copiedOffset:Array<Float> = [0, 0];
 	var _char:String = null;
+	var quickSavePath:String = null;
 	var _goToPlayState:Bool = true;
 
 	var anims:Array<AnimArray> = null;
@@ -222,6 +223,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		"A/D - Frame Advance (Back/Forward)",
 		"",
 		"OTHER",
+		"Ctrl + S - Save Character",
 		"F12 - Toggle Silhouettes",
 		"Left Click (on Ghost List) - Remove Ghost",
 		"Hold Shift - Move Offsets 10x faster and Camera 4x faster",
@@ -279,6 +281,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		character.debugMode = true;
 		character.missingCharacter = false;
 		loadedImageFile = character.imageFile;
+		if(!reload) quickSavePath = characterFilePath(_char);
 
 		if(pos > -1) insert(pos, character);
 		else add(character);
@@ -566,6 +569,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 		character.loadCharacterFile(_template);
 		character.missingCharacter = false;
+		quickSavePath = null;
 		loadedImageFile = character.imageFile;
 		character.color = FlxColor.WHITE;
 		character.alpha = 1;
@@ -2051,7 +2055,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 		// CHARACTER CONTROLS
 		var changedAnim:Bool = false;
-		if(anims.length > 1)
+		if(anims.length > 1 && !FlxG.keys.pressed.CONTROL)
 		{
 			if(FlxG.keys.justPressed.W && (changedAnim = true)) curAnim--;
 			else if(FlxG.keys.justPressed.S && (changedAnim = true)) curAnim++;
@@ -2150,6 +2154,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 					changedOffset = true;
 				}
 			}
+			else if(FlxG.keys.justPressed.S) quickSaveCharacter();
 		}
 
 		var anim = anims[curAnim];
@@ -2473,6 +2478,50 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	function saveCharacter() {
 		if(!fileDialog.completed) return;
 
+		var data:String = characterJsonData();
+		if(data.length < 1) return;
+
+		fileDialog.save('$_char.json', data,
+			function() {
+				unsavedProgress = false;
+				quickSavePath = fileDialog.path;
+				showOutput('Character saved successfully to: ${fileDialog.path}');
+			}, null,
+			function() showOutput('Error on saving character!', true));
+	}
+
+	function quickSaveCharacter()
+	{
+		if(!fileDialog.completed) return;
+		if(quickSavePath == null || !FileSystem.exists(quickSavePath))
+		{
+			saveCharacter();
+			return;
+		}
+
+		var data:String = characterJsonData();
+		if(data.length < 1) return;
+
+		try
+		{
+			File.saveContent(quickSavePath, data);
+			unsavedProgress = false;
+			showOutput('Character saved successfully to: $quickSavePath');
+		}
+		catch(e:haxe.Exception)
+		{
+			showOutput('Error on saving character!', true);
+		}
+	}
+
+	function characterFilePath(name:String):String
+	{
+		var path:String = Paths.getPath('characters/$name.json', TEXT, null, true);
+		return FileSystem.exists(path) ? path : null;
+	}
+
+	function characterJsonData():String
+	{
 		var json:Dynamic = {
 			"animations": character.animationsArray,
 			"image": character.imageFile,
@@ -2493,17 +2542,9 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			"_editor_isPlayer": character.isPlayer
 		};
 		if(character.censoredCharacter != null) Reflect.setField(json, 'censored_character', character.censoredCharacter);
+		if(character.pauseMusic != null) Reflect.setField(json, 'pause_music', character.pauseMusic);
 
-		var data:String = PsychJsonPrinter.print(json, ['offsets', 'position', 'healthbar_colors', 'camera_position', 'indices']);
-
-		if(data.length < 1) return;
-
-		fileDialog.save('$_char.json', data,
-			function() {
-				unsavedProgress = false;
-				showOutput('Character saved successfully to: ${fileDialog.path}');
-			}, null,
-			function() showOutput('Error on saving character!', true));
+		return PsychJsonPrinter.print(json, ['offsets', 'position', 'healthbar_colors', 'camera_position', 'indices']);
 	}
 }
 

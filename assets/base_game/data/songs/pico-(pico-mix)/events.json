@@ -5,8 +5,10 @@
 			[
 				[
 					"Play Animation",
+					"BF",
 					"burpShit",
-					"boyfriend"
+					"false",
+					"false"
 				]
 			]
 		],
@@ -15,8 +17,10 @@
 			[
 				[
 					"Play Animation",
+					"BF",
 					"shit",
-					"boyfriend"
+					"false",
+					"false"
 				]
 			]
 		]

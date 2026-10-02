@@ -6,9 +6,12 @@
 				21666.6666666667,
 				[
 					[
-						"Camera Follow Pos",
-						"750",
-						"400"
+						"Cam Follow Pos",
+						"750, 400",
+						"",
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			],
@@ -16,9 +19,12 @@
 				28333.3333333333,
 				[
 					[
-						"Camera Follow Pos",
+						"Cam Follow Pos",
 						"",
-						""
+						"",
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			]

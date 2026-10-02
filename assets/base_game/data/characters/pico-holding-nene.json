@@ -141,6 +141,7 @@
 		258
 	],
 	"healthicon": "pico",
+	"pause_music": "breakfast-(pico)",
 	"flip_x": true,
 	"healthbar_colors": [
 		183,

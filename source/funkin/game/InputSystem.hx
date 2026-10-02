@@ -8,12 +8,12 @@ class InputSystem
 	public static final LIST:Array<String> = [PSYCH, VSLICE, LEGACY];
 
 	public static inline final MAX_SAFE_FRAMES:Float = 10;
-	public static inline final VSLICE_SAFE_FRAMES:Float = 8;
-	public static inline final LEGACY_MAX_SAFE_FRAMES:Float = 6;
+	public static inline final VSLICE_SAFE_FRAMES:Float = 9.6;
+	public static inline final LEGACY_MAX_SAFE_FRAMES:Float = 9;
 
 	public static inline final VSLICE_HIT_WINDOW:Float = 160;
 	public static final VSLICE_JUDGEMENTS:Array<Float> = [45, 90, 135];
-	public static final VSLICE_RATING_MODS:Array<Float> = [1, 1, 0, 0];
+	public static final VSLICE_RATING_MODS:Array<Float> = [1, 0.67, 0, 0];
 
 	public static inline final VSLICE_MAX_SCORE:Int = 500;
 	public static inline final VSLICE_MIN_SCORE:Float = 9;

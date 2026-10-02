@@ -521,8 +521,10 @@ class FunkinLua extends FunkinLuaScript {
 		});
 
 		// others
-		Lua_helper.add_callback(lua, "triggerEvent", function(name:String, ?value1:String = '', ?value2:String = '') {
-			game.triggerEvent(name, value1, value2, Conductor.songPosition);
+		Lua_helper.add_callback(lua, "triggerEvent", function(name:String, ?value1:String = '', ?value2:String = '', ?value3:String, ?value4:String, ?value5:String, ?value6:String, ?value7:String, ?value8:String, ?value9:String, ?value10:String) {
+			var extraValues:Array<String> = [value3, value4, value5, value6, value7, value8, value9, value10];
+			while(extraValues.length > 0 && extraValues[extraValues.length - 1] == null) extraValues.pop();
+			game.triggerEvent(name, value1, value2, Conductor.songPosition, [for (value in extraValues) (value != null) ? value : '']);
 			//trace('Triggered event: ' + name + ', ' + value1 + ', ' + value2);
 			return true;
 		});

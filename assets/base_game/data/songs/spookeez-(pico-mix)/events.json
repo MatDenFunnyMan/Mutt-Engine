@@ -5,8 +5,10 @@
 			[
 				[
 					"Play Animation",
+					"BF",
 					"hey",
-					"bf"
+					"false",
+					"false"
 				]
 			]
 		],
@@ -15,8 +17,10 @@
 			[
 				[
 					"Play Animation",
+					"Dad",
 					"cheer",
-					"dad"
+					"false",
+					"false"
 				]
 			]
 		],
@@ -25,8 +29,10 @@
 			[
 				[
 					"Play Animation",
+					"BF",
 					"cheer",
-					"boyfriend"
+					"false",
+					"false"
 				]
 			]
 		],
@@ -35,8 +41,10 @@
 			[
 				[
 					"Play Animation",
+					"Dad",
 					"cheer",
-					"dad"
+					"false",
+					"false"
 				]
 			]
 		],
@@ -45,8 +53,10 @@
 			[
 				[
 					"Play Animation",
+					"BF",
 					"cheer",
-					"boyfriend"
+					"false",
+					"false"
 				]
 			]
 		]

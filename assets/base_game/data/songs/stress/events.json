@@ -6,8 +6,10 @@
 				[
 					[
 						"Play Animation",
+						"Dad",
 						"singDOWN-alt",
-						"dad"
+						"false",
+						"false"
 					],
 					[
 						"Set Property",
@@ -15,9 +17,12 @@
 						"1.08"
 					],
 					[
-						"Camera Follow Pos",
-						"320",
-						"504"
+						"Cam Follow Pos",
+						"320, 504",
+						"",
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			],
@@ -25,9 +30,12 @@
 				64719.1011235955,
 				[
 					[
-						"Camera Follow Pos",
+						"Cam Follow Pos",
 						"",
-						""
+						"",
+						"classic",
+						"InOut",
+						"true"
 					],
 					[
 						"Set Property",
