@@ -154,7 +154,7 @@ class Tank extends BaseStage
 		cutsceneHandler.finishCallback = function()
 		{
 			var timeForStuff:Float = Conductor.crochet / 1000 * 4.5;
-			FlxG.sound.music.fadeOut(timeForStuff);
+			if(FlxG.sound.music != null) FlxG.sound.music.fadeOut(timeForStuff);
 			FlxTween.tween(FlxG.camera, {zoom: defaultCamZoom}, timeForStuff, {ease: FlxEase.quadInOut});
 			startCountdown();
 
@@ -290,7 +290,7 @@ class Tank extends BaseStage
 		{
 			spr.y += 100;
 		});
-		Paths.sound('stressCutscene');
+		funkin.backend.Naughtyness.sound('stressCutscene');
 
 		pico = new FlxAnimate(gf.x + 150, gf.y + 450);
 		pico.showPivot = false;
@@ -340,7 +340,7 @@ class Tank extends BaseStage
 		addBehindBF(boyfriendCutscene);
 		cutsceneHandler.push(boyfriendCutscene);
 
-		var cutsceneSnd:FlxSound = new FlxSound().loadEmbedded(Paths.sound('stressCutscene'));
+		var cutsceneSnd:FlxSound = new FlxSound().loadEmbedded(funkin.backend.Naughtyness.sound('stressCutscene'));
 		FlxG.sound.list.add(cutsceneSnd);
 
 		tankman.anim.addBySymbol('godEffingDamnIt', 'TANK TALK 3 P1 UNCUT', 24, false);

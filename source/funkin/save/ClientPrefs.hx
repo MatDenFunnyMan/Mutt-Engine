@@ -15,7 +15,7 @@ import funkin.ui.states.TitleState;
 	public var fpsMode:String = 'Off';
 	public var debugBgOpacity:Float = 0.6;
 	public var flashing:Bool = true;
-	public var autoPause:Bool = true;
+	public var autoPause:Bool = false;
 	public var antialiasing:Bool = true;
 	public var canSkipVideos:Bool = true;
 	public var noteSkin:String = 'Default';
@@ -29,8 +29,9 @@ import funkin.ui.states.TitleState;
 	public var detailedRanking:Bool = false;
 	public var lowQuality:Bool = false;
 	public var shaders:Bool = true;
-	public var cacheOnGPU:Bool = #if !switch false #else true #end; // GPU Caching made by Raltyro
+	public var cacheOnGPU:Bool = true; // GPU Caching made by Raltyro
 	public var multithreadedCache:Bool = true;
+	public var streamSongs:Bool = true;
 	public var framerate:Int = 60;
 	public var camZooms:Bool = true;
 	public var hideHud:Bool = false;
@@ -47,12 +48,13 @@ import funkin.ui.states.TitleState;
 		[0xFFFF884E, 0xFFFFFAF5, 0xFF6C0000]];
 
 	public var ghostTapping:Bool = true;
+	public var inputSystem:String = 'Psych';
 	public var timeBarType:String = 'Time Left';
 	public var scoreZoom:Bool = true;
 	public var noReset:Bool = true;
 	public var healthBarAlpha:Float = 1;
 	public var hitsoundVolume:Float = 0;
-	public var pauseMusic:String = 'Tea Time';
+	public var pauseMusic:String = 'Breakfast';
 	public var checkForUpdates:Bool = true;
 	public var comboStacking:Bool = true;
 	public var gameplaySettings:Map<String, Dynamic> = [
@@ -88,16 +90,21 @@ import funkin.ui.states.TitleState;
 	public var loadingScreen:Bool = true;
 	public var developerMode:Bool = false;
 	public var disableSongResults:Bool = false;
+	public var resolution:String = 'Windowed';
+	public var vsync:Bool = false;
+	public var unlockedFramerate:Bool = false;
+	public var allowScreenshots:Bool = true;
+	public var hideMouse:Bool = true;
+	public var naughtyness:Bool = true;
+	public var subtitles:Bool = true;
 	public var language:String = 'en-US';
-	public var windowTheme:String = 'PC Theme';
-	public var windowColor:String = 'Default';
-	public var allowModWindowColor:Bool = true;
 	// CUSTOM SETTINGS!!!
 }
 
 class ClientPrefs {
 	public static var data:SaveVariables = {};
 	public static var defaultData:SaveVariables = {};
+	static final NOT_IN_MENU:Array<String> = ['hideHud', 'timeBarType', 'scoreZoom', 'healthBarAlpha', 'pauseMusic', 'hitsoundVolume', 'ratingOffset', 'sickWindow', 'goodWindow', 'badWindow', 'holdCoverAlpha', 'splashAlpha', 'strumlineBackgroundOpponent', 'useChartNoteSkins', 'detailedRanking', 'multithreadedCache'];
 
 	//Every key has two binds, add your key bind down here and then add your control on options/ControlsSubState.hx and Controls.hx
 	public static var keyBinds:Map<String, Array<FlxKey>> = [
@@ -198,7 +205,26 @@ class ClientPrefs {
 				Reflect.setField(data, key, Reflect.field(FlxG.save.data, key));
 
 		data.noteSkin = defaultData.noteSkin;
+		for (key in NOT_IN_MENU)
+			Reflect.setField(data, key, Reflect.field(defaultData, key));
 		data.splashSkin = defaultData.splashSkin;
+
+		if(FlxG.save.data.gpuCacheMigrated == null)
+		{
+			data.cacheOnGPU = true;
+			FlxG.save.data.cacheOnGPU = true;
+			FlxG.save.data.gpuCacheMigrated = true;
+		}
+
+		if(FlxG.save.data.autoPauseMigrated == null)
+		{
+			data.autoPause = false;
+			FlxG.save.data.autoPause = false;
+			FlxG.save.data.autoPauseMigrated = true;
+		}
+
+		if(FlxG.save.data.resolution == null && FlxG.save.data.fullscreen == true)
+			data.resolution = 'Fullscreen';
 
 		#if (!html5 && !switch)
 		FlxG.autoPause = ClientPrefs.data.autoPause;
@@ -209,16 +235,7 @@ class ClientPrefs {
 		}
 		#end
 
-		if(data.framerate > FlxG.drawFramerate)
-		{
-			FlxG.updateFramerate = data.framerate;
-			FlxG.drawFramerate = data.framerate;
-		}
-		else
-		{
-			FlxG.drawFramerate = data.framerate;
-			FlxG.updateFramerate = data.framerate;
-		}
+		funkin.backend.DisplaySettings.apply();
 
 		if(FlxG.save.data.gameplaySettings != null)
 		{

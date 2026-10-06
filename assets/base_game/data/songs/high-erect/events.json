@@ -4,9 +4,12 @@
 			0,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -17,16 +20,14 @@
 					"Kill Henchmen",
 					"",
 					""
-				]
-			]
-		],
-		[
-			3840,
-			[
+				],
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -34,9 +35,12 @@
 			11520,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -47,16 +51,14 @@
 					"Kill Henchmen",
 					"",
 					""
-				]
-			]
-		],
-		[
-			19200,
-			[
+				],
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -64,19 +66,12 @@
 			26880,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
-				]
-			]
-		],
-		[
-			34560,
-			[
-				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -87,6 +82,14 @@
 					"Kill Henchmen",
 					"",
 					""
+				],
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -94,19 +97,20 @@
 			42240,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
-				]
-			]
-		],
-		[
-			42360,
-			[
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.84",
+					"expo",
+					"Out",
+					"true"
+				],
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.84",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -114,9 +118,12 @@
 			45960,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"smoothStepInOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.84",
+					"smoothStep",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -124,9 +131,12 @@
 			46080,
 			[
 				[
-					"Target Camera",
-					0,
-					"60,0,32,smoothStepInOut"
+					"Cam Follow Pos",
+					"bf, 60, 0",
+					"3.84",
+					"smoothStep",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -134,9 +144,12 @@
 			48960,
 			[
 				[
-					"Zoom Camera",
-					"6,1.1",
-					"quadOut"
+					"Set Cam Zoom",
+					"0.99",
+					"0.72",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -144,9 +157,12 @@
 			49440,
 			[
 				[
-					"Zoom Camera",
-					"6,1.2",
-					"quadOut"
+					"Set Cam Zoom",
+					"1.08",
+					"0.72",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -154,9 +170,12 @@
 			49920,
 			[
 				[
-					"Zoom Camera",
-					"8,1",
-					"quadOut"
+					"Set Cam Zoom",
+					"0.9",
+					"0.96",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -164,9 +183,12 @@
 			50640,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -174,9 +196,12 @@
 			57600,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -187,16 +212,14 @@
 					"Kill Henchmen",
 					"",
 					""
-				]
-			]
-		],
-		[
-			65280,
-			[
+				],
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -204,19 +227,20 @@
 			72960,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
-				]
-			]
-		],
-		[
-			73080,
-			[
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.84",
+					"expo",
+					"Out",
+					"true"
+				],
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.84",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -224,9 +248,12 @@
 			76680,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"smoothStepInOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.84",
+					"smoothStep",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -234,9 +261,12 @@
 			76800,
 			[
 				[
-					"Target Camera",
-					0,
-					"60,0,32,smoothStepInOut"
+					"Cam Follow Pos",
+					"bf, 60, 0",
+					"3.84",
+					"smoothStep",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -244,19 +274,12 @@
 			79680,
 			[
 				[
-					"Zoom Camera",
-					"6,1.1",
-					"quadOut"
-				]
-			]
-		],
-		[
-			80160,
-			[
-				[
-					"Zoom Camera",
-					"6,1.2",
-					"quadOut"
+					"Set Cam Zoom",
+					"1.008",
+					"0.96",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -267,26 +290,22 @@
 					"Kill Henchmen",
 					"",
 					""
-				]
-			]
-		],
-		[
-			80640,
-			[
+				],
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
-				]
-			]
-		],
-		[
-			80760,
-			[
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.84",
+					"expo",
+					"Out",
+					"true"
+				],
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.84",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -294,19 +313,20 @@
 			84480,
 			[
 				[
-					"Target Camera",
-					2,
-					"-220,170,32,sineOut"
-				]
-			]
-		],
-		[
-			84600,
-			[
+					"Cam Follow Pos",
+					"gf, -220, 170",
+					"3.84",
+					"sine",
+					"Out",
+					"true"
+				],
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"sineOut"
+					"Set Cam Zoom",
+					"0.99",
+					"3.84",
+					"sine",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -314,19 +334,20 @@
 			88320,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
-				]
-			]
-		],
-		[
-			88440,
-			[
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.84",
+					"expo",
+					"Out",
+					"true"
+				],
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.84",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -334,19 +355,20 @@
 			92160,
 			[
 				[
-					"Target Camera",
-					2,
-					"90,120,32,sineOut"
-				]
-			]
-		],
-		[
-			92280,
-			[
+					"Cam Follow Pos",
+					"gf, 90, 120",
+					"3.84",
+					"sine",
+					"Out",
+					"true"
+				],
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"sineOut"
+					"Set Cam Zoom",
+					"0.99",
+					"3.84",
+					"sine",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -357,26 +379,22 @@
 					"Kill Henchmen",
 					"",
 					""
-				]
-			]
-		],
-		[
-			96000,
-			[
+				],
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
-				]
-			]
-		],
-		[
-			96120,
-			[
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.84",
+					"expo",
+					"Out",
+					"true"
+				],
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.84",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		]

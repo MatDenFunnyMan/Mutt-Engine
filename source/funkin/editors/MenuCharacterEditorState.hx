@@ -1,6 +1,7 @@
 package funkin.editors;
 
 import openfl.net.FileReference;
+import funkin.editors.content.FileDialogHandler.FileReferenceCustom;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import flash.net.FileFilter;
@@ -269,7 +270,7 @@ class MenuCharacterEditorState extends MusicBeatState implements PsychUIEventHan
 	var _file:FileReference = null;
 	function loadCharacter() {
 		var jsonFilter:FileFilter = new FileFilter('JSON', 'json');
-		_file = new FileReference();
+		_file = new FileReferenceCustom();
 		_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
 		_file.addEventListener(Event.CANCEL, onLoadCancel);
 		_file.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
@@ -344,7 +345,7 @@ class MenuCharacterEditorState extends MusicBeatState implements PsychUIEventHan
 			var splittedImage:Array<String> = imageInputText.text.trim().split('_');
 			var characterName:String = splittedImage[splittedImage.length-1].toLowerCase().replace(' ', '');
 
-			_file = new FileReference();
+			_file = new FileReferenceCustom();
 			_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onSaveComplete);
 			_file.addEventListener(Event.CANCEL, onSaveCancel);
 			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);

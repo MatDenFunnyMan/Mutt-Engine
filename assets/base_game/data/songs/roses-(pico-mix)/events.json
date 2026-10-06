@@ -1,0 +1,820 @@
+{
+	"events": [
+		[
+			0,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			125,
+			[
+				[
+					"Cam Bopping",
+					"4",
+					"1"
+				]
+			]
+		],
+		[
+			4000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			8000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			12000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			16000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			16875,
+			[
+				[
+					"Set Cam Zoom",
+					"1.1235",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			18000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 270, 16",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.84",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			19875,
+			[
+				[
+					"Cam Bopping",
+					"1",
+					"1"
+				]
+			]
+		],
+		[
+			20000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			24000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			26000,
+			[
+				[
+					"Set Cam Zoom",
+					"1.1235",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			28000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			32000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 270, 16",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.84",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			35875,
+			[
+				[
+					"Cam Bopping",
+					"2",
+					"1"
+				]
+			]
+		],
+		[
+			36000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			40000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 270, 16",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.84",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			44000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			48000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 270, 16",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.84",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			50000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			51000,
+			[
+				[
+					"Set Cam Zoom",
+					"1.1235",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			51500,
+			[
+				[
+					"Set Cam Zoom",
+					"1.176",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			51875,
+			[
+				[
+					"Cam Bopping",
+					"1",
+					"1"
+				]
+			]
+		],
+		[
+			52000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			56000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			57000,
+			[
+				[
+					"Set Cam Zoom",
+					"1.1235",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			57500,
+			[
+				[
+					"Set Cam Zoom",
+					"1.176",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			58000,
+			[
+				[
+					"Set Cam Zoom",
+					"1.1235",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			59000,
+			[
+				[
+					"Set Cam Zoom",
+					"1.176",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			59500,
+			[
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			59875,
+			[
+				[
+					"Cam Bopping",
+					"1",
+					"1.2"
+				]
+			]
+		],
+		[
+			60000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			64000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 270, 16",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.84",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			66000,
+			[
+				[
+					"Set Cam Zoom",
+					"0.945",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			67875,
+			[
+				[
+					"Cam Bopping",
+					"1",
+					"1"
+				]
+			]
+		],
+		[
+			68000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			72000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			75250,
+			[
+				[
+					"Set Cam Zoom",
+					"1.1235",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			76000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			78875,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 270, 16",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.84",
+					"4",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			80000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"4",
+					"quad",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"4",
+					"quad",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			83875,
+			[
+				[
+					"Cam Bopping",
+					"4",
+					"1.2"
+				]
+			]
+		],
+		[
+			84000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			85000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 270, 16",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.84",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			86000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			87000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 270, 16",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.84",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			88000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			89000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 270, 16",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.84",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			90000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1.05",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			91000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 270, 16",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.84",
+					"2",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			92125,
+			[
+				[
+					"Cam Bopping",
+					"4",
+					"0"
+				]
+			]
+		]
+	],
+	"format": "psych_v1_convert"
+}

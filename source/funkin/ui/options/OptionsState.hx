@@ -8,14 +8,13 @@ import flixel.FlxObject;
 class OptionsState extends MusicBeatState
 {
 	var options:Array<String> = [
-		'Note Colors',
+		'Preferences',
+		'Notes',
 		'Controls',
-		'Adjust Delay and Combo',
+		'Lag Adjustment',
 		'Graphics',
-		'Visuals',
 		'Gameplay',
-		'Developer'
-		#if TRANSLATIONS_ALLOWED , 'Language' #end
+		'Debug'
 	];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
@@ -30,32 +29,34 @@ class OptionsState extends MusicBeatState
 	private var camFollowPos:FlxObject;
 
 	function openSelectedSubstate(label:String) {
-		if (label != 'Adjust Delay and Combo')
-			funnyCam.visible = persistentUpdate = false;
+		funnyCam.visible = persistentUpdate = false;
 
 		switch(label)
 		{
-			case 'Note Colors':
-				SubStateManager.open(this, 'NotesColorSubState', () -> new funkin.ui.options.NotesColorSubState());
+			case 'Preferences':
+				SubStateManager.open(this, 'PreferencesSettingsSubState', () -> new funkin.ui.options.PreferencesSettingsSubState());
+			case 'Notes':
+				SubStateManager.open(this, 'NotesSettingsSubState', () -> new funkin.ui.options.NotesSettingsSubState());
 			case 'Controls':
 				SubStateManager.open(this, 'ControlsSubState', () -> new funkin.ui.options.ControlsSubState());
+			case 'Lag Adjustment':
+				SubStateManager.open(this, 'LagAdjustmentSubState', () -> new funkin.ui.options.LagAdjustmentSubState());
 			case 'Graphics':
 				SubStateManager.open(this, 'GraphicsSettingsSubState', () -> new funkin.ui.options.GraphicsSettingsSubState());
-			case 'Visuals':
-				SubStateManager.open(this, 'VisualsSettingsSubState', () -> new funkin.ui.options.VisualsSettingsSubState());
 			case 'Gameplay':
 				SubStateManager.open(this, 'GameplaySettingsSubState', () -> new funkin.ui.options.GameplaySettingsSubState());
-			case 'Adjust Delay and Combo':
-				MusicBeatState.switchState(new funkin.ui.options.NoteOffsetState());
-			case 'Developer':
-				SubStateManager.open(this, 'DeveloperSettingsSubState', () -> new funkin.ui.options.DeveloperSettingsSubState());
-			case 'Language':
-				SubStateManager.open(this, 'LanguageSubState', () -> new funkin.ui.options.LanguageSubState());
+			case 'Debug':
+				SubStateManager.open(this, 'DebugSettingsSubState', () -> new funkin.ui.options.DebugSettingsSubState());
 		}
 	}
 
 	var selectorLeft:Alphabet;
 	var selectorRight:Alphabet;
+	var flickering:Bool = false;
+
+	static inline final FLICKER_TIME:Float = 1;
+	static inline final FLICKER_INTERVAL:Float = 0.06;
+	static final FLICKER_OPTIONS:Array<String> = ['Lag Adjustment'];
 
 	override function create()
 	{
@@ -120,7 +121,7 @@ class OptionsState extends MusicBeatState
 
 	override function update(elapsed:Float) {
 		super.update(elapsed);
-		if(exiting) return;
+		if(exiting || flickering) return;
 
 		if (controls.UI_UP_P)
 			changeSelection(-1);
@@ -142,9 +143,25 @@ class OptionsState extends MusicBeatState
 			}
 			else StateManager.switchState('MainMenuState');
 		}
-		else if (controls.ACCEPT) openSelectedSubstate(options[curSelected]);
+		else if (controls.ACCEPT) selectOption(options[curSelected]);
 	}
 	
+	function selectOption(label:String)
+	{
+		if(!FLICKER_OPTIONS.contains(label))
+		{
+			openSelectedSubstate(label);
+			return;
+		}
+
+		flickering = true;
+		FlxG.sound.play(Paths.sound('confirmMenu'));
+		flixel.effects.FlxFlicker.flicker(grpOptions.members[curSelected], FLICKER_TIME, FLICKER_INTERVAL, true, false, (_) -> {
+			flickering = false;
+			openSelectedSubstate(label);
+		});
+	}
+
 	function changeSelection(change:Int = 0)
 	{
 		if(change != 0) FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);

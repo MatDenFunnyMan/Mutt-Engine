@@ -200,4 +200,14 @@ class BaseStage extends FlxBasic
 		return game.defaultCamZoom;
 	}
 	inline private function get_camFollow():FlxObject return game.camFollow;
+
+	public function camFollow_set(x:Float, y:Float) camFollow.setPosition(x, y);
+
+	function makeSolid(x:Float, y:Float, width:Int, height:Int, color:FlxColor):FlxSprite
+	{
+		var spr:FlxSprite = new FlxSprite(x, y).makeGraphic(1, 1, color);
+		spr.scale.set(width, height);
+		spr.updateHitbox();
+		return spr;
+	}
 }

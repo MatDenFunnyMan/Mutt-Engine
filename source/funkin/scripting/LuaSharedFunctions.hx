@@ -10,8 +10,10 @@ import Type.ValueType;
 
 class LuaSharedFunctions
 {
-	public static function registerFileAndSaveFunctions(lua:State)
+	public static function registerFileAndSaveFunctions(lua:State, ?onError:String->Void)
 	{
+		var report:String->Void = (onError != null) ? onError : function(msg:String) trace(msg);
+
 		Lua_helper.add_callback(lua, "getTextFromFile", function(path:String, ?ignoreModFolders:Bool = false) {
 			return Paths.getTextFromFile(path, ignoreModFolders);
 		});
@@ -25,7 +27,7 @@ class LuaSharedFunctions
 					File.saveContent(path, content);
 				return true;
 			} catch(e:Dynamic) {
-				trace('saveFile: Error trying to save ' + path + ': ' + e);
+				report('saveFile: Error trying to save ' + path + ': ' + e);
 			}
 			return false;
 		});
@@ -38,7 +40,7 @@ class LuaSharedFunctions
 					return true;
 				}
 			} catch(e:Dynamic) {
-				trace('deleteFile: Error trying to delete ' + path + ': ' + e);
+				report('deleteFile: Error trying to delete ' + path + ': ' + e);
 			}
 			return false;
 		});
@@ -66,7 +68,7 @@ class LuaSharedFunctions
 				variables.set('save_$name', save);
 				return;
 			}
-			trace('initSaveData: Save file already initialized: ' + name);
+			report('initSaveData: Save file already initialized: ' + name);
 		});
 		Lua_helper.add_callback(lua, "eraseSaveData", function(name:String) {
 			var variables = MusicBeatState.getVariables();
@@ -74,7 +76,7 @@ class LuaSharedFunctions
 				variables.get('save_$name').erase();
 				return;
 			}
-			trace('eraseSaveData: Save file not initialized: ' + name);
+			report('eraseSaveData: Save file not initialized: ' + name);
 		});
 		Lua_helper.add_callback(lua, "flushSaveData", function(name:String) {
 			var variables = MusicBeatState.getVariables();
@@ -82,7 +84,7 @@ class LuaSharedFunctions
 				variables.get('save_$name').flush();
 				return;
 			}
-			trace('flushSaveData: Save file not initialized: ' + name);
+			report('flushSaveData: Save file not initialized: ' + name);
 		});
 		Lua_helper.add_callback(lua, "getDataFromSave", function(name:String, field:String, ?defaultValue:Dynamic = null) {
 			var variables = MusicBeatState.getVariables();
@@ -93,7 +95,7 @@ class LuaSharedFunctions
 				else
 					return defaultValue;
 			}
-			trace('getDataFromSave: Save file not initialized: ' + name);
+			report('getDataFromSave: Save file not initialized: ' + name);
 			return defaultValue;
 		});
 		Lua_helper.add_callback(lua, "setDataFromSave", function(name:String, field:String, value:Dynamic) {
@@ -102,7 +104,7 @@ class LuaSharedFunctions
 				Reflect.setField(variables.get('save_$name').data, field, value);
 				return;
 			}
-			trace('setDataFromSave: Save file not initialized: ' + name);
+			report('setDataFromSave: Save file not initialized: ' + name);
 		});
 		Lua_helper.add_callback(lua, "getSave", function(key:String) {
 			if(FlxG.save.data != null) return Reflect.getProperty(FlxG.save.data, key);
@@ -270,6 +272,32 @@ class LuaSharedFunctions
 		});
 		Lua_helper.add_callback(lua, "doTweenAlpha", function(tag:String, vars:String, value:Dynamic, duration:Float, ?ease:String = 'linear') {
 			return tweenEngine(tag, vars, {alpha: value}, duration, ease, 'doTweenAlpha');
+		});
+		Lua_helper.add_callback(lua, "setCameraRotation", function(camera:String, angle:Float) {
+			funkin.game.PsychCamera.setRotation(LuaUtils.cameraFromString(camera), angle);
+		});
+		Lua_helper.add_callback(lua, "getCameraRotation", function(camera:String) {
+			return funkin.game.PsychCamera.getRotation(LuaUtils.cameraFromString(camera));
+		});
+		Lua_helper.add_callback(lua, "doTweenCameraRotation", function(tag:String, camera:String, angle:Float, duration:Float, ?ease:String = 'linear') {
+			if(funkin.game.states.PlayState.instance != null && funkin.game.states.PlayState.instance.skipInstantTweens) duration = 0.001;
+
+			var cam:FlxCamera = LuaUtils.cameraFromString(camera);
+			if(tag == null)
+			{
+				funkin.game.PsychCamera.tweenRotation(cam, angle, duration, LuaUtils.getTweenEaseByString(ease));
+				return null;
+			}
+
+			LuaUtils.cancelTween(tag);
+			var originalTag:String = tag;
+			var variables = MusicBeatState.getVariables();
+			tag = LuaUtils.formatVariable('tween_$tag');
+			variables.set(tag, funkin.game.PsychCamera.tweenRotation(cam, angle, duration, LuaUtils.getTweenEaseByString(ease), function(twn:FlxTween) {
+				variables.remove(tag);
+				notify('onTweenCompleted', [originalTag, camera]);
+			}));
+			return tag;
 		});
 		Lua_helper.add_callback(lua, "doTweenColor", function(tag:String, vars:String, targetColor:String, duration:Float, ?ease:String = 'linear') {
 			if(funkin.game.states.PlayState.instance != null && funkin.game.states.PlayState.instance.skipInstantTweens) duration = 0.001;

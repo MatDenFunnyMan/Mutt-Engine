@@ -4,9 +4,12 @@
 			0,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -14,9 +17,12 @@
 			1777,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -24,9 +30,12 @@
 			3777,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -34,9 +43,12 @@
 			7333,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -44,9 +56,12 @@
 			10888,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -54,9 +69,12 @@
 			14222,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -64,9 +82,12 @@
 			17777,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -74,9 +95,12 @@
 			21333,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -84,9 +108,12 @@
 			24888,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -94,9 +121,12 @@
 			28444,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -104,9 +134,12 @@
 			32222,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -114,9 +147,12 @@
 			35777,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -124,9 +160,12 @@
 			39111,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -137,16 +176,14 @@
 					"Kill Henchmen",
 					"",
 					""
-				]
-			]
-		],
-		[
-			39231,
-			[
+				],
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -154,19 +191,25 @@
 			42666,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"smoothStepInOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
 				]
 			]
 		],
 		[
-			42786,
+			42666.6666666667,
 			[
 				[
-					"Target Camera",
-					0,
-					"60,0,32,smoothStepInOut"
+					"Cam Follow Pos",
+					"bf, 60, 0",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -174,9 +217,12 @@
 			44444,
 			[
 				[
-					"Zoom Camera",
-					"6,1.1",
-					"quadOut"
+					"Set Cam Zoom",
+					"0.99",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -184,9 +230,12 @@
 			45333,
 			[
 				[
-					"Zoom Camera",
-					"6,1.2",
-					"quadOut"
+					"Set Cam Zoom",
+					"1.08",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -194,9 +243,12 @@
 			46222,
 			[
 				[
-					"Zoom Camera",
-					"8,1",
-					"quadOut"
+					"Set Cam Zoom",
+					"0.9",
+					"0.8889",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -204,9 +256,12 @@
 			47999,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.99",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -214,9 +269,12 @@
 			48888,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -224,9 +282,12 @@
 			51555,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.99",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -234,9 +295,12 @@
 			52444,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -244,19 +308,25 @@
 			53333,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
 		[
-			53453,
+			53333.3333333333,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -264,9 +334,12 @@
 			55111,
 			[
 				[
-					"Zoom Camera",
-					"32,1.05",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -274,9 +347,12 @@
 			55999,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -284,9 +360,12 @@
 			58666,
 			[
 				[
-					"Zoom Camera",
-					"32,1.05",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -294,9 +373,12 @@
 			59554,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -304,9 +386,12 @@
 			60444,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -314,9 +399,12 @@
 			60666,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -324,9 +412,12 @@
 			63999,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -334,9 +425,12 @@
 			65777,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.99",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -344,9 +438,12 @@
 			66666,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -354,9 +451,12 @@
 			67555,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -367,16 +467,14 @@
 					"Kill Henchmen",
 					"",
 					""
-				]
-			]
-		],
-		[
-			67675,
-			[
+				],
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -384,19 +482,25 @@
 			71110,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"smoothStepInOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
 				]
 			]
 		],
 		[
-			71230,
+			71111.1111111111,
 			[
 				[
-					"Target Camera",
-					0,
-					"60,0,32,smoothStepInOut"
+					"Cam Follow Pos",
+					"bf, 60, 0",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -404,9 +508,12 @@
 			72888,
 			[
 				[
-					"Zoom Camera",
-					"6,1.1",
-					"quadOut"
+					"Set Cam Zoom",
+					"0.99",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -414,9 +521,12 @@
 			73777,
 			[
 				[
-					"Zoom Camera",
-					"6,1.2",
-					"quadOut"
+					"Set Cam Zoom",
+					"1.08",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -424,9 +534,12 @@
 			74666,
 			[
 				[
-					"Zoom Camera",
-					"8,1",
-					"quadOut"
+					"Set Cam Zoom",
+					"0.9",
+					"0.8889",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -434,9 +547,12 @@
 			76444,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.99",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -444,9 +560,12 @@
 			78222,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -454,9 +573,12 @@
 			79999,
 			[
 				[
-					"Zoom Camera",
-					"32,1.05",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -464,9 +586,12 @@
 			80333,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.99",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -474,9 +599,12 @@
 			80888,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -484,19 +612,25 @@
 			81777,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
 		[
-			81897,
+			81777.7777777778,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -504,9 +638,12 @@
 			83555,
 			[
 				[
-					"Zoom Camera",
-					"32,1.05",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -514,9 +651,12 @@
 			85333,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -524,9 +664,12 @@
 			87111,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -534,9 +677,12 @@
 			87444,
 			[
 				[
-					"Zoom Camera",
-					"32,1.05",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -544,9 +690,12 @@
 			87999,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -554,9 +703,12 @@
 			90666,
 			[
 				[
-					"Zoom Camera",
-					"32,1.05",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -564,9 +716,12 @@
 			91554,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -574,19 +729,25 @@
 			92444,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"smoothStepInOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
 				]
 			]
 		],
 		[
-			92564,
+			92444.4444444444,
 			[
 				[
-					"Target Camera",
-					0,
-					"60,0,32,smoothStepInOut"
+					"Cam Follow Pos",
+					"bf, 60, 0",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -594,9 +755,12 @@
 			94222,
 			[
 				[
-					"Zoom Camera",
-					"6,1.1",
-					"quadOut"
+					"Set Cam Zoom",
+					"0.99",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -604,9 +768,12 @@
 			94666,
 			[
 				[
-					"Zoom Camera",
-					"6,1.2",
-					"quadOut"
+					"Set Cam Zoom",
+					"1.08",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -614,9 +781,12 @@
 			95111,
 			[
 				[
-					"Zoom Camera",
-					"6,1.3",
-					"quadOut"
+					"Set Cam Zoom",
+					"1.17",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -624,19 +794,25 @@
 			95999,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,210,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
 		[
-			96119,
+			96000,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -644,9 +820,12 @@
 			97777,
 			[
 				[
-					"Zoom Camera",
-					"32,1.05",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -654,9 +833,12 @@
 			98665,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -664,9 +846,12 @@
 			101333,
 			[
 				[
-					"Zoom Camera",
-					"32,1.05",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -674,9 +859,12 @@
 			102221,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -684,19 +872,25 @@
 			103111,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
 		[
-			103166,
+			103111.111111111,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -704,9 +898,12 @@
 			104888,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -714,9 +911,12 @@
 			106666,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -724,9 +924,12 @@
 			108444,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		]

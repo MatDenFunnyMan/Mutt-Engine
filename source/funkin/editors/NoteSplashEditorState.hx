@@ -10,6 +10,7 @@ import flixel.input.keyboard.FlxKey;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.net.FileReference;
+import funkin.editors.content.FileDialogHandler.FileReferenceCustom;
 import haxe.Json;
 
 @:access(funkin.game.notes.NoteSplash)
@@ -777,7 +778,7 @@ class NoteSplashEditorState extends MusicBeatState
         var data:String = Json.stringify(config, "\t");
         if (data.length > 0)
         {
-            _file = new FileReference();
+            _file = new FileReferenceCustom();
             _file.addEventListener(Event.COMPLETE, onSaveComplete);
             _file.addEventListener(Event.CANCEL, onSaveCancel);
             _file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
@@ -788,7 +789,7 @@ class NoteSplashEditorState extends MusicBeatState
     public function loadTxt()
     {
         var jsonFilter:FileFilter = new FileFilter('Select a note splash TXT', '*.txt');
-        _file = new FileReference();
+        _file = new FileReferenceCustom();
         _file.addEventListener(Event.SELECT, onLoadComplete);
         _file.addEventListener(Event.CANCEL, onLoadCancel);
         _file.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
@@ -815,7 +816,7 @@ class NoteSplashEditorState extends MusicBeatState
             }
 
             var conf = parseTxt(txt);
-            _file = new FileReference();
+            _file = new FileReferenceCustom();
             _file.addEventListener(Event.COMPLETE, onSaveComplete);
             _file.addEventListener(Event.CANCEL, onSaveCancel);
             _file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);

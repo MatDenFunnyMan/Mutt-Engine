@@ -109,22 +109,14 @@ class MainMenuState extends MusicBeatState
 			rightItem.x -= rightItem.width;
 		}
 
-		var tabText:FlxText = new FlxText(12, FlxG.height - 84, 0, "Press TAB to open the MODS selector.", 12);
-		tabText.scrollFactor.set();
-		tabText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(tabText);
-		var muttVer:FlxText = new FlxText(12, FlxG.height - 64, 0, "Mutt Engine v" + muttEngineVersion, 12);
+		var muttVer:FlxText = new FlxText(12, FlxG.height - 44, 0, muttEngineVersion, 12);
 		muttVer.scrollFactor.set();
 		muttVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(muttVer);
-		var rtRap26:FlxText = new FlxText(12, FlxG.height - 44, 0, "FNF Psych Engine 1.0.4", 12);
-		rtRap26.scrollFactor.set();
-		rtRap26.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(rtRap26);
-		var fnfVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Friday Night Funkin' v" + Application.current.meta.get('version'), 12);
-		fnfVer.scrollFactor.set();
-		fnfVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(fnfVer);
+		var psychVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Psych Engine 1.0.4", 12);
+		psychVer.scrollFactor.set();
+		psychVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(psychVer);
 		changeItem();
 
 		#if ACHIEVEMENTS_ALLOWED

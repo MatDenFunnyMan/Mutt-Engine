@@ -107,6 +107,7 @@
 		350
 	],
 	"healthicon": "bf-pixel",
+	"pause_music": "breakfast-(pixel)",
 	"flip_x": true,
 	"healthbar_colors": [
 		123,

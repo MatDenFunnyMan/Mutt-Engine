@@ -175,6 +175,22 @@
 			"anim": "hey",
 			"loop": false,
 			"name": "Pico HEY!!"
+		},
+		{
+			"offsets": [37, -1],
+			"loop": false,
+			"fps": 24,
+			"anim": "cheer",
+			"indices": [],
+			"name": "Pico YEAH cheer"
+		},
+		{
+			"offsets": [33, -3],
+			"loop": false,
+			"fps": 24,
+			"anim": "burpShit",
+			"indices": [],
+			"name": "burpshit"
 		}
 	],
 	"vocals_file": "",
@@ -182,6 +198,7 @@
 	"image": "characters/pico-erect, characters/picoAnims/Pico_Intro, characters/picoAnims/Pico_Shooting",
 	"position": [0, 300],
 	"healthicon": "pico",
+	"pause_music": "breakfast-(pico)",
 	"flip_x": true,
 	"healthbar_colors": [183, 216, 85],
 	"camera_position": [200, 40],

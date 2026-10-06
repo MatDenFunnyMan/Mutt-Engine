@@ -163,6 +163,7 @@ class Song
 		}
 		loadedSongName = folder;
 		chartPath = _lastPath;
+		modcharting.ModchartFile.editorData = null;
 		#if windows
 		// prevent any saving errors by fixing the path on Windows (being the only OS to ever use backslashes instead of forward slashes for paths)
 		chartPath = chartPath.replace('/', '\\');
@@ -171,62 +172,47 @@ class Song
 		return PlayState.SONG;
 	}
 
-		static var _lastPath:String;
-	public static function getChart(jsonInput:String, ?folder:String):SwagSong
+	static var _lastPath:String;
+	public static function findChartPath(jsonInput:String, ?folder:String):String
 	{
 		if(folder == null) folder = jsonInput;
-		var rawData:String = null;
-		
+
 		var formattedFolder:String = Paths.formatToSongPath(folder);
 		var formattedSong:String = Paths.formatToSongPath(jsonInput);
-		
+
 		#if MODS_ALLOWED
 		var newPath0:String = Paths.json('songs/$formattedFolder/charts/$formattedSong');
-		if(FileSystem.exists(newPath0))
-		{
-			_lastPath = newPath0;
-			rawData = File.getContent(_lastPath);
-			return rawData != null ? parseJSON(rawData, jsonInput) : null;
-		}
-		
-		var newPathRoot:String = Paths.json('songs/$formattedFolder/$formattedSong');
-		if(FileSystem.exists(newPathRoot))
-		{
-			_lastPath = newPathRoot;
-			rawData = File.getContent(_lastPath);
-			return rawData != null ? parseJSON(rawData, jsonInput) : null;
-		}
-		
-		var newPath1:String = Paths.json('$formattedFolder/charts/$formattedSong');
-		if(FileSystem.exists(newPath1))
-		{
-			_lastPath = newPath1;
-			rawData = File.getContent(_lastPath);
-			return rawData != null ? parseJSON(rawData, jsonInput) : null;
-		}
-		
-		var newPath2:String = Paths.json('$formattedFolder/chart/$formattedSong');
-		if(FileSystem.exists(newPath2))
-		{
-			_lastPath = newPath2;
-			rawData = File.getContent(_lastPath);
-			return rawData != null ? parseJSON(rawData, jsonInput) : null;
-		}
-		#end
-		
-		_lastPath = Paths.json('$formattedFolder/$formattedSong');
+		if(FileSystem.exists(newPath0)) return newPath0;
 
+		var newPathRoot:String = Paths.json('songs/$formattedFolder/$formattedSong');
+		if(FileSystem.exists(newPathRoot)) return newPathRoot;
+
+		var newPath1:String = Paths.json('$formattedFolder/charts/$formattedSong');
+		if(FileSystem.exists(newPath1)) return newPath1;
+
+		var newPath2:String = Paths.json('$formattedFolder/chart/$formattedSong');
+		if(FileSystem.exists(newPath2)) return newPath2;
+		#end
+
+		var path:String = Paths.json('$formattedFolder/$formattedSong');
+		#if MODS_ALLOWED
+		if(FileSystem.exists(path)) return path;
+		#end
+		return Assets.exists(path) ? path : null;
+	}
+
+	public static function getChart(jsonInput:String, ?folder:String):SwagSong
+	{
+		_lastPath = findChartPath(jsonInput, folder);
+		if(_lastPath == null) return null;
+
+		var rawData:String = null;
 		#if MODS_ALLOWED
 		if(FileSystem.exists(_lastPath))
 			rawData = File.getContent(_lastPath);
 		else
 		#end
-		{
-			if(Assets.exists(_lastPath))
-				rawData = Assets.getText(_lastPath);
-			else
-				return null;
-		}
+		rawData = Assets.getText(_lastPath);
 
 		return rawData != null ? parseJSON(rawData, jsonInput) : null;
 	}

@@ -99,7 +99,7 @@ class FunkinLuaScript extends FunkinScript
 	{
 		lua = LuaL.newstate();
 		LuaL.openlibs(lua);
-		LuaSharedFunctions.registerFileAndSaveFunctions(lua);
+		LuaSharedFunctions.registerFileAndSaveFunctions(lua, scriptTrace);
 
 		set('Function_Stop', LuaUtils.Function_Stop);
 		set('Function_Continue', LuaUtils.Function_Continue);
@@ -120,11 +120,13 @@ class FunkinLuaScript extends FunkinScript
 			var resultStr:String = Lua.tostring(lua, result);
 			if(resultStr != null && result != 0) {
 				trace('$traceLabel: Error loading $path\n$resultStr');
+				onScriptError('Error loading $path\n$resultStr', true);
 				lua = null;
 				return false;
 			}
 		} catch(e:Dynamic) {
 			trace('$traceLabel: Exception loading $path: $e');
+			onScriptError('Exception loading $path: $e', true);
 			lua = null;
 			return false;
 		}
@@ -165,6 +167,7 @@ class FunkinLuaScript extends FunkinScript
 				var error:String = Lua.tostring(lua, -1);
 				Lua.pop(lua, 1);
 				trace('$traceLabel error in $func: $error');
+				onScriptError('ERROR ($func): $error', false);
 				return LuaUtils.Function_Continue;
 			}
 			var result:Dynamic = cast Convert.fromLua(lua, -1);
@@ -173,9 +176,12 @@ class FunkinLuaScript extends FunkinScript
 			return result;
 		} catch(e:Dynamic) {
 			trace('$traceLabel exception in $func: $e');
+			onScriptError('ERROR ($func): $e', false);
 		}
 		return LuaUtils.Function_Continue;
 	}
+
+	function onScriptError(message:String, isLoadError:Bool):Void {}
 
 	override public function stop():Void
 	{

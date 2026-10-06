@@ -38,8 +38,8 @@ class NativeAudioSource {
 
 	public static var STREAM_BUFFER_SAMPLES:Int = 0x2000; // how much buffers will be generating every frequency (doesnt have to be pow of 2?).
 	public static var STREAM_MIN_BUFFERS:Int = 2; // how much buffers can a stream hold on minimum or starting.
-	public static var STREAM_MAX_BUFFERS:Int = 8; // how much limit of a buffers can be used for streamed audios, must be higher than minimum.
-	public static var STREAM_MAX_FLUSH_BUFFERS:Int = 3; // how much buffers can it play.
+	public static var STREAM_MAX_BUFFERS:Int = 12; // how much limit of a buffers can be used for streamed audios, must be higher than minimum.
+	public static var STREAM_MAX_FLUSH_BUFFERS:Int = 6; // how much buffers can it play.
 	public static var STREAM_PROCESS_BUFFERS:Int = 2; // how much buffers can be processed in a frequency tick.
 	public static var POOL_MAX_BUFFERS:Int = 32; // how much buffers for the pool to hold.
 
@@ -542,6 +542,7 @@ class NativeAudioSource {
 		}
 		else {
 			wasEmpty = false;
+			if (streamTimer != null && streamTimer.mTime > 0) streamTimer = resetTimer(streamTimer, 0, streamUpdate);
 			if (threadRunning || (threadRunning = (streamThread = Thread.create(streamThreadRun)) != null)) 
 				streamThread.sendMessage(1);
 		}
@@ -665,12 +666,13 @@ class NativeAudioSource {
 
 		var time = AL.getSourcef(source, AL.SEC_OFFSET);
 		if (streamed) {
-			if (playing && streamEnded && AL.getSourcei(source, AL.SOURCE_STATE) == AL.STOPPED) {
-				complete();
+			if (playing && streamEnded && AL.getSourcei(source, AL.SOURCE_STATE) == AL.STOPPED)
 				return getLength();
+			else if (bufferTimes != null) {
+				streamMutex.acquire();
+				time = AL.getSourcef(source, AL.SEC_OFFSET) + bufferTimes[STREAM_MAX_BUFFERS - requestBuffers];
+				streamMutex.release();
 			}
-			else if (bufferTimes != null)
-				time += bufferTimes[STREAM_MAX_BUFFERS - requestBuffers];
 		}
 		time *= 1000;
 

@@ -185,6 +185,22 @@ class HScript extends Iris
 		set('FlxText', flixel.text.FlxText);
 		set('FlxCamera', flixel.FlxCamera);
 		set('PsychCamera', funkin.game.PsychCamera);
+		set('PlayfieldRenderer', modcharting.PlayfieldRenderer);
+		set('ModchartUtil', modcharting.ModchartUtil);
+		set('Modifier', modcharting.Modifier);
+		set('NoteMovement', modcharting.NoteMovement);
+		set('NotePositionData', modcharting.NotePositionData);
+		set('ModchartFile', modcharting.ModchartFile);
+		set('setCameraRotation', function(camera:Dynamic, angle:Float) {
+			funkin.game.PsychCamera.setRotation(hscriptCamera(camera), angle);
+		});
+		set('getCameraRotation', function(camera:Dynamic) {
+			return funkin.game.PsychCamera.getRotation(hscriptCamera(camera));
+		});
+		set('tweenCameraRotation', function(camera:Dynamic, angle:Float, duration:Float, ?ease:Dynamic, ?onComplete:FlxTween->Void) {
+			var easeFunc:flixel.tweens.FlxEase.EaseFunction = (ease is String) ? LuaUtils.getTweenEaseByString(ease) : ease;
+			return funkin.game.PsychCamera.tweenRotation(hscriptCamera(camera), angle, duration, easeFunc, onComplete);
+		});
 		set('FlxTimer', flixel.util.FlxTimer);
 		set('FlxTween', HScriptTweenCompat);
 		set('FlxEase', flixel.tweens.FlxEase);
@@ -687,6 +703,12 @@ class HScript extends Iris
 	public function getPosInfos():Dynamic
 	{
 		return interp.posInfos();
+	}
+
+	static function hscriptCamera(camera:Dynamic):FlxCamera
+	{
+		if(camera is FlxCamera) return camera;
+		return LuaUtils.cameraFromString(Std.string(camera));
 	}
 
 	function set_varsToBring(values:Any) {

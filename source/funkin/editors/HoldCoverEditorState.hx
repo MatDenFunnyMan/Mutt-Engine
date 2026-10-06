@@ -9,6 +9,7 @@ import flixel.input.keyboard.FlxKey;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.net.FileReference;
+import funkin.editors.content.FileDialogHandler.FileReferenceCustom;
 import haxe.Json;
 import funkin.graphics.shaders.RGBPalette.RGBShaderReference;
 import funkin.game.notes.Note;
@@ -595,7 +596,7 @@ class HoldCoverEditorState extends MusicBeatState
         var data:String = Json.stringify(out, "\t");
         if (data.length > 0)
         {
-            _file = new FileReference();
+            _file = new FileReferenceCustom();
             _file.addEventListener(Event.COMPLETE, onSaveComplete);
             _file.addEventListener(Event.CANCEL, onSaveCancel);
             _file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
@@ -606,7 +607,7 @@ class HoldCoverEditorState extends MusicBeatState
     function loadConfig()
     {
         var jsonFilter:FileFilter = new FileFilter('Hold Cover JSON', '*.json');
-        _file = new FileReference();
+        _file = new FileReferenceCustom();
         _file.addEventListener(Event.SELECT, onLoadSelect);
         _file.addEventListener(Event.CANCEL, onLoadCancel);
         _file.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);

@@ -4,9 +4,12 @@
 			0,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -14,9 +17,12 @@
 			2526.31578947368,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -24,9 +30,12 @@
 			5052.63157894737,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -34,9 +43,12 @@
 			7578.94736842105,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -44,9 +56,12 @@
 			10105.2631578947,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -54,9 +69,12 @@
 			15157.8947368421,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -64,9 +82,9 @@
 			20131.5789473684,
 			[
 				[
-					"Set Camera Bopping",
-					2,
-					1.1
+					"Cam Bopping",
+					"2",
+					"1.1"
 				]
 			]
 		],
@@ -77,16 +95,14 @@
 					"Dadbattle Spotlight",
 					"1",
 					"2"
-				]
-			]
-		],
-		[
-			20210.5263157895,
-			[
+				],
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -94,9 +110,12 @@
 			24000,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -104,9 +123,9 @@
 			25184.2105263158,
 			[
 				[
-					"Set Camera Bopping",
-					2,
-					1.2
+					"Cam Bopping",
+					"2",
+					"1.2"
 				]
 			]
 		],
@@ -124,9 +143,9 @@
 			30236.8421052632,
 			[
 				[
-					"Set Camera Bopping",
-					1,
-					1.3
+					"Cam Bopping",
+					"1",
+					"1.3"
 				]
 			]
 		],
@@ -134,9 +153,12 @@
 			30315.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -144,9 +166,9 @@
 			35289.4736842105,
 			[
 				[
-					"Set Camera Bopping",
-					1,
-					1.4
+					"Cam Bopping",
+					"1",
+					"1.4"
 				]
 			]
 		],
@@ -154,9 +176,12 @@
 			35368.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1.2",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.2",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -164,9 +189,9 @@
 			37815.7894736842,
 			[
 				[
-					"Set Camera Bopping",
-					1,
-					1.5
+					"Cam Bopping",
+					"1",
+					"1.5"
 				]
 			]
 		],
@@ -174,9 +199,12 @@
 			37894.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1.3",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.3",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -184,9 +212,12 @@
 			39157.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1.35",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.35",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -194,19 +225,9 @@
 			40342.1052631579,
 			[
 				[
-					"Set Camera Bopping",
-					1,
-					1.2
-				]
-			]
-		],
-		[
-			40421.0526315789,
-			[
-				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Bopping",
+					"1",
+					"1.2"
 				]
 			]
 		],
@@ -217,16 +238,22 @@
 					"Dadbattle Spotlight",
 					"0",
 					"expoOut"
-				]
-			]
-		],
-		[
-			40460.7894736842,
-			[
+				],
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -234,19 +261,25 @@
 			41368,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,30,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -100, 30",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
 		[
-			41398,
+			41368.4210526316,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.95",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -254,9 +287,12 @@
 			45473,
 			[
 				[
-					"Target Camera",
-					2,
-					"-20,30,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -20, 30",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -277,26 +313,22 @@
 					"Dadbattle Spotlight",
 					"3",
 					"expoOut"
-				]
-			]
-		],
-		[
-			49263.1578947368,
-			[
+				],
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
-				]
-			]
-		],
-		[
-			49302.6315789474,
-			[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -304,9 +336,9 @@
 			55500,
 			[
 				[
-					"Set Camera Bopping",
-					1,
-					1.3
+					"Cam Bopping",
+					"1",
+					"1.3"
 				]
 			]
 		],
@@ -314,9 +346,12 @@
 			55578.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -324,9 +359,12 @@
 			58263.1578947368,
 			[
 				[
-					"Zoom Camera",
-					"32,1.2",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.2",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -334,9 +372,12 @@
 			59368.4210526316,
 			[
 				[
-					"Zoom Camera",
-					"32,1.3",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.3",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -344,9 +385,12 @@
 			60315.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"8,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.1",
+					"0.6316",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -354,9 +398,9 @@
 			60552.6315789474,
 			[
 				[
-					"Set Camera Bopping",
-					1,
-					1.2
+					"Cam Bopping",
+					"1",
+					"1.2"
 				]
 			]
 		],
@@ -364,9 +408,12 @@
 			60631,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,30,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -100, 30",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -377,16 +424,14 @@
 					"Dadbattle Spotlight",
 					"0",
 					""
-				]
-			]
-		],
-		[
-			60661,
-			[
+				],
 				[
-					"Zoom Camera",
-					"32,0.9",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -394,9 +439,12 @@
 			63157,
 			[
 				[
-					"Target Camera",
-					2,
-					"-20,30,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -20, 30",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -404,9 +452,12 @@
 			65684,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,30,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -100, 30",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -414,9 +465,12 @@
 			68210,
 			[
 				[
-					"Target Camera",
-					2,
-					"-20,30,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -20, 30",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -424,9 +478,12 @@
 			70736,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,30,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -100, 30",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -434,9 +491,9 @@
 			75710.5263157895,
 			[
 				[
-					"Set Camera Bopping",
-					1,
-					1.3
+					"Cam Bopping",
+					"1",
+					"1.3"
 				]
 			]
 		],
@@ -444,19 +501,25 @@
 			75789.1578947368,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
 		[
-			75828.6315789474,
+			75789.4736842105,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -464,9 +527,12 @@
 			78315.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -474,9 +540,12 @@
 			79578.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1.2",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.2",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -484,9 +553,12 @@
 			80210.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,0.9",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -494,9 +566,9 @@
 			80763.1578947368,
 			[
 				[
-					"Set Camera Bopping",
-					1,
-					1.2
+					"Cam Bopping",
+					"1",
+					"1.2"
 				]
 			]
 		],
@@ -504,9 +576,12 @@
 			80842.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -514,9 +589,12 @@
 			85894.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,0.9",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -524,9 +602,12 @@
 			90947.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -534,9 +615,12 @@
 			96000.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -544,9 +628,12 @@
 			98526.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1.2",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.2",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -554,9 +641,12 @@
 			99473.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -564,9 +654,12 @@
 			99789.7894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,1.3",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.3",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -574,9 +667,12 @@
 			100736.789473684,
 			[
 				[
-					"Zoom Camera",
-					"32,1.2",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.2",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -584,9 +680,12 @@
 			101052.789473684,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -594,9 +693,12 @@
 			103578.789473684,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -604,9 +706,12 @@
 			103894.789473684,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -614,9 +719,12 @@
 			106105.789473684,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -624,9 +732,12 @@
 			106421.789473684,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -634,19 +745,38 @@
 			111157,
 			[
 				[
-					"Target Camera",
-					2,
-					"-100,30,32,expoOut"
+					"Cam Follow Pos",
+					"gf, -100, 30",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
 		[
-			111187,
+			111157.894736842,
 			[
 				[
-					"Zoom Camera",
-					"32,0.9",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			116210.526315789,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -654,19 +784,12 @@
 			116210.951219512,
 			[
 				[
-					"Zoom Camera",
-					"32,0.95",
-					"expoOut"
-				]
-			]
-		],
-		[
-			116250.634146342,
-			[
-				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Set Cam Zoom",
+					"0.95",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -674,9 +797,12 @@
 			118736.951219512,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -684,9 +810,12 @@
 			119684.951219512,
 			[
 				[
-					"Zoom Camera",
-					"32,0.9",
-					"expoOut"
+					"Set Cam Zoom",
+					"0.9",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -694,9 +823,12 @@
 			120000.951219512,
 			[
 				[
-					"Zoom Camera",
-					"32,1.1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1.1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -704,9 +836,12 @@
 			120947.951219512,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -714,9 +849,9 @@
 			121184.361445783,
 			[
 				[
-					"Set Camera Bopping",
-					4,
-					1
+					"Cam Bopping",
+					"4",
+					"1"
 				]
 			]
 		],
@@ -724,19 +859,25 @@
 			121262.789473684,
 			[
 				[
-					"Zoom Camera",
-					"32,1",
-					"expoOut"
+					"Set Cam Zoom",
+					"1",
+					"2.5263",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
 		[
-			121302.634146342,
+			121263.157894737,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -744,9 +885,12 @@
 			123789.634146342,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -754,9 +898,12 @@
 			126315.634146342,
 			[
 				[
-					"Target Camera",
-					1,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		],
@@ -764,9 +911,12 @@
 			128842.634146342,
 			[
 				[
-					"Target Camera",
-					0,
-					"0,0,4,CLASSIC"
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		]

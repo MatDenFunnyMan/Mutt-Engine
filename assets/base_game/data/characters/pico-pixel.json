@@ -101,6 +101,7 @@
 	"image": "characters_pixel/picoPixel/picoPixel",
 	"position": [0, 350],
 	"healthicon": "pico-pixel",
+	"pause_music": "breakfast-(pixel)",
 	"flip_x": true,
 	"healthbar_colors": [136, 255, 88],
 	"camera_position": [50, -60],

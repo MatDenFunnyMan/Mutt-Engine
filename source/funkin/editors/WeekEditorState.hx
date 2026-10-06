@@ -4,6 +4,7 @@ import funkin.data.WeekData;
 
 import openfl.utils.Assets;
 import openfl.net.FileReference;
+import funkin.editors.content.FileDialogHandler.FileReferenceCustom;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import flash.net.FileFilter;
@@ -426,7 +427,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 	private static var _file:FileReference;
 	public static function loadWeek() {
 		var jsonFilter:FileFilter = new FileFilter('JSON', 'json');
-		_file = new FileReference();
+		_file = new FileReferenceCustom();
 		_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
 		_file.addEventListener(Event.CANCEL, onLoadCancel);
 		_file.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
@@ -499,7 +500,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		var data:String = haxe.Json.stringify(weekFile, "\t");
 		if (data.length > 0)
 		{
-			_file = new FileReference();
+			_file = new FileReferenceCustom();
 			_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onSaveComplete);
 			_file.addEventListener(Event.CANCEL, onSaveCancel);
 			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);

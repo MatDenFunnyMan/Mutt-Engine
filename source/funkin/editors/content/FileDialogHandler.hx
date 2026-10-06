@@ -179,10 +179,34 @@ class FileReferenceCustom extends FileReference
 {
 	@:allow(funkin.editors.content.FileDialogHandler)
 	var _trackSavedPath:String;
+	static var lastSaveFolder:String = null;
 	override function saveFileDialog_onSelect(path:String):Void
 	{
 		_trackSavedPath = path;
+		if(path != null && path.length > 0) lastSaveFolder = haxe.io.Path.directory(path);
 		super.saveFileDialog_onSelect(path);
+	}
+
+	override public function save(data:Dynamic, defaultFileName:String = null):Void
+	{
+		super.save(data, inSaveFolder(defaultFileName));
+	}
+
+	public static function inSaveFolder(fileName:String):String
+	{
+		#if sys
+		if(fileName == null) fileName = '';
+		if(haxe.io.Path.isAbsolute(fileName) || haxe.io.Path.directory(fileName).length > 0) return fileName;
+
+		var folder:String = (lastSaveFolder != null) ? lastSaveFolder : haxe.io.Path.directory(Sys.programPath());
+		var path:String = haxe.io.Path.join([folder, fileName]);
+		#if windows
+		path = path.replace('/', '\\');
+		#end
+		return path;
+		#else
+		return fileName;
+		#end
 	}
 	
 	public function browseEx(browseType:FileDialogType = OPEN, ?defaultName:String, ?title:String = null, ?typeFilter:Array<FileFilter> = null):Bool

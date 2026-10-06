@@ -82,14 +82,24 @@ class CoolUtil
 		return Math.floor(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
 	}
 
+	public static function makeSolid(sprite:FlxSprite, width:Float, height:Float, color:FlxColor):FlxSprite
+	{
+		sprite.makeGraphic(1, 1, color);
+		sprite.scale.set(width, height);
+		sprite.updateHitbox();
+		return sprite;
+	}
+
 	inline public static function dominantColor(sprite:flixel.FlxSprite):Int
 	{
 		var countByColor:Map<Int, Int> = [];
+		var pixels:openfl.display.BitmapData = Paths.readablePixels(sprite.graphic);
+		if(pixels == null) return FlxColor.BLACK;
 		for(col in 0...sprite.frameWidth)
 		{
 			for(row in 0...sprite.frameHeight)
 			{
-				var colorOfThisPixel:FlxColor = sprite.pixels.getPixel32(col, row);
+				var colorOfThisPixel:FlxColor = pixels.getPixel32(col, row);
 				if(colorOfThisPixel.alphaFloat > 0.05)
 				{
 					colorOfThisPixel = FlxColor.fromRGB(colorOfThisPixel.red, colorOfThisPixel.green, colorOfThisPixel.blue, 255);

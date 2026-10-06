@@ -2,40 +2,40 @@
 	"animations": [
 		{
 			"offsets": [
-				37,
-				11
+				48,
+				94
 			],
 			"loop": false,
 			"fps": 24,
 			"anim": "firstDeath",
 			"indices": [],
-			"name": "BF dies"
+			"name": "Death Intro"
 		},
 		{
 			"offsets": [
-				37,
-				5
+				48,
+				94
 			],
 			"loop": true,
 			"fps": 24,
 			"anim": "deathLoop",
 			"indices": [],
-			"name": "BF Dead Loop"
+			"name": "Death Loop"
 		},
 		{
 			"offsets": [
-				37,
-				69
+				48,
+				94
 			],
 			"loop": false,
 			"fps": 24,
 			"anim": "deathConfirm",
 			"indices": [],
-			"name": "BF Dead confirm"
+			"name": "Death Confirm"
 		}
 	],
 	"no_antialiasing": false,
-	"image": "characters/BOYFRIEND_DEAD",
+	"image": "characters/bf-death",
 	"position": [
 		0,
 		350
@@ -48,8 +48,8 @@
 		209
 	],
 	"camera_position": [
-		0,
-		0
+		-29.0,
+		-48.5
 	],
 	"sing_duration": 4,
 	"scale": 1

@@ -1,0 +1,369 @@
+{
+	"events": [
+		[
+			0,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			5454.54545454545,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			10909.0909090909,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			13636.3636363636,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			16363.6363636364,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			19090.9090909091,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			21818.1818181818,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			24545.4545454545,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			27272.7272727273,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			30000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			32727.2727272727,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			38181.8181818182,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			43636.3636363636,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			49090.9090909091,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			54545.4545454545,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			60000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			65454.5454545454,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			68181.8181818182,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			70909.0909090909,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			73636.3636363636,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			76363.6363636364,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			81818.1818181818,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			87272.7272727273,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			92727.2727272727,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			98181.8181818182,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			100909.090909091,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			103636.363636364,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			106363.636363636,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 0, 0",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		]
+	],
+	"format": "psych_v1"
+}

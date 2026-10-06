@@ -167,7 +167,10 @@ class FunkinLua extends FunkinLuaScript {
 		set('downscroll', ClientPrefs.data.downScroll);
 		set('middlescroll', ClientPrefs.data.middleScroll);
 		set('framerate', ClientPrefs.data.framerate);
-		set('ghostTapping', ClientPrefs.data.ghostTapping);
+		set('ghostTapping', funkin.game.InputSystem.ghostTapping());
+		set('inputSystem', funkin.game.InputSystem.current);
+		set('naughtyness', ClientPrefs.data.naughtyness);
+		set('subtitles', ClientPrefs.data.subtitles);
 		set('hideHud', ClientPrefs.data.hideHud);
 		set('timeBarType', ClientPrefs.data.timeBarType);
 		set('scoreZoom', ClientPrefs.data.scoreZoom);
@@ -357,11 +360,25 @@ class FunkinLua extends FunkinLuaScript {
 			#end
 		});
 
-		Lua_helper.add_callback(lua, "loadSong", function(?name:String = null, ?difficultyNum:Int = -1) {
+		Lua_helper.add_callback(lua, "loadSong", function(?name:String = null, ?difficulty:Dynamic = -1) {
 			if(name == null || name.length < 1)
 				name = Song.loadedSongName;
-			if (difficultyNum == -1)
-				difficultyNum = PlayState.storyDifficulty;
+
+			var difficultyNum:Int = PlayState.storyDifficulty;
+			if(difficulty is String)
+			{
+				var wanted:String = cast(difficulty, String).trim().toLowerCase();
+				for(i in 0...funkin.data.Difficulty.list.length)
+				{
+					if(funkin.data.Difficulty.list[i].toLowerCase() == wanted)
+					{
+						difficultyNum = i;
+						break;
+					}
+				}
+			}
+			else if(difficulty != null && Std.int(difficulty) > -1)
+				difficultyNum = Std.int(difficulty);
 
 			var poop = Highscore.formatSong(name, difficultyNum);
 			Song.loadFromJson(poop, name);
@@ -504,8 +521,10 @@ class FunkinLua extends FunkinLuaScript {
 		});
 
 		// others
-		Lua_helper.add_callback(lua, "triggerEvent", function(name:String, ?value1:String = '', ?value2:String = '') {
-			game.triggerEvent(name, value1, value2, Conductor.songPosition);
+		Lua_helper.add_callback(lua, "triggerEvent", function(name:String, ?value1:String = '', ?value2:String = '', ?value3:String, ?value4:String, ?value5:String, ?value6:String, ?value7:String, ?value8:String, ?value9:String, ?value10:String) {
+			var extraValues:Array<String> = [value3, value4, value5, value6, value7, value8, value9, value10];
+			while(extraValues.length > 0 && extraValues[extraValues.length - 1] == null) extraValues.pop();
+			game.triggerEvent(name, value1, value2, Conductor.songPosition, [for (value in extraValues) (value != null) ? value : '']);
 			//trace('Triggered event: ' + name + ', ' + value1 + ', ' + value2);
 			return true;
 		});
@@ -1057,7 +1076,8 @@ class FunkinLua extends FunkinLuaScript {
 				spr = LuaUtils.getVarInArray(LuaUtils.getPropertyLoop(split), split[split.length-1]);
 			}
 
-			if(spr != null) return spr.pixels.getPixel32(x, y);
+			var pixels:BitmapData = (spr != null) ? Paths.readablePixels(spr.graphic) : null;
+			if(pixels != null) return pixels.getPixel32(x, y);
 			return FlxColor.BLACK;
 		});
 		Lua_helper.add_callback(lua, "startDialogue", function(dialogueFile:String, ?music:String = null) {
@@ -1157,6 +1177,18 @@ class FunkinLua extends FunkinLuaScript {
 			}
 			FlxG.sound.play(Paths.sound(sound), volume);
 			return null;
+		});
+		Lua_helper.add_callback(lua, "playSubtitles", function(file:String, ?soundTag:String = null, ?margin:Null<Float> = null) {
+			if(game == null) return false;
+			var sound:FlxSound = null;
+			if(soundTag != null && soundTag.length > 0) sound = MusicBeatState.getVariables().get(LuaUtils.formatVariable('sound_$soundTag'));
+			return game.playSubtitles(file, sound, margin) != null;
+		});
+		Lua_helper.add_callback(lua, "preloadSubtitles", function(file:String) {
+			return game != null && game.preloadSubtitles(file) != null;
+		});
+		Lua_helper.add_callback(lua, "stopSubtitles", function() {
+			if(game != null) game.stopSubtitles();
 		});
 		Lua_helper.add_callback(lua, "stopSound", function(tag:String) {
 			if(tag == null || tag.length < 1)
@@ -1401,6 +1433,8 @@ class FunkinLua extends FunkinLuaScript {
 			if(func != null)
 				Lua_helper.add_callback(lua, name, func);
 		}
+
+		#if PSYCH modcharting.ModchartFuncs.registerLateScript(this); #end
 
 		try{
 			var isString:Bool = !FileSystem.exists(scriptName);

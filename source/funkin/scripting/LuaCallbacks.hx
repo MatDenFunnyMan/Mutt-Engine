@@ -420,7 +420,7 @@ class LuaCallbacks
 			if(myClass == null || funcToRun == null) return null;
 			return ReflectionFunctions.callMethodFromObject(myClass, funcToRun, ReflectionFunctions.parseInstances(args));
 		});
-		Lua_helper.add_callback(lua, "makeLuaText", function(tag:String, text:String, width:Int, x:Float, y:Float) {
+		Lua_helper.add_callback(lua, "makeLuaText", function(tag:String, ?text:String = '', ?width:Int = 0, ?x:Float = 0, ?y:Float = 0) {
 			tag = tag.replace('.', '');
 			LuaUtils.destroyObject(tag);
 			var leText:flixel.text.FlxText = new flixel.text.FlxText(x, y, width, text, 16);
@@ -498,7 +498,8 @@ class LuaCallbacks
 			var spr:FlxSprite = LuaUtils.getObjectDirectly(split[0]);
 			if(split.length > 1)
 				spr = LuaUtils.getVarInArray(LuaUtils.getPropertyLoop(split), split[split.length - 1]);
-			if(spr != null) return spr.pixels.getPixel32(x, y);
+			var pixels:openfl.display.BitmapData = (spr != null) ? Paths.readablePixels(spr.graphic) : null;
+			if(pixels != null) return pixels.getPixel32(x, y);
 			return FlxColor.BLACK;
 		});
 		Lua_helper.add_callback(lua, "getMidpointX", function(variable:String) {
@@ -569,7 +570,7 @@ class LuaCallbacks
 		Lua_helper.add_callback(lua, "lerp", function(a:Float, b:Float, t:Float) return a + (b - a) * t);
 		Lua_helper.add_callback(lua, "setCameraZoom", function(zoom:Float) FlxG.camera.zoom = zoom);
 		Lua_helper.add_callback(lua, "getCameraZoom", function() return FlxG.camera.zoom);
-		Lua_helper.add_callback(lua, "setMouseVisible", function(visible:Bool) FlxG.mouse.visible = visible);
+		Lua_helper.add_callback(lua, "setMouseVisible", function(visible:Bool) funkin.backend.MouseVisibility.setScriptVisible(visible));
 		Lua_helper.add_callback(lua, "getMouseVisible", function() return FlxG.mouse.visible);
 		#if HSCRIPT_ALLOWED
 		Lua_helper.add_callback(lua, "runHaxeCode", function(codeToRun:String, ?varsToBring:Any = null, ?funcToRun:String = null, ?funcArgs:Array<Dynamic> = null):Dynamic {

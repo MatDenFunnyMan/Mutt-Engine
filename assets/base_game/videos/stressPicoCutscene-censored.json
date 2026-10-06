@@ -1,0 +1,17 @@
+{
+	"font": "vcr.ttf",
+	"size": 30,
+	"color": "#FFFFFF",
+	"background": 0.5,
+	"backgroundColor": "#080808",
+	"subtitles": [
+		{ "text": "Back for some tasty revenge, huh?", "start": "00:00:00,270", "end": "00:00:02,660" },
+		{ "text": "Oh, that's cute.", "start": "00:00:02,660", "end": "00:00:04,160" },
+		{ "text": "Boys... Light 'em up.", "start": "00:00:04,730", "end": "00:00:06,540" },
+		{ "text": "*SCREAMS*", "start": "00:00:08,980", "end": "00:00:11,500", "x": 163, "y": 657 },
+		{ "text": "*LAUGHS*", "start": "00:00:09,500", "end": "00:00:11,500" },
+		{ "text": "*Music slows to a stop*", "start": "00:00:11,500", "end": "00:00:12,880" },
+		{ "text": "Oh, come on, who the **** is this knockoff?", "start": "00:00:24,680", "end": "00:00:27,860" },
+		{ "text": "Alright, alright.", "start": "00:00:30,720", "end": "00:00:32,720" }
+	]
+}

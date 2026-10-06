@@ -34,15 +34,56 @@ class SustainStrip extends FlxStrip
         this.daNote = daNote;
         daNote.alpha = 1;
         super(0,0);
-        loadGraphic(daNote.updateFramePixels());
+        loadGraphic(daNote.graphic);
         shader = daNote.shader;
-        for (uv in noteUV)
+        var i:Int = 0;
+        while (i < noteUV.length)
         {
-            uvtData.push(uv);
+            var uv:Array<Float> = frameUV(daNote, noteUV[i], noteUV[i + 1]);
+            uvtData.push(uv[0]);
+            uvtData.push(uv[1]);
             vertices.push(0);
+            vertices.push(0);
+            i += 2;
         }
         for (ind in noteIndices)
             indices.push(ind);
+    }
+
+    private static function frameUV(daNote:Note, u:Float, v:Float):Array<Float>
+    {
+        var frame = daNote.frame;
+        var doFlipX:Bool = daNote.flipX != frame.flipX;
+        var doFlipY:Bool = daNote.flipY != frame.flipY;
+        if (daNote.animation.curAnim != null)
+        {
+            doFlipX = doFlipX != daNote.animation.curAnim.flipX;
+            doFlipY = doFlipY != daNote.animation.curAnim.flipY;
+        }
+        if (doFlipX) u = 1 - u;
+        if (doFlipY) v = 1 - v;
+
+        var localX:Float = u;
+        var localY:Float = v;
+        if (frame.angle == flixel.graphics.frames.FlxFrame.FlxFrameAngle.ANGLE_NEG_90)
+        {
+            localX = 1 - v;
+            localY = u;
+        }
+        else if (frame.angle == flixel.graphics.frames.FlxFrame.FlxFrameAngle.ANGLE_90)
+        {
+            localX = v;
+            localY = 1 - u;
+        }
+
+        var rect = frame.frame;
+        var bitmapWidth:Float = daNote.graphic.width;
+        var bitmapHeight:Float = daNote.graphic.height;
+        var left:Float = rect.x + 0.5;
+        var top:Float = rect.y + 0.5;
+        var right:Float = rect.right - 0.5;
+        var bottom:Float = rect.bottom - 0.5;
+        return [(left + (right - left) * localX) / bitmapWidth, (top + (bottom - top) * localY) / bitmapHeight];
     }
 
     public function constructVertices(noteData:NotePositionData, thisNotePos:Vector3D, nextHalfNotePos:NotePositionData, nextNotePos:NotePositionData, flipGraphic:Bool, reverseClip:Bool)

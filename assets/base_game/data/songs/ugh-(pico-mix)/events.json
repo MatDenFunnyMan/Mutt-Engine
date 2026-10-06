@@ -1,0 +1,925 @@
+{
+	"events": [
+		[
+			0,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			93.1621621621634,
+			[
+				[
+					"Cam Bopping",
+					"1",
+					"0.8"
+				]
+			]
+		],
+		[
+			1500,
+			[
+				[
+					"Play Animation",
+					"Dad",
+					"augh",
+					"false",
+					"false"
+				],
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			3000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			4500,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			5625,
+			[
+				[
+					"Play Animation",
+					"Dad",
+					"ugh",
+					"false",
+					"false"
+				]
+			]
+		],
+		[
+			5906.16216216216,
+			[
+				[
+					"Cam Bopping",
+					"2",
+					"1.5"
+				]
+			]
+		],
+		[
+			6000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 320, -10",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.665",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			10312.1621621622,
+			[
+				[
+					"Cam Bopping",
+					"2",
+					"0"
+				]
+			]
+		],
+		[
+			10500,
+			[
+				[
+					"Play Animation",
+					"Dad",
+					"laugh",
+					"false",
+					"false"
+				],
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			13875,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 320, -10",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.665",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			14859.1621621622,
+			[
+				[
+					"Cam Bopping",
+					"2",
+					"1.5"
+				]
+			]
+		],
+		[
+			15000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			16875,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 320, -10",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.665",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			18000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			21000,
+			[
+				[
+					"Set Cam Zoom",
+					"0.77",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			24000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			30375,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 320, -10",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.665",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			33000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			35906.1621621622,
+			[
+				[
+					"Cam Bopping",
+					"1",
+					"0.8"
+				]
+			]
+		],
+		[
+			36000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			37500,
+			[
+				[
+					"Play Animation",
+					"Dad",
+					"ugh",
+					"false",
+					"false"
+				]
+			]
+		],
+		[
+			37687.5,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			39000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			42000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			43500,
+			[
+				[
+					"Set Cam Zoom",
+					"0.77",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			44625,
+			[
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			45000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 320, -10",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.665",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			47906.1621621622,
+			[
+				[
+					"Cam Bopping",
+					"2",
+					"1.5"
+				]
+			]
+		],
+		[
+			48000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.728",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			49080,
+			[
+				[
+					"Play Animation",
+					"BF",
+					"burpSmile",
+					"false",
+					"false"
+				]
+			]
+		],
+		[
+			49125,
+			[
+				[
+					"Set Cam Zoom",
+					"0.756",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				],
+				[
+					"Cam Follow Pos",
+					"bf, 50, 0",
+					"1.5",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			49500,
+			[
+				[
+					"Play Animation",
+					"Dad",
+					"augh",
+					"false",
+					"false"
+				],
+				[
+					"Cam Follow Pos",
+					"dad",
+					"1.5",
+					"expo",
+					"Out",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.728",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			50203,
+			[
+				[
+					"Play Animation",
+					"Dad",
+					"beat it",
+					"false",
+					"false"
+				]
+			]
+		],
+		[
+			50250,
+			[
+				[
+					"Set Cam Zoom",
+					"0.77",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			51000,
+			[
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			53906.1621621622,
+			[
+				[
+					"Cam Bopping",
+					"1",
+					"0.8"
+				]
+			]
+		],
+		[
+			54000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 320, -10",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.665",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			55406.1621621622,
+			[
+				[
+					"Cam Bopping",
+					"2",
+					"1.5"
+				]
+			]
+		],
+		[
+			55500,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			57000,
+			[
+				[
+					"Set Cam Zoom",
+					"0.77",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			58500,
+			[
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			59906.1621621622,
+			[
+				[
+					"Cam Bopping",
+					"1",
+					"0.8"
+				]
+			]
+		],
+		[
+			60000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 320, -10",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.665",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			62906.1621621622,
+			[
+				[
+					"Cam Bopping",
+					"2",
+					"1.5"
+				]
+			]
+		],
+		[
+			66000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			66750,
+			[
+				[
+					"Set Cam Zoom",
+					"0.7",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			67500,
+			[
+				[
+					"Set Cam Zoom",
+					"0.728",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			68250,
+			[
+				[
+					"Set Cam Zoom",
+					"0.756",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			69000,
+			[
+				[
+					"Set Cam Zoom",
+					"0.784",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			69750,
+			[
+				[
+					"Set Cam Zoom",
+					"0.812",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			70500,
+			[
+				[
+					"Set Cam Zoom",
+					"0.875",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			71906.1621621622,
+			[
+				[
+					"Cam Bopping",
+					"1",
+					"0.8"
+				]
+			]
+		],
+		[
+			72000,
+			[
+				[
+					"Cam Follow Pos",
+					"dad, 320, -10",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.665",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			77625,
+			[
+				[
+					"Play Animation",
+					"Dad",
+					"ugh",
+					"false",
+					"false"
+				]
+			]
+		],
+		[
+			78000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				],
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			79500,
+			[
+				[
+					"Set Cam Zoom",
+					"0.77",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			81000,
+			[
+				[
+					"Set Cam Zoom",
+					"0.735",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			82500,
+			[
+				[
+					"Set Cam Zoom",
+					"0.77",
+					"3",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			83906.1621621622,
+			[
+				[
+					"Cam Bopping",
+					"1",
+					"0"
+				]
+			]
+		]
+	],
+	"format": "psych_v1_convert"
+}

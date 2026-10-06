@@ -18,6 +18,7 @@ import openfl.utils.Assets;
 import openfl.display.Sprite;
 
 import openfl.net.FileReference;
+import funkin.editors.content.FileDialogHandler.FileReferenceCustom;
 
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
@@ -54,6 +55,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	}
 
 	var lastLoadedStage:String;
+	var quickSavePath:String = null;
 	var camFollow:FlxObject = new FlxObject(0, 0, 1, 1);
 	var camDragging:Bool = false;
 	var movedWithMouse:Bool = false;
@@ -88,7 +90,11 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		DiscordClient.changePresence('Stage Editor', 'Stage: ' + lastLoadedStage);
 		#end
 
-		if(stageJson == null) stageJson = StageData.getStageFile(lastLoadedStage);
+		if(stageJson == null)
+		{
+			stageJson = StageData.getStageFile(lastLoadedStage);
+			quickSavePath = stageFilePath(lastLoadedStage);
+		}
 		FlxG.camera.follow(null, LOCKON, 0);
 
 		loadJsonAssetDirectory();
@@ -159,6 +165,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			"Delete - Remove selected Sprite",
 			"Ctrl + Z - Undo, Ctrl + Shift + Z - Redo",
 			"Ctrl + C - Copy, Ctrl + V - Paste, Ctrl + X - Cut",
+			"Ctrl + S - Save Stage JSON",
 			"P - Reload Stage",
 			"",
 			'$btn - Toggle HUD',
@@ -713,6 +720,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		lastLoadedStage = templateName;
 		updateSpriteList();
 		lastLoadedStage = oldStage;
+		quickSavePath = null;
 
 		forceAntialiasing(!pixel);
 		updateStageDataUI();
@@ -1384,6 +1392,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
             {
 				stageJson = StageData.getStageFile(selected);
 				lastLoadedStage = selected;
+				quickSavePath = stageFilePath(selected);
 				#if DISCORD_ALLOWED
 				#if MODS_ALLOWED
 				DiscordClient.loadModRPC();
@@ -1864,13 +1873,13 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			return;
 		}
 
-		if(FlxG.keys.justPressed.W){
+		if(FlxG.keys.justPressed.W && !FlxG.keys.pressed.CONTROL){
 			spriteListRadioGroup.checked = FlxMath.wrap(spriteListRadioGroup.checked - 1, 0, spriteListRadioGroup.labels.length-1);
 			trace(spriteListRadioGroup.checked);
 			checkUIOnObject();
 			updateSelectedUI();
 		}
-		else if(FlxG.keys.justPressed.S){
+		else if(FlxG.keys.justPressed.S && !FlxG.keys.pressed.CONTROL){
 			spriteListRadioGroup.checked = FlxMath.wrap(spriteListRadioGroup.checked + 1, 0, spriteListRadioGroup.labels.length-1);
 			trace(spriteListRadioGroup.checked);
 			checkUIOnObject();
@@ -1905,6 +1914,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				if(FlxG.keys.justPressed.C) copySelected();
 				else if(FlxG.keys.justPressed.X) cutSelected();
 				else if(FlxG.keys.justPressed.V) pasteSprite();
+				else if(FlxG.keys.justPressed.S) quickSaveStage();
 			}
 
 			if(FlxG.keys.justPressed.ENTER)
@@ -2275,11 +2285,39 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		
 		if (orderedJson.length > 0)
 		{
-			_file = new FileReference();
+			_file = new FileReferenceCustom();
 			_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onSaveComplete);
 			_file.addEventListener(Event.CANCEL, onSaveCancel);
 			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
 			_file.save(orderedJson, '$lastLoadedStage.json');
+		}
+	}
+
+	function stageFilePath(name:String):String
+	{
+		var path:String = Paths.getPath('stages/$name.json', TEXT, null, true);
+		return FileSystem.exists(path) ? path : null;
+	}
+
+	function quickSaveStage()
+	{
+		if(_file != null || _fileLua != null) return;
+		if(quickSavePath == null || !FileSystem.exists(quickSavePath))
+		{
+			askScriptFormat();
+			return;
+		}
+
+		saveObjectsToJson();
+		try
+		{
+			File.saveContent(quickSavePath, haxe.format.JsonPrinter.print(stageJson, null, '\t'));
+			unsavedProgress = false;
+			showOutput('Stage saved successfully to: $quickSavePath');
+		}
+		catch(e:haxe.Exception)
+		{
+			showOutput('Error on saving stage!', true);
 		}
 	}
 
@@ -2291,7 +2329,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		var scriptCode:String = isHx ? generateHScript() : generateLuaScript();
 		if (scriptCode.length > 0)
 		{
-			_fileLua = new FileReference();
+			_fileLua = new FileReferenceCustom();
 			_fileLua.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onSaveLuaComplete);
 			_fileLua.addEventListener(Event.CANCEL, onSaveLuaCancel);
 			_fileLua.addEventListener(IOErrorEvent.IO_ERROR, onSaveLuaError);
@@ -2613,6 +2651,8 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
 		_file.removeEventListener(Event.CANCEL, onSaveCancel);
 		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
+		var savedPath:String = @:privateAccess cast(_file, FileReferenceCustom)._trackSavedPath;
+		if(savedPath != null) quickSavePath = savedPath;
 		_file = null;
 		FlxG.log.notice('Successfully saved JSON file.');
 		saveLuaScript();
@@ -2677,7 +2717,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		if(_file != null) return;
 
 		_makeNewSprite = onNewSprite;
-		_file = new FileReference();
+		_file = new FileReferenceCustom();
 		_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
 		_file.addEventListener(Event.CANCEL, onLoadCancel);
 		_file.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);

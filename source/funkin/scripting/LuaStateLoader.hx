@@ -126,11 +126,13 @@ class LuaState extends MusicBeatState implements IFunkinScript
 			var resultStr:String = Lua.tostring(lua, result);
 			if(resultStr != null && result != 0) {
 				trace('LuaState: Error loading $scriptPath\n$resultStr');
+				showScriptError(lua, scriptPath, 'Error loading $scriptPath\n$resultStr', true);
 				lua = null;
 				return;
 			}
 		} catch(e:Dynamic) {
 			trace('LuaState: Exception loading $scriptPath: $e');
+			showScriptError(lua, scriptPath, 'Exception loading $scriptPath: $e', true);
 			lua = null;
 			return;
 		}
@@ -152,7 +154,7 @@ class LuaState extends MusicBeatState implements IFunkinScript
 	{
 		if(targetLua == null) targetLua = lua;
 		var lua:State = targetLua;
-		LuaSharedFunctions.registerFileAndSaveFunctions(lua);
+		LuaSharedFunctions.registerFileAndSaveFunctions(lua, luaTrace);
 		LuaCallbacks.registerCommon(lua, this);
 
 		Lua_helper.add_callback(lua, "switchState", function(stateName:String) {
@@ -935,50 +937,82 @@ class LuaState extends MusicBeatState implements IFunkinScript
 		Lua_helper.add_callback(lua, "getRunningScripts", function() {
 			var result:Array<String> = [stateName];
 			if(PlayState.instance != null)
+			{
 				for(script in PlayState.instance.luaArray)
 					result.push(script.scriptName);
+			}
+			else
+			{
+				for(script in luaArray)
+					if(!script.closed) result.push(script.scriptName);
+			}
 			return result;
 		});
 		Lua_helper.add_callback(lua, "setOnScripts", function(varName:String, arg:Dynamic, ?ignoreSelf:Bool = false, ?exclusions:Array<String> = null) {
 			if(exclusions == null) exclusions = [];
-			set(varName, arg);
 			if(PlayState.instance != null)
+			{
+				set(varName, arg);
 				PlayState.instance.setOnScripts(varName, arg, exclusions);
+				return;
+			}
+			if(ignoreSelf) excludeCaller(exclusions, lua);
+			setOnStateLuas(varName, arg, exclusions);
+			setOnStateHScripts(varName, arg, exclusions);
 		});
 		Lua_helper.add_callback(lua, "setOnHScript", function(varName:String, arg:Dynamic, ?ignoreSelf:Bool = false, ?exclusions:Array<String> = null) {
 			if(exclusions == null) exclusions = [];
-			#if HSCRIPT_ALLOWED
-			if(hscript != null) hscript.set(varName, arg);
-			#end
 			if(PlayState.instance != null)
+			{
+				#if HSCRIPT_ALLOWED
+				if(hscript != null) hscript.set(varName, arg);
+				#end
 				PlayState.instance.setOnHScript(varName, arg, exclusions);
+				return;
+			}
+			if(ignoreSelf) excludeCaller(exclusions, lua);
+			setOnStateHScripts(varName, arg, exclusions);
 		});
 		Lua_helper.add_callback(lua, "setOnLuas", function(varName:String, arg:Dynamic, ?ignoreSelf:Bool = false, ?exclusions:Array<String> = null) {
 			if(exclusions == null) exclusions = [];
-			set(varName, arg);
 			if(PlayState.instance != null)
+			{
+				set(varName, arg);
 				PlayState.instance.setOnLuas(varName, arg, exclusions);
+				return;
+			}
+			if(ignoreSelf) excludeCaller(exclusions, lua);
+			setOnStateLuas(varName, arg, exclusions);
 		});
 		Lua_helper.add_callback(lua, "callOnScripts", function(funcName:String, ?args:Array<Dynamic> = null, ?ignoreStops:Bool = false, ?ignoreSelf:Bool = true, ?excludeScripts:Array<String> = null, ?excludeValues:Array<Dynamic> = null) {
 			if(args == null) args = [];
 			if(excludeScripts == null) excludeScripts = [];
 			if(PlayState.instance != null)
 				return PlayState.instance.callOnScripts(funcName, args, ignoreStops, excludeScripts, excludeValues);
-			return call(funcName, args);
+
+			if(ignoreSelf) excludeCaller(excludeScripts, lua);
+			var result:Dynamic = callOnStateLuas(funcName, args, ignoreStops, excludeScripts, excludeValues);
+			if(result == null || result == LuaUtils.Function_Continue || (excludeValues != null && excludeValues.contains(result)))
+				result = callOnStateHScripts(funcName, args, ignoreStops, excludeScripts, excludeValues);
+			return result;
 		});
 		Lua_helper.add_callback(lua, "callOnLuas", function(funcName:String, ?args:Array<Dynamic> = null, ?ignoreStops:Bool = false, ?ignoreSelf:Bool = true, ?excludeScripts:Array<String> = null, ?excludeValues:Array<Dynamic> = null) {
 			if(args == null) args = [];
 			if(excludeScripts == null) excludeScripts = [];
 			if(PlayState.instance != null)
 				return PlayState.instance.callOnLuas(funcName, args, ignoreStops, excludeScripts, excludeValues);
-			return call(funcName, args);
+
+			if(ignoreSelf) excludeCaller(excludeScripts, lua);
+			return callOnStateLuas(funcName, args, ignoreStops, excludeScripts, excludeValues);
 		});
 		Lua_helper.add_callback(lua, "callOnHScript", function(funcName:String, ?args:Array<Dynamic> = null, ?ignoreStops:Bool = false, ?ignoreSelf:Bool = true, ?excludeScripts:Array<String> = null, ?excludeValues:Array<Dynamic> = null) {
 			if(args == null) args = [];
 			if(excludeScripts == null) excludeScripts = [];
 			if(PlayState.instance != null)
 				return PlayState.instance.callOnHScript(funcName, args, ignoreStops, excludeScripts, excludeValues);
-			return LuaUtils.Function_Continue;
+
+			if(ignoreSelf) excludeCaller(excludeScripts, lua);
+			return callOnStateHScripts(funcName, args, ignoreStops, excludeScripts, excludeValues);
 		});
 		Lua_helper.add_callback(lua, "callScript", function(luaFile:String, funcName:String, ?args:Array<Dynamic> = null) {
 			if(args == null) args = [];
@@ -1003,8 +1037,15 @@ class LuaState extends MusicBeatState implements IFunkinScript
 					if(hscriptInstance.origin == scriptFile)
 						return true;
 				#end
+				return false;
 			}
-			return (lua != null && !closed);
+
+			if(scriptFile == stateName || scriptFile == scriptName) return !closed;
+			var resolved:String = resolveLuaScriptPath(scriptFile);
+			for(script in luaArray)
+				if(!script.closed && (script.scriptName == scriptFile || script.scriptName == resolved))
+					return true;
+			return false;
 		});
 		Lua_helper.add_callback(lua, "addLuaScript", function(luaFile:String, ?ignoreAlreadyRunning:Bool = false) {
 			var resolvedFile:String = resolveLuaScriptPath(luaFile);
@@ -1428,6 +1469,7 @@ class LuaState extends MusicBeatState implements IFunkinScript
 				var error:String = Lua.tostring(lua, -1);
 				Lua.pop(lua, 1);
 				trace('LuaState error in $func: $error');
+				showScriptError(lua, scriptName, 'ERROR ($func): $error', false);
 				return LuaUtils.Function_Continue;
 			}
 			var result:Dynamic = cast Convert.fromLua(lua, -1);
@@ -1436,6 +1478,7 @@ class LuaState extends MusicBeatState implements IFunkinScript
 			return result;
 		} catch(e:Dynamic) {
 			trace('LuaState exception in $func: $e');
+			showScriptError(lua, scriptName, 'ERROR ($func): $e', false);
 		}
 		return LuaUtils.Function_Continue;
 	}
@@ -1445,6 +1488,94 @@ class LuaState extends MusicBeatState implements IFunkinScript
 		if(lua == null) return;
 		Convert.toLua(lua, data);
 		Lua.setglobal(lua, variable);
+	}
+
+	function excludeCaller(exclusions:Array<String>, vm:State)
+	{
+		var name:String = null;
+		if(vm == lua) name = scriptName;
+		else
+		{
+			for(script in luaArray)
+				if(script.lua == vm) name = script.scriptName;
+		}
+		if(name != null && !exclusions.contains(name)) exclusions.push(name);
+	}
+
+	function stateScripts():Array<IFunkinScript>
+	{
+		var scripts:Array<IFunkinScript> = [this];
+		for(script in luaArray) scripts.push(script);
+		return scripts;
+	}
+
+	inline function isExcluded(script:IFunkinScript, exclusions:Array<String>):Bool
+		return exclusions.contains(script.scriptName) || (script == this && exclusions.contains(stateName));
+
+	public function callOnStateLuas(funcName:String, ?args:Array<Dynamic>, ?ignoreStops:Bool = false, ?exclusions:Array<String>, ?excludeValues:Array<Dynamic>):Dynamic
+	{
+		var returnVal:Dynamic = LuaUtils.Function_Continue;
+		if(args == null) args = [];
+		if(exclusions == null) exclusions = [];
+		if(excludeValues == null) excludeValues = [LuaUtils.Function_Continue];
+
+		for(script in stateScripts())
+		{
+			if(script.closed || isExcluded(script, exclusions)) continue;
+
+			var myValue:Dynamic = script.call(funcName, args);
+			if((myValue == LuaUtils.Function_StopLua || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
+				return myValue;
+
+			if(myValue != null && !excludeValues.contains(myValue))
+				returnVal = myValue;
+		}
+		return returnVal;
+	}
+
+	public function callOnStateHScripts(funcName:String, ?args:Array<Dynamic>, ?ignoreStops:Bool = false, ?exclusions:Array<String>, ?excludeValues:Array<Dynamic>):Dynamic
+	{
+		var returnVal:Dynamic = LuaUtils.Function_Continue;
+		#if HSCRIPT_ALLOWED
+		if(args == null) args = [];
+		if(exclusions == null) exclusions = [];
+		if(excludeValues == null) excludeValues = [LuaUtils.Function_Continue];
+
+		for(script in stateScripts())
+		{
+			var hs:HScript = script.hscript;
+			if(hs == null || script.closed || isExcluded(script, exclusions) || !hs.exists(funcName)) continue;
+
+			var callValue = hs.call(funcName, args);
+			if(callValue == null) continue;
+
+			var myValue:Dynamic = callValue.returnValue;
+			if((myValue == LuaUtils.Function_StopHScript || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
+				return myValue;
+
+			if(myValue != null && !excludeValues.contains(myValue))
+				returnVal = myValue;
+		}
+		#end
+		return returnVal;
+	}
+
+	public function setOnStateLuas(variable:String, arg:Dynamic, ?exclusions:Array<String>)
+	{
+		if(exclusions == null) exclusions = [];
+		for(script in stateScripts())
+			if(!script.closed && !isExcluded(script, exclusions))
+				script.set(variable, arg);
+	}
+
+	public function setOnStateHScripts(variable:String, arg:Dynamic, ?exclusions:Array<String>)
+	{
+		#if HSCRIPT_ALLOWED
+		if(exclusions == null) exclusions = [];
+		for(script in stateScripts())
+			if(script.hscript != null && !script.closed && !isExcluded(script, exclusions))
+				script.hscript.set(variable, arg);
+		#end
 	}
 
 	public function addTextToDebug(text:String, ?color:FlxColor = FlxColor.WHITE)
@@ -1463,6 +1594,28 @@ class LuaState extends MusicBeatState implements IFunkinScript
 			spr.y += newText.height + 2;
 		});
 		luaDebugGroup.add(newText);
+	}
+
+	public static function showScriptError(vm:State, name:String, message:String, isLoadError:Bool)
+	{
+		if(isLoadError)
+		{
+			#if windows
+			lime.app.Application.current.window.alert(message, 'Error on lua script!');
+			#else
+			if(instance != null) instance.addTextToDebug('$name\n$message', FlxColor.RED);
+			#end
+			return;
+		}
+		if(instance != null && vm != null && isDebugMode(vm)) instance.addTextToDebug(message, FlxColor.RED);
+	}
+
+	static function isDebugMode(vm:State):Bool
+	{
+		Lua.getglobal(vm, 'luaDebugMode');
+		var value:Dynamic = Convert.fromLua(vm, -1);
+		Lua.pop(vm, 1);
+		return value == true;
 	}
 
 	public function luaTrace(text:String)
@@ -1541,6 +1694,9 @@ class LuaStateScript extends FunkinLuaScript
 
 		call('onCreate', []);
 	}
+
+	override function onScriptError(message:String, isLoadError:Bool):Void
+		LuaState.showScriptError(lua, scriptName, message, isLoadError);
 
 	override public function stop():Void
 	{
@@ -1660,7 +1816,6 @@ class LoadingLuaScript extends FunkinLuaScript
 	function registerCallbacks()
 	{
 		LuaCallbacks.registerCommon(lua, this);
-		LuaSharedFunctions.registerFileAndSaveFunctions(lua);
 
 		Lua_helper.add_callback(lua, "getLoaded", function() return funkin.ui.states.LoadingState.loaded);
 		Lua_helper.add_callback(lua, "getLoadMax", function() return funkin.ui.states.LoadingState.loadMax);

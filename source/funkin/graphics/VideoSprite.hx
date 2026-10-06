@@ -17,6 +17,7 @@ class VideoSprite extends FlxSpriteGroup {
 	public var skipSprite:FlxPieDial;
 	public var cover:FlxSprite;
 	public var canSkip(default, set):Bool = false;
+	public var subtitles:funkin.game.subtitles.Subtitles;
 
 	private var videoName:String;
 
@@ -41,6 +42,9 @@ class VideoSprite extends FlxSpriteGroup {
 		}
 
 		// initialize sprites
+			#if hxvlc
+			hxvlc.util.Handle.init(#if (hxvlc >= "1.8.0") ['--no-lua'] #end);
+			#end
 			videoSprite = new FlxVideoSprite();
 			var finalAntialiasing:Bool = antialiasing != null ? antialiasing : ClientPrefs.data.antialiasing;
 			videoSprite.antialiasing = finalAntialiasing;
@@ -77,8 +81,19 @@ class VideoSprite extends FlxSpriteGroup {
 			videoSprite.screenCenter();
 		});
 
+		var options:Array<String> = shouldLoop ? ['input-repeat=65545'] : [];
+		var subtitleData = funkin.game.subtitles.SubtitleData.findNextTo(videoName);
+		if(subtitleData != null)
+		{
+			subtitles = new funkin.game.subtitles.Subtitles(42);
+			subtitles.play(subtitleData, () -> haxe.Int64.toInt(videoSprite.bitmap.time), (mute) -> if(videoSprite.bitmap != null) videoSprite.bitmap.volumeAdjust = mute ? 0 : 1);
+			add(subtitles);
+		}
+		options.push(':sub-language=' + ((subtitleData != null || !ClientPrefs.data.subtitles) ? 'none' : 'English'));
+		options.push(':audio-language=English');
+
 		// start video and adjust resolution to screen size
-		videoSprite.load(videoName, shouldLoop ? ['input-repeat=65545'] : null);
+		videoSprite.load(videoName, options);
 	}
 
 	var alreadyDestroyed:Bool = false;

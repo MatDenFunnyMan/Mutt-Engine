@@ -24,7 +24,7 @@ class Spooky extends BaseStage
 	{
 		halloweenBG = cast getStageObject(!ClientPrefs.data.lowQuality ? 'halloweenBG' : 'halloweenBGLow');
 		halloweenWhite = new BGSprite(null, -800, -400, 0, 0);
-		halloweenWhite.makeGraphic(Std.int(FlxG.width * 2), Std.int(FlxG.height * 2), FlxColor.WHITE);
+		CoolUtil.makeSolid(halloweenWhite, Std.int(FlxG.width * 2), Std.int(FlxG.height * 2), FlxColor.WHITE);
 		halloweenWhite.alpha = 0;
 		halloweenWhite.blend = ADD;
 		add(halloweenWhite);
@@ -55,7 +55,11 @@ class Spooky extends BaseStage
 			dad.playAnim('scared', true);
 
 		if(gf != null && gf.hasAnimation('scared'))
+		{
 			gf.playAnim('scared', true);
+			gf.specialAnim = true;
+			gf.heyTimer = 2;
+		}
 
 		if(ClientPrefs.data.camZooms) {
 			FlxG.camera.zoom += 0.015;
@@ -87,7 +91,7 @@ class Spooky extends BaseStage
 		boyfriend.playAnim('scared', true);
 
 		// white flash
-		var whiteScreen:FlxSprite = new FlxSprite().makeGraphic(Std.int(FlxG.width * 2), Std.int(FlxG.height * 2), FlxColor.WHITE);
+		var whiteScreen:FlxSprite = CoolUtil.makeSolid(new FlxSprite(), Std.int(FlxG.width * 2), Std.int(FlxG.height * 2), FlxColor.WHITE);
 		whiteScreen.scrollFactor.set();
 		whiteScreen.blend = ADD;
 		add(whiteScreen);

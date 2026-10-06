@@ -1,6 +1,9 @@
 package funkin.ui;
 
+import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
+import openfl.display.BitmapData;
+import openfl.geom.Matrix;
 
 typedef IconAnimFile = {
 	var animations:Array<IconAnimData>;
@@ -23,11 +26,14 @@ class HealthIcon extends FlxSprite
 	public static inline final STATE_WINNING_EXTREME:Int = 3;
 
 	public static final STATE_NAMES:Array<String> = ['neutral', 'losing', 'winning', 'winextra'];
+	public static inline final ICON_SIZE:Int = 150;
 
 	public var sprTracker:FlxSprite;
 	public var isAnimated(default, null):Bool = false;
 	public var totalStates(default, null):Int = 1;
 	public var iconKey(default, null):String = '';
+	public var isSmallIcon(default, null):Bool = false;
+	public var iconAntialiasing(default, set):Null<Bool> = null;
 
 	private var isPlayer:Bool = false;
 	private var char:String = '';
@@ -62,6 +68,7 @@ class HealthIcon extends FlxSprite
 		this.char = char;
 		iconKey = name;
 		isAnimated = false;
+		isSmallIcon = false;
 		totalStates = 1;
 		curState = -1;
 		stateAnims = [null, null, null, null];
@@ -73,13 +80,22 @@ class HealthIcon extends FlxSprite
 
 		if(!isAnimated) loadStaticIcon(name, allowGPU);
 
-		if(char.endsWith('-pixel'))
-			antialiasing = false;
-		else
-			antialiasing = ClientPrefs.data.antialiasing;
-
+		applyAntialiasing();
 		setIconState(STATE_NEUTRAL);
 	}
+
+	function set_iconAntialiasing(value:Null<Bool>):Null<Bool>
+	{
+		iconAntialiasing = value;
+		applyAntialiasing();
+		return value;
+	}
+
+	public function isSmooth():Bool
+		return iconAntialiasing != null ? iconAntialiasing : !(isSmallIcon || char.endsWith('-pixel'));
+
+	function applyAntialiasing()
+		antialiasing = ClientPrefs.data.antialiasing && isSmooth();
 
 	public function reloadIcon(?allowGPU:Bool = true)
 	{
@@ -90,7 +106,9 @@ class HealthIcon extends FlxSprite
 
 	function loadStaticIcon(name:String, ?allowGPU:Bool = true)
 	{
-		var graphic = Paths.image(name, allowGPU);
+		var graphic:FlxGraphic = Paths.image(name, allowGPU);
+		isSmallIcon = graphic.height <= ICON_SIZE / 2;
+		if(isSmallIcon) graphic = upscaleIcon(graphic, allowGPU);
 		var iSize:Float = Math.round(graphic.width / graphic.height);
 		loadGraphic(graphic, true, Math.floor(graphic.width / iSize), Math.floor(graphic.height));
 		iconOffsets[0] = (width - 150) / iSize;
@@ -100,6 +118,29 @@ class HealthIcon extends FlxSprite
 		totalStates = frames.frames.length;
 		animation.add(char, [for(i in 0...frames.frames.length) i], 0, false, isPlayer);
 		animation.play(char);
+	}
+
+	static function upscaleIcon(graphic:FlxGraphic, allowGPU:Bool):FlxGraphic
+	{
+		var factor:Int = Math.round(ICON_SIZE / graphic.height);
+		if(factor < 2) return graphic;
+
+		var key:String = graphic.key + '@x' + factor;
+		if(Paths.currentTrackedAssets.exists(key))
+		{
+			Paths.localTrackedAssets.push(key);
+			return Paths.currentTrackedAssets.get(key);
+		}
+
+		var source:BitmapData = Paths.readablePixels(graphic);
+		if(source == null) return graphic;
+
+		var scaled:BitmapData = new BitmapData(source.width * factor, source.height * factor, true, 0);
+		var matrix:Matrix = new Matrix();
+		matrix.scale(factor, factor);
+		scaled.draw(source, matrix, null, null, null, false);
+		var result:FlxGraphic = Paths.cacheBitmap(key, null, scaled, allowGPU);
+		return result != null ? result : graphic;
 	}
 
 	public static final STATE_PREFIXES:Array<Array<String>> = [

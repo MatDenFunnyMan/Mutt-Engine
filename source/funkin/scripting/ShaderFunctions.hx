@@ -308,8 +308,118 @@ class ShaderFunctions
 			return false;
 			#end
 		});
+
+		funk.addLocalCallback("setCameraShader", function(camera:String, shader:String) {
+			if(!ClientPrefs.data.shaders) return false;
+
+			#if (!flash && MODS_ALLOWED && sys)
+			if(!funk.runtimeShaders.exists(shader) && !funk.initLuaShader(shader))
+			{
+				FunkinLua.luaTrace('setCameraShader: Shader $shader is missing!', false, false, FlxColor.RED);
+				return false;
+			}
+
+			var cam:FlxCamera = getCameraByName(camera);
+			var arr:Array<String> = funk.runtimeShaders.get(shader);
+			var rShader:FlxRuntimeShader = new funkin.graphics.shaders.ErrorHandledShader.ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
+			cameraShaders.set(camera, rShader);
+			cam.setFilters([new openfl.filters.ShaderFilter(cast rShader)]);
+			return true;
+			#else
+			FunkinLua.luaTrace("setCameraShader: Platform unsupported for Runtime Shaders!", false, false, FlxColor.RED);
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "removeCameraShader", function(camera:String) {
+			#if (!flash && MODS_ALLOWED && sys)
+			getCameraByName(camera).setFilters([]);
+			cameraShaders.remove(camera);
+			return true;
+			#else
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "setCameraShaderFloat", function(camera:String, prop:String, value:Float) {
+			#if (!flash && MODS_ALLOWED && sys)
+			var shader:FlxRuntimeShader = cameraShaders.get(camera);
+			if(shader == null) return false;
+			shader.setFloat(prop, value);
+			return true;
+			#else
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "getCameraShaderFloat", function(camera:String, prop:String) {
+			#if (!flash && MODS_ALLOWED && sys)
+			var shader:FlxRuntimeShader = cameraShaders.get(camera);
+			return (shader == null) ? null : shader.getFloat(prop);
+			#else
+			return null;
+			#end
+		});
+		Lua_helper.add_callback(lua, "setCameraShaderInt", function(camera:String, prop:String, value:Int) {
+			#if (!flash && MODS_ALLOWED && sys)
+			var shader:FlxRuntimeShader = cameraShaders.get(camera);
+			if(shader == null) return false;
+			shader.setInt(prop, value);
+			return true;
+			#else
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "getCameraShaderInt", function(camera:String, prop:String) {
+			#if (!flash && MODS_ALLOWED && sys)
+			var shader:FlxRuntimeShader = cameraShaders.get(camera);
+			return (shader == null) ? null : shader.getInt(prop);
+			#else
+			return null;
+			#end
+		});
+		Lua_helper.add_callback(lua, "setCameraShaderBool", function(camera:String, prop:String, value:Bool) {
+			#if (!flash && MODS_ALLOWED && sys)
+			var shader:FlxRuntimeShader = cameraShaders.get(camera);
+			if(shader == null) return false;
+			shader.setBool(prop, value);
+			return true;
+			#else
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "getCameraShaderBool", function(camera:String, prop:String) {
+			#if (!flash && MODS_ALLOWED && sys)
+			var shader:FlxRuntimeShader = cameraShaders.get(camera);
+			return (shader == null) ? null : shader.getBool(prop);
+			#else
+			return null;
+			#end
+		});
+		Lua_helper.add_callback(lua, "setCameraShaderFloatArray", function(camera:String, prop:String, values:Dynamic) {
+			#if (!flash && MODS_ALLOWED && sys)
+			var shader:FlxRuntimeShader = cameraShaders.get(camera);
+			if(shader == null) return false;
+			shader.setFloatArray(prop, values);
+			return true;
+			#else
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "setCameraShaderSampler2D", function(camera:String, prop:String, bitmapdataPath:String) {
+			#if (!flash && MODS_ALLOWED && sys)
+			var shader:FlxRuntimeShader = cameraShaders.get(camera);
+			if(shader == null) return false;
+			var value = Paths.image(bitmapdataPath);
+			if(value != null && value.bitmap != null)
+			{
+				shader.setSampler2D(prop, value.bitmap);
+				return true;
+			}
+			return false;
+			#else
+			return false;
+			#end
+		});
 	}
-	
+
 	#if (!flash && MODS_ALLOWED && sys)
 	public static function getShader(obj:String):FlxRuntimeShader
 	{

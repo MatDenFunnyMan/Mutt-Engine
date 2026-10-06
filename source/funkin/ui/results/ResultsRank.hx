@@ -18,11 +18,14 @@ typedef ResultsLayer = {
 	var ?scale:Float;
 	var ?delay:Float;
 	var ?loopFrame:Int;
+	var ?startFrame:Int;
+	var ?endFrame:Int;
+	var ?sound:String;
+	var ?filter:String;
 }
 
 class RankData
 {
-	public static var PERFECT_THRESHOLD:Float = 1;
 	public static var EXCELLENT_THRESHOLD:Float = 0.9;
 	public static var GREAT_THRESHOLD:Float = 0.8;
 	public static var GOOD_THRESHOLD:Float = 0.6;
@@ -30,7 +33,7 @@ class RankData
 	public static function calculate(percent:Float, misses:Int, sicks:Int, totalHits:Int):ResultsRank
 	{
 		if(misses < 1 && totalHits > 0 && sicks >= totalHits) return PERFECT_GOLD;
-		if(misses < 1 && percent >= PERFECT_THRESHOLD) return PERFECT;
+		if(misses < 1 && totalHits > 0) return PERFECT;
 		if(percent >= EXCELLENT_THRESHOLD) return EXCELLENT;
 		if(percent >= GREAT_THRESHOLD) return GREAT;
 		if(percent >= GOOD_THRESHOLD) return GOOD;
@@ -121,7 +124,9 @@ class RankData
 
 	public static function layers(rank:ResultsRank, character:String):Array<ResultsLayer>
 	{
-		return character == 'pico' ? picoLayers(rank) : bfLayers(rank);
+		var list:Array<ResultsLayer> = character == 'pico' ? picoLayers(rank) : bfLayers(rank);
+		var hidden:String = ClientPrefs.data.naughtyness ? 'safe' : 'naughty';
+		return [for (layer in list) if(layer.filter != hidden) layer];
 	}
 
 	static function bfLayers(rank:ResultsRank):Array<ResultsLayer>
@@ -131,8 +136,10 @@ class RankData
 		return switch(rank)
 		{
 			case PERFECT_GOLD, PERFECT: [
-				{asset: '$root/resultsPERFECT/bed', x: 1342, y: 370, loopFrame: 0},
-				{asset: '$root/resultsPERFECT/hearts', x: 1342, y: 370, delay: 4.41, loopFrame: 43}
+				{asset: '$root/resultsPERFECT/bed', x: 1342, y: 370, endFrame: 149, loopFrame: 137, filter: 'naughty'},
+				{asset: '$root/resultsPERFECT/hearts', x: 1342, y: 370, delay: 4.41, loopFrame: 43, filter: 'naughty'},
+				{asset: '$root/resultsPERFECT/bed', x: 1342, y: 370, startFrame: 150, loopFrame: 236, filter: 'safe'},
+				{asset: '$root/resultsPERFECT/tickleFight', x: 650, y: 320, scale: 0.6, delay: 4.41, loopFrame: 16, sound: 'tickleFight', filter: 'safe'}
 			];
 			case EXCELLENT: [
 				{asset: '$root/resultsEXCELLENT', x: 1329, y: 429, loopFrame: 29}

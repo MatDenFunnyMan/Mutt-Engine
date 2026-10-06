@@ -7,8 +7,6 @@
 	"windowTitle": "Template Mod - Mutt Engine",
 	"_comment_changeTitle": "Set to false to keep the engine's window title. When true, 'windowTitle' is used, or 'name' if it's missing",
 	"color": [170, 0, 255],
-	"windowColor": "PC Theme",
-	"_comment_windowColor": "To use a custom color instead, replace 'PC Theme' with an RGB array like [255, 0, 0]",
 	"discordRPC": "863222024192262205",
 	"iconFramerate": 10
 }

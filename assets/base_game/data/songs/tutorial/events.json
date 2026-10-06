@@ -2,6 +2,61 @@
 	"song": {
 		"events": [
 			[
+				0,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				9600,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					],
+					[
+						"Set Cam Zoom",
+						"1.3",
+						"0.6",
+						"elastic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				14400,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					],
+					[
+						"Set Cam Zoom",
+						"1",
+						"0.6",
+						"elastic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
 				18650,
 				[
 					[
@@ -12,12 +67,180 @@
 				]
 			],
 			[
+				19200,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					],
+					[
+						"Set Cam Zoom",
+						"1.3",
+						"0.6",
+						"elastic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				24000,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					],
+					[
+						"Set Cam Zoom",
+						"1",
+						"0.6",
+						"elastic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
 				28250,
 				[
 					[
 						"Hey!",
 						"2",
 						""
+					]
+				]
+			],
+			[
+				28800,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					],
+					[
+						"Set Cam Zoom",
+						"1.3",
+						"0.6",
+						"elastic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				33600,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					],
+					[
+						"Set Cam Zoom",
+						"1",
+						"0.6",
+						"elastic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				38400,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					],
+					[
+						"Set Cam Zoom",
+						"1.3",
+						"0.6",
+						"elastic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				43200,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					],
+					[
+						"Set Cam Zoom",
+						"1",
+						"0.6",
+						"elastic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				48000,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					],
+					[
+						"Set Cam Zoom",
+						"1.3",
+						"0.6",
+						"elastic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				50400,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					],
+					[
+						"Set Cam Zoom",
+						"1",
+						"0.6",
+						"elastic",
+						"InOut",
+						"true"
 					]
 				]
 			]
