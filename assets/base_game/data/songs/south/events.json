@@ -1,0 +1,174 @@
+{
+	"events": [
+		[
+			0,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			11636.3636363636,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			17454,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			23272,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			29090,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			34909,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			40727,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			46545,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			52363,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			58181,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			64000,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			69818,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			75636,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		]
+	],
+	"format": "psych_v1"
+}

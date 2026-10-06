@@ -180,17 +180,30 @@ class SpookyMansionErect extends BaseStage
 	{
 		if (dark == null || lit == null) return;
 
-		lit.alpha = dark.alpha < 1 ? 1 : 0;
-		if (lit.alpha == 0) return;
-
-		var name:String = dark.getAnimationName();
-		if (name != null && lit.hasAnimation(name))
-		{
-			var frame:Int = (dark.animation.curAnim != null) ? dark.animation.curAnim.curFrame : 0;
-			if (lit.getAnimationName() != name) lit.playAnim(name, true, false, frame);
-			if (lit.animation.curAnim != null)
-				lit.animation.curAnim.curFrame = Std.int(Math.min(frame, lit.animation.curAnim.numFrames - 1));
-		}
 		lit.setPosition(dark.x, dark.y);
+		var name:String = dark.getAnimationName();
+		var canSync:Bool = name != null && lit.hasAnimation(name);
+		lit.alpha = (dark.alpha < 1 && canSync) ? 1 : 0;
+		if (!canSync)
+		{
+			if (dark.alpha < 1) dark.alpha = 1;
+			return;
+		}
+
+		if (lit.getAnimationName() != name) lit.playAnim(name, true);
+		setCharacterFrame(lit, characterFrame(dark));
+	}
+
+	function characterFrame(char:Character):Int
+	{
+		if (char.isAnimationNull()) return 0;
+		return char.isAnimateAtlas ? char.atlas.anim.curFrame : char.animation.curAnim.curFrame;
+	}
+
+	function setCharacterFrame(char:Character, frame:Int)
+	{
+		if (char.isAnimationNull()) return;
+		if (char.isAnimateAtlas) char.atlas.anim.curFrame = Std.int(Math.min(frame, char.atlas.anim.length - 1));
+		else char.animation.curAnim.curFrame = Std.int(Math.min(frame, char.animation.curAnim.numFrames - 1));
 	}
 }

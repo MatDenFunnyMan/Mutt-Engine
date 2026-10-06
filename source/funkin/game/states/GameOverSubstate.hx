@@ -213,11 +213,12 @@ class GameOverSubstate extends MusicBeatSubstate
 
 						var jeffLine:String = switch(PlayState.SONG.player1)
 						{
-							case 'pico-playable' | 'pico-holding-nene': pickJeffLine(JEFF_PICO_FOLDER, 9, JEFF_PICO_SWEARS);
+							case 'pico-player' | 'pico-playable' | 'pico-holding-nene': pickJeffLine(JEFF_PICO_FOLDER, 9, JEFF_PICO_SWEARS);
 							case 'bf' | 'bf-holding-gf': pickJeffLine(JEFF_FOLDER, 25, JEFF_SWEARS);
 							default: PlayState.SONG.player1.startsWith('pico') ? '$JEFF_PICO_FOLDER/jeffGameover-10' : pickJeffLine(JEFF_FOLDER, 25, JEFF_SWEARS);
 						}
-						var jeffSound:FlxSound = FlxG.sound.play(boostedJeffSound(jeffSoundKey(jeffLine)), 1, false, null, true, function() {
+						jeffSound = FlxG.sound.play(boostedJeffSound(jeffSoundKey(jeffLine)), 1, false, null, true, function() {
+							jeffSound = null;
 							if(!isEnding)
 							{
 								FlxG.sound.music.fadeIn(0.2, 1, 4);
@@ -246,6 +247,7 @@ class GameOverSubstate extends MusicBeatSubstate
 	static inline final JEFF_LIMIT:Float = 0.8;
 
 	var jeffSubtitles:funkin.game.subtitles.Subtitles;
+	var jeffSound:FlxSound;
 
 	function pickJeffLine(folder:String, count:Int, swears:Array<Int>):String
 	{
@@ -336,6 +338,13 @@ class GameOverSubstate extends MusicBeatSubstate
 		if (!isEnding)
 		{
 			isEnding = true;
+			if(jeffSound != null)
+			{
+				jeffSound.onComplete = null;
+				jeffSound.stop();
+				jeffSound = null;
+			}
+			if(jeffSubtitles != null) jeffSubtitles.stop();
 			if(boyfriend.hasAnimation('deathConfirm'))
 				boyfriend.playAnim('deathConfirm', true);
 			else if(boyfriend.hasAnimation('deathLoop'))

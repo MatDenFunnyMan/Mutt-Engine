@@ -1,10 +1,55 @@
 {
 	"animations": [
 		{
-			"offsets": [
-				94,
-				65
-			],
+			"loop": false,
+			"offsets": [93, 62],
+			"anim": "singUP",
+			"fps": 24,
+			"name": "up",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [98, 74],
+			"anim": "singDOWN",
+			"fps": 24,
+			"name": "down",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [88, 64],
+			"anim": "singLEFT",
+			"fps": 24,
+			"name": "left",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [100, 61],
+			"anim": "singRIGHT",
+			"fps": 24,
+			"name": "right",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [98, 27],
+			"anim": "singDOWN-alt",
+			"fps": 24,
+			"name": "pretty good",
+			"indices": []
+		},
+		{
+			"offsets": [96, 28],
+			"loop": false,
+			"fps": 24,
+			"anim": "argh",
+			"indices": [],
+			"name": "argh"
+		},
+		{
+			"offsets": [94, 65],
 			"loop": false,
 			"fps": 24,
 			"anim": "idle",
@@ -12,89 +57,42 @@
 			"name": "idle"
 		},
 		{
-			"offsets": [
-				93,
-				62
-			],
-			"indices": [],
-			"fps": 24,
-			"anim": "singUP",
 			"loop": false,
-			"name": "up"
+			"offsets": [97, 27],
+			"anim": "laugh",
+			"fps": 24,
+			"name": "laugh",
+			"indices": []
 		},
 		{
-			"offsets": [
-				98,
-				74
-			],
+			"offsets": [96, 29],
 			"indices": [],
 			"fps": 24,
-			"anim": "singDOWN",
+			"anim": "beat",
 			"loop": false,
-			"name": "down"
+			"name": "beat it"
 		},
 		{
-			"offsets": [
-				88,
-				64
-			],
+			"offsets": [98, 27],
 			"indices": [],
 			"fps": 24,
-			"anim": "singLEFT",
-			"loop": false,
-			"name": "left"
-		},
-		{
-			"offsets": [
-				100,
-				61
-			],
-			"indices": [],
-			"fps": 24,
-			"anim": "singRIGHT",
-			"loop": false,
-			"name": "right"
-		},
-		{
-			"offsets": [
-				98,
-				27
-			],
-			"indices": [],
-			"fps": 24,
-			"anim": "singUP-alt",
+			"anim": "ugh",
 			"loop": false,
 			"name": "ugh"
-		},
-		{
-			"offsets": [
-				98,
-				27
-			],
-			"indices": [],
-			"fps": 24,
-			"anim": "singDOWN-alt",
-			"loop": false,
-			"name": "pretty good"
 		}
 	],
+	"vocals_file": "",
 	"no_antialiasing": false,
 	"image": "characters/tankman/basic, characters/tankman/extra-animations",
-	"position": [
-		0,
-		240
-	],
+	"position": [0, 240],
+	"dance_every_num_beats": 2,
+	"healthicon_antialiasing": true,
 	"healthicon": "tankman",
+	"vslice_sustains": false,
 	"flip_x": false,
-	"healthbar_colors": [
-		225,
-		225,
-		225
-	],
-	"camera_position": [
-		-50.5,
-		-30.0
-	],
+	"healthbar_colors": [225, 225, 225],
+	"camera_position": [-50.5, -30],
 	"sing_duration": 4,
-	"scale": 1
+	"scale": 1,
+	"_editor_isPlayer": false
 }

@@ -2,23 +2,11 @@
 	"song": {
 		"events": [
 			[
-				62022.4719101124,
+				0,
 				[
 					[
-						"Play Animation",
-						"Dad",
-						"singDOWN-alt",
-						"false",
-						"false"
-					],
-					[
-						"Set Property",
-						"defaultCamZoom",
-						"1.08"
-					],
-					[
 						"Cam Follow Pos",
-						"320, 504",
+						"dad",
 						"",
 						"classic",
 						"InOut",
@@ -27,20 +15,313 @@
 				]
 			],
 			[
-				64719.1011235955,
+				5393,
 				[
 					[
 						"Cam Follow Pos",
-						"",
+						"bf",
 						"",
 						"classic",
 						"InOut",
 						"true"
-					],
+					]
+				]
+			],
+			[
+				11123,
+				[
 					[
-						"Set Property",
-						"defaultCamZoom",
-						"0.9"
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				14831,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				21573,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				24269,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				26966,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				28314,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				31011,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				37752,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				43146,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				48539,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				53932,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				59325,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				62022,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				62022.4719101124,
+				[
+					[
+						"Play Animation",
+						"Dad",
+						"singDOWN-alt",
+						"false",
+						"false"
+					]
+				]
+			],
+			[
+				67415,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				75505,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				80898,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				86292,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				91685,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				97078,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				102471,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				107865,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				113258,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			]

@@ -2,102 +2,28 @@
 	"song": {
 		"events": [
 			[
-				9375,
+				0,
 				[
 					[
-						"Add Cam Zoom",
+						"Cam Follow Pos",
+						"dad",
 						"",
-						""
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			],
 			[
-				9750,
+				6000,
 				[
 					[
-						"Add Cam Zoom",
+						"Cam Follow Pos",
+						"bf",
 						"",
-						""
-					]
-				]
-			],
-			[
-				10125,
-				[
-					[
-						"Add Cam Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				10687.5,
-				[
-					[
-						"Add Cam Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				10875,
-				[
-					[
-						"Add Cam Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				11062.5,
-				[
-					[
-						"Add Cam Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				11250,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						"0.06"
-					]
-				]
-			],
-			[
-				11437.5,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						"0.06"
-					]
-				]
-			],
-			[
-				11625,
-				[
-					[
-						"Add Cam Zoom",
-						"0.06",
-						"0.12"
-					]
-				]
-			],
-			[
-				11812.5,
-				[
-					[
-						"Add Cam Zoom",
-						"0.06",
-						"0.12"
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			],
@@ -105,9 +31,181 @@
 				12000,
 				[
 					[
-						"Add Cam Zoom",
+						"Cam Follow Pos",
+						"dad",
 						"",
-						""
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				18000,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				24000,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				27000,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				30000,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				33000,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				36000,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				42000,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				48000,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				54000,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				60000,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				66000,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				72000,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				78000,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			]

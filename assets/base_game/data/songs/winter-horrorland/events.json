@@ -2,12 +2,116 @@
 	"song": {
 		"events": [
 			[
+				3018.8679245283,
+				[
+					[
+						"Cam Follow Pos",
+						"gf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				9433,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				15094,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				21132,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
 				21132.0754716981,
 				[
 					[
 						"Set GF Speed",
 						"2",
 						""
+					]
+				]
+			],
+			[
+				27169,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				33396,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				39433,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				45283,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			],
@@ -22,12 +126,168 @@
 				]
 			],
 			[
+				46792,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				48301,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				51320,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				52830,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				54339,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
 				57358.4905660377,
 				[
 					[
 						"Set GF Speed",
 						"2",
 						""
+					]
+				]
+			],
+			[
+				57547,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				60566,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				63396,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				64905,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				69622,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				75660,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				81509,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			],
@@ -42,6 +302,136 @@
 				]
 			],
 			[
+				83018,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				84528,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				86037,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				87547,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				92075,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				93773,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				95283,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				98113,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				101320,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				102830,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
 				105660.377358491,
 				[
 					[
@@ -52,12 +442,129 @@
 				]
 			],
 			[
+				108867,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				111698,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				113207,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				114716,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
 				117735.849056604,
 				[
 					[
 						"Set GF Speed",
 						"1",
 						""
+					]
+				]
+			],
+			[
+				120754,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				123773,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				125283,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				126792,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				129056,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			]

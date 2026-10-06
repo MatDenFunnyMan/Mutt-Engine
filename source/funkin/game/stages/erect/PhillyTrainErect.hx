@@ -66,7 +66,7 @@ class PhillyTrainErect extends BaseStage
 			colorShader.brightness = -5;
 		}
 
-		if (!seenCutscene && PlayState.SONG.player1 == "pico-playable" && PlayState.SONG.player2 == "pico")
+		if (!seenCutscene && (PlayState.SONG.player1 == "pico-player" || PlayState.SONG.player1 == "pico-playable") && PlayState.SONG.player2 == "pico")
 		{
 			cutsceneObj = new funkin.game.cutscenes.TwoPicos(this, colorShader);
 			setStartCallback(cutsceneObj.startCutscene);

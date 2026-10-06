@@ -609,6 +609,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			openNewChart();
 		}
+		else
+		{
+			pendingConvertedEvents += EventConverter.convertList(PlayState.SONG.events, EventConverter.stepSecondsForSong(PlayState.SONG));
+		}
 
 		updateJsonData();
 		
@@ -2510,6 +2514,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		updateToyHover();
 		super.update(elapsed);
+		_flushCustomUIGarbage();
 		
 		if(songFinished)
 		{
@@ -5313,6 +5318,7 @@ end
 		return null;
 	}
 
+	var _customUIGarbage:Array<Dynamic> = [];
 	function _clearCustomUI()
 	{
 		var evTab = mainBox != null ? mainBox.getTab('Events') : null;
@@ -5320,11 +5326,22 @@ end
 		for(ctrl in _customUIAll)
 		{
 			if(tab_group != null) tab_group.remove(ctrl, true);
-			ctrl.destroy();
+			_customUIGarbage.push(ctrl);
 		}
 		_customUIAll = [];
 		_customUISync = [];
 		_customUIReplacedIndices = [];
+	}
+
+	function _flushCustomUIGarbage()
+	{
+		if(_customUIGarbage.length < 1) return;
+		for(ctrl in _customUIGarbage)
+		{
+			if(PsychUIInputText.focusOn == ctrl) PsychUIInputText.focusOn = null;
+			ctrl.destroy();
+		}
+		_customUIGarbage = [];
 	}
 
 	function _buildCustomUI(uiData:Array<Dynamic>)
@@ -8334,6 +8351,7 @@ end
 		StageData.loadDirectory(PlayState.SONG);
 
 		PlayState.startOnTime = startFromHere ? Conductor.songPosition : 0;
+		PlayState.chartingMode = true;
 
 		LoadingState.loadAndSwitchState(new PlayState());
 		ClientPrefs.toggleVolumeKeys(true);
@@ -8388,6 +8406,7 @@ end
 	
 	override function destroy()
 	{
+		_flushCustomUIGarbage();
 		instance = null;
 		Note.globalRgbShaders = [];
 		funkin.data.NoteTypesConfig.clearNoteTypesData();

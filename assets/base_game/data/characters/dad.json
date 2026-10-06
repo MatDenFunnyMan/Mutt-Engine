@@ -64,10 +64,9 @@
 			"fps": 24,
 			"anim": "idle-loop",
 			"indices": [
-				9,
-				10,
 				11,
-				11
+				0,
+				1
 			],
 			"name": "Idle"
 		},

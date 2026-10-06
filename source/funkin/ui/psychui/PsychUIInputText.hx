@@ -478,6 +478,7 @@ class PsychUIInputText extends FlxSpriteGroup
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
+		if(!exists) return;
 
 		if(FlxG.mouse.justPressed)
 		{

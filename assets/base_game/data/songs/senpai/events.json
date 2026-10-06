@@ -14,7 +14,7 @@
 			]
 		],
 		[
-			2000,
+			3333,
 			[
 				[
 					"Cam Follow Pos",
@@ -27,7 +27,7 @@
 			]
 		],
 		[
-			4000,
+			6666,
 			[
 				[
 					"Cam Follow Pos",
@@ -40,24 +40,11 @@
 			]
 		],
 		[
-			6000,
+			8333,
 			[
 				[
 					"Cam Follow Pos",
 					"bf",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				]
-			]
-		],
-		[
-			8250,
-			[
-				[
-					"Cam Follow Pos",
-					"dad",
 					"",
 					"classic",
 					"InOut",
@@ -70,19 +57,6 @@
 			[
 				[
 					"Cam Follow Pos",
-					"bf",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				]
-			]
-		],
-		[
-			12250,
-			[
-				[
-					"Cam Follow Pos",
 					"dad",
 					"",
 					"classic",
@@ -92,7 +66,7 @@
 			]
 		],
 		[
-			14000,
+			11666,
 			[
 				[
 					"Cam Follow Pos",
@@ -105,24 +79,11 @@
 			]
 		],
 		[
-			16250,
+			13750,
 			[
 				[
 					"Cam Follow Pos",
 					"dad",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				]
-			]
-		],
-		[
-			18000,
-			[
-				[
-					"Cam Follow Pos",
-					"bf",
 					"",
 					"classic",
 					"InOut",
@@ -135,6 +96,19 @@
 			[
 				[
 					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			26666,
+			[
+				[
+					"Cam Follow Pos",
 					"dad",
 					"",
 					"classic",
@@ -144,7 +118,7 @@
 			]
 		],
 		[
-			22000,
+			28333,
 			[
 				[
 					"Cam Follow Pos",
@@ -157,7 +131,7 @@
 			]
 		],
 		[
-			24000,
+			30000,
 			[
 				[
 					"Cam Follow Pos",
@@ -170,62 +144,7 @@
 			]
 		],
 		[
-			25000,
-			[
-				[
-					"Cam Follow Pos",
-					"dad, 200, 80",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				],
-				[
-					"Set Cam Zoom",
-					"0.75",
-					"2",
-					"expo",
-					"Out",
-					"true"
-				]
-			]
-		],
-		[
-			28000,
-			[
-				[
-					"Cam Follow Pos",
-					"bf",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				],
-				[
-					"Set Cam Zoom",
-					"0.85",
-					"2",
-					"expo",
-					"Out",
-					"true"
-				]
-			]
-		],
-		[
-			32500,
-			[
-				[
-					"Cam Follow Pos",
-					"dad",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				]
-			]
-		],
-		[
-			36000,
+			31666,
 			[
 				[
 					"Cam Follow Pos",
@@ -247,19 +166,11 @@
 					"classic",
 					"InOut",
 					"true"
-				],
-				[
-					"Set Cam Zoom",
-					"1",
-					"2",
-					"expo",
-					"Out",
-					"true"
 				]
 			]
 		],
 		[
-			42000,
+			46666,
 			[
 				[
 					"Cam Follow Pos",
@@ -272,20 +183,7 @@
 			]
 		],
 		[
-			44000,
-			[
-				[
-					"Set Cam Zoom",
-					"0.85",
-					"2",
-					"expo",
-					"Out",
-					"true"
-				]
-			]
-		],
-		[
-			44250,
+			53333,
 			[
 				[
 					"Cam Follow Pos",
@@ -298,7 +196,7 @@
 			]
 		],
 		[
-			46250,
+			56666,
 			[
 				[
 					"Cam Follow Pos",
@@ -306,145 +204,6 @@
 					"",
 					"classic",
 					"InOut",
-					"true"
-				],
-				[
-					"Set Cam Zoom",
-					"0.95",
-					"2",
-					"expo",
-					"Out",
-					"true"
-				]
-			]
-		],
-		[
-			48000,
-			[
-				[
-					"Set Cam Zoom",
-					"0.85",
-					"2",
-					"expo",
-					"Out",
-					"true"
-				]
-			]
-		],
-		[
-			48250,
-			[
-				[
-					"Cam Follow Pos",
-					"dad",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				]
-			]
-		],
-		[
-			50250,
-			[
-				[
-					"Cam Follow Pos",
-					"bf",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				],
-				[
-					"Set Cam Zoom",
-					"0.95",
-					"2",
-					"expo",
-					"Out",
-					"true"
-				]
-			]
-		],
-		[
-			52000,
-			[
-				[
-					"Cam Follow Pos",
-					"dad",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				],
-				[
-					"Set Cam Zoom",
-					"0.85",
-					"2",
-					"expo",
-					"Out",
-					"true"
-				]
-			]
-		],
-		[
-			54250,
-			[
-				[
-					"Cam Follow Pos",
-					"bf",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				],
-				[
-					"Set Cam Zoom",
-					"0.95",
-					"2",
-					"expo",
-					"Out",
-					"true"
-				]
-			]
-		],
-		[
-			56000,
-			[
-				[
-					"Cam Follow Pos",
-					"dad",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				],
-				[
-					"Set Cam Zoom",
-					"0.85",
-					"1",
-					"expo",
-					"Out",
-					"true"
-				]
-			]
-		],
-		[
-			57000,
-			[
-				[
-					"Cam Follow Pos",
-					"dad, 200, 80",
-					"",
-					"classic",
-					"InOut",
-					"true"
-				],
-				[
-					"Set Cam Zoom",
-					"0.75",
-					"2",
-					"expo",
-					"Out",
 					"true"
 				]
 			]
@@ -454,24 +213,29 @@
 			[
 				[
 					"Cam Follow Pos",
-					"bf",
+					"dad",
 					"",
 					"classic",
 					"InOut",
-					"true"
-				],
-				[
-					"Set Cam Zoom",
-					"0.85",
-					"2",
-					"expo",
-					"Out",
 					"true"
 				]
 			]
 		],
 		[
-			64500,
+			61666,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			63333,
 			[
 				[
 					"Cam Follow Pos",
@@ -484,7 +248,7 @@
 			]
 		],
 		[
-			68000,
+			65000,
 			[
 				[
 					"Cam Follow Pos",
@@ -493,13 +257,18 @@
 					"classic",
 					"InOut",
 					"true"
-				],
+				]
+			]
+		],
+		[
+			66666,
+			[
 				[
-					"Set Cam Zoom",
-					"0.9",
-					"2",
-					"expo",
-					"Out",
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
 					"true"
 				]
 			]
@@ -508,54 +277,67 @@
 			70000,
 			[
 				[
-					"Set Cam Zoom",
-					"1",
-					"2",
-					"expo",
-					"Out",
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
 					"true"
 				]
 			]
 		],
 		[
-			71000,
+			73333,
 			[
 				[
-					"Set Cam Zoom",
-					"1.1",
-					"2",
-					"expo",
-					"Out",
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
 					"true"
 				]
 			]
 		],
 		[
-			71500,
+			76666,
 			[
 				[
-					"Set Cam Zoom",
-					"1.15",
-					"2",
-					"expo",
-					"Out",
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
 					"true"
 				]
 			]
 		],
 		[
-			72000,
+			80000,
 			[
 				[
-					"Set Cam Zoom",
-					"0.8",
-					"7.5",
-					"circ",
-					"Out",
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			86666,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
 					"true"
 				]
 			]
 		]
 	],
-	"format": "psych_v1_convert"
+	"format": "psych_v1"
 }

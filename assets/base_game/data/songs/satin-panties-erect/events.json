@@ -1,12 +1,462 @@
 {
 	"events": [
 		[
+			0,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			1777,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			3777,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			7333,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			10888,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			14222,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			17777,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			21333,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			24888,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			28444,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			32222,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			35777,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			39111,
+			[
+				[
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
 			39111.1111111111,
 			[
 				[
 					"Kill Henchmen",
 					"",
 					""
+				],
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			42666,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			42666.6666666667,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 60, 0",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			44444,
+			[
+				[
+					"Set Cam Zoom",
+					"0.99",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			45333,
+			[
+				[
+					"Set Cam Zoom",
+					"1.08",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			46222,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"0.8889",
+					"quad",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			47999,
+			[
+				[
+					"Set Cam Zoom",
+					"0.99",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			48888,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			51555,
+			[
+				[
+					"Set Cam Zoom",
+					"0.99",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			52444,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			53333,
+			[
+				[
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			53333.3333333333,
+			[
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			55111,
+			[
+				[
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			55999,
+			[
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			58666,
+			[
+				[
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			59554,
+			[
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			60444,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			60666,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			63999,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			65777,
+			[
+				[
+					"Set Cam Zoom",
+					"0.99",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			66666,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			67555,
+			[
+				[
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
 				]
 			]
 		],
@@ -17,6 +467,469 @@
 					"Kill Henchmen",
 					"",
 					""
+				],
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			71110,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			71111.1111111111,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 60, 0",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			72888,
+			[
+				[
+					"Set Cam Zoom",
+					"0.99",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			73777,
+			[
+				[
+					"Set Cam Zoom",
+					"1.08",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			74666,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"0.8889",
+					"quad",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			76444,
+			[
+				[
+					"Set Cam Zoom",
+					"0.99",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			78222,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			79999,
+			[
+				[
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			80333,
+			[
+				[
+					"Set Cam Zoom",
+					"0.99",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			80888,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			81777,
+			[
+				[
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			81777.7777777778,
+			[
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			83555,
+			[
+				[
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			85333,
+			[
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			87111,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			87444,
+			[
+				[
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			87999,
+			[
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			90666,
+			[
+				[
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			91554,
+			[
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			92444,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			92444.4444444444,
+			[
+				[
+					"Cam Follow Pos",
+					"bf, 60, 0",
+					"3.5556",
+					"smoothStep",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			94222,
+			[
+				[
+					"Set Cam Zoom",
+					"0.99",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			94666,
+			[
+				[
+					"Set Cam Zoom",
+					"1.08",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			95111,
+			[
+				[
+					"Set Cam Zoom",
+					"1.17",
+					"0.6667",
+					"quad",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			95999,
+			[
+				[
+					"Cam Follow Pos",
+					"gf, -100, 210",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			96000,
+			[
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			97777,
+			[
+				[
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			98665,
+			[
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			101333,
+			[
+				[
+					"Set Cam Zoom",
+					"0.945",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			102221,
+			[
+				[
+					"Set Cam Zoom",
+					"0.855",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			103111,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			103111.111111111,
+			[
+				[
+					"Set Cam Zoom",
+					"0.9",
+					"3.5556",
+					"expo",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			104888,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			106666,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			108444,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
 				]
 			]
 		]

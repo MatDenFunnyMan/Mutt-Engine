@@ -120,6 +120,7 @@ class PsychUIDropDownMenu extends PsychUIInputText
 	{
 		var lastFocus = PsychUIInputText.focusOn;
 		super.update(elapsed);
+		if(!exists) return;
 		if(FlxG.mouse.justPressed)
 		{
 			if(FlxG.mouse.overlaps(button, camera))

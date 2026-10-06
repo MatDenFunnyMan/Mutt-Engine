@@ -164,6 +164,61 @@
 			"anim": "intro2",
 			"loop": false,
 			"name": "Shoot and Return"
+		},
+		{
+			"offsets": [
+				257,
+				233
+			],
+			"indices": [],
+			"fps": 24,
+			"anim": "hey",
+			"loop": false,
+			"name": "Hey"
+		},
+		{
+			"offsets": [
+				184,
+				225
+			],
+			"indices": [],
+			"fps": 24,
+			"anim": "cheer",
+			"loop": false,
+			"name": "Cheer"
+		},
+		{
+			"offsets": [
+				250,
+				231
+			],
+			"indices": [],
+			"fps": 24,
+			"anim": "burpShit",
+			"loop": false,
+			"name": "*BURP* ... Shit"
+		},
+		{
+			"offsets": [
+				250,
+				231
+			],
+			"indices": [],
+			"fps": 24,
+			"anim": "burpSmile",
+			"loop": false,
+			"name": "Burp Smile"
+		},
+		{
+			"offsets": [
+				287,
+				230
+			],
+			"indices": [],
+			"fps": 24,
+			"anim": "shit",
+			"loop": false,
+			"name": "Burp Censor"
 		}
 	],
 	"vocals_file": "",

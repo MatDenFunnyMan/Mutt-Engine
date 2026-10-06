@@ -6,6 +6,7 @@ import funkin.data.WeekData;
 import funkin.data.Song;
 import funkin.game.Rating;
 import funkin.game.InputSystem;
+import funkin.game.PlayDebugOverlay;
 import funkin.game.subtitles.Subtitles;
 import funkin.game.subtitles.SubtitleData;
 
@@ -238,6 +239,8 @@ class PlayState extends MusicBeatState
 	var vsliceScoreRemainder:Float = 0;
 	public var instakillOnMiss:Bool = false;
 	public var cpuControlled:Bool = false;
+	public var debugOverlay:PlayDebugOverlay;
+	public var debugBotplayUsed:Bool = false;
 	public var practiceMode:Bool = false;
 	public var opponentMode:Bool = false;
 	public var mirrorChart:Bool = false;
@@ -252,6 +255,7 @@ class PlayState extends MusicBeatState
 	public var camGame:FlxCamera;
 	public var camOther:FlxCamera;
 	public var cameraSpeed:Float = 1;
+	public var stageCameraSpeed:Float = 1;
 	public var camSpeed(get, set):Float;
 	inline function get_camSpeed():Float return cameraSpeed;
 	inline function set_camSpeed(v:Float):Float { cameraSpeed = v; return v; }
@@ -426,6 +430,7 @@ class PlayState extends MusicBeatState
 
 		if(stageData.camera_speed != null)
 			cameraSpeed = stageData.camera_speed;
+		stageCameraSpeed = cameraSpeed;
 
 		boyfriendCameraOffset = stageData.camera_boyfriend;
 		if(boyfriendCameraOffset == null) //Fucks sake should have done it since the start :rolling_eyes:
@@ -851,6 +856,14 @@ class PlayState extends MusicBeatState
 		var splash:NoteSplash = new NoteSplash();
 		grpNoteSplashes.add(splash);
 		splash.alpha = 0.000001; //cant make it invisible or it won't allow precaching
+
+		if(chartingMode)
+		{
+			debugOverlay = new PlayDebugOverlay(this, camOther);
+			add(debugOverlay);
+			if(PlayDebugOverlay.saved != null) debugOverlay.restore(PlayDebugOverlay.saved);
+		}
+		else PlayDebugOverlay.saved = null;
 
 		super.create();
 		Paths.clearUnusedMemory();
@@ -2472,13 +2485,18 @@ class PlayState extends MusicBeatState
 			botplayTxt.alpha = 1 - Math.sin((Math.PI * botplaySine) / 180);
 		}
 
-		if (controls.PAUSE && startedCountdown && canPause)
+		var debugToggle:Bool = debugOverlay != null && FlxG.keys.justPressed.ENTER && FlxG.keys.pressed.CONTROL && FlxG.keys.pressed.SHIFT;
+		if (debugToggle)
+			debugOverlay.setEnabled(!debugOverlay.enabled);
+		else if (controls.PAUSE && startedCountdown && canPause)
 		{
 			var ret:Dynamic = callOnScripts('onPause', null, true);
 			if(ret != LuaUtils.Function_Stop) {
 				openPauseMenu();
 			}
 		}
+		if (debugOverlay != null && !debugToggle && !paused)
+			debugOverlay.handleInput();
 
 		if(!endingSong && ClientPrefs.data.developerMode)
 		{
@@ -2567,7 +2585,8 @@ class PlayState extends MusicBeatState
 		FlxG.watch.addQuick("stepShit", curStep);
 
 		// RESET = Quick Game Over Screen
-		if (!ClientPrefs.data.noReset && controls.RESET && canReset && !inCutscene && startedCountdown && !endingSong)
+		var debugShortcut:Bool = debugOverlay != null && debugOverlay.enabled && (FlxG.keys.pressed.CONTROL || debugOverlay.freeCam);
+		if (!ClientPrefs.data.noReset && controls.RESET && canReset && !inCutscene && startedCountdown && !endingSong && !debugShortcut)
 		{
 			health = 0;
 			trace("RESET = True");
@@ -2837,6 +2856,12 @@ class PlayState extends MusicBeatState
 		MusicBeatState.switchState(new funkin.editors.ModchartEditorState());
 	}
 	#end
+
+	public function debugSoftReset()
+	{
+		if(songStartPosition > 0) startOnTime = songStartPosition;
+		PauseSubState.restartSong(true);
+	}
 
 	function openChartEditorAtCurrentTime()
 	{
@@ -4686,6 +4711,10 @@ class PlayState extends MusicBeatState
 				if(bfPoint != null) bfPoint.put();
 				if(dadPoint != null) dadPoint.put();
 
+			case 'Cam Speed':
+				var speed:Float = num(0, 0);
+				cameraSpeed = (speed > 0) ? speed : stageCameraSpeed;
+
 			case 'Cam Flash':
 				if(!ClientPrefs.data.flashing) return true;
 				var duration:Float = num(0, 1);
@@ -4713,14 +4742,14 @@ class PlayState extends MusicBeatState
 				var strength:Float = FlxMath.bound(num(1, 1), 0, 3);
 				var duration:Float = num(2, 0.5);
 				if(strength <= 0 || duration <= 0) return true;
-				var cams:Array<FlxCamera> = switch(str(0).toLowerCase())
-				{
-					case 'hud': [camHUD];
-					case 'other': [camOther];
-					case 'all': [camGame, camHUD, camOther];
-					default: [camGame];
-				}
-				for (cam in cams) cam.shake(strength * 0.015, duration / playbackRate);
+				for (cam in eventCameras(str(0))) cam.shake(strength * 0.015, duration / playbackRate);
+
+			case 'Cam Rotation':
+				var angle:Float = num(1, 0);
+				var duration:Float = num(2, 0);
+				var ease:Float->Float = eventEase(str(3), str(4));
+				var forced:Bool = bool(5, true);
+				for (cam in eventCameras(str(0))) rotateCameraEvent(cam, angle, duration, ease, forced);
 
 			case 'Set Char Idle Alt':
 				var char:Character = eventCharacter(str(0), dad);
@@ -4801,6 +4830,45 @@ class PlayState extends MusicBeatState
 				return false;
 		}
 		return true;
+	}
+
+	function eventCameras(name:String):Array<FlxCamera>
+	{
+		return switch(name.toLowerCase())
+		{
+			case 'hud': [camHUD];
+			case 'other': [camOther];
+			case 'all': [camGame, camHUD, camOther];
+			default: [camGame];
+		}
+	}
+
+	var camRotationTweens:Map<FlxCamera, FlxTween> = [];
+	function rotateCameraEvent(cam:FlxCamera, angle:Float, duration:Float, ease:Float->Float, forced:Bool)
+	{
+		var oldTween:FlxTween = camRotationTweens.get(cam);
+		if(oldTween != null) oldTween.cancel();
+		camRotationTweens.remove(cam);
+
+		function goBack()
+		{
+			camRotationTweens.remove(cam);
+			if(forced) return;
+			if(duration <= 0)
+			{
+				PsychCamera.setRotation(cam, 0);
+				return;
+			}
+			camRotationTweens.set(cam, PsychCamera.tweenRotation(cam, 0, duration / playbackRate, ease, function(_) camRotationTweens.remove(cam)));
+		}
+
+		if(duration <= 0)
+		{
+			PsychCamera.setRotation(cam, angle);
+			goBack();
+			return;
+		}
+		camRotationTweens.set(cam, PsychCamera.tweenRotation(cam, angle, duration / playbackRate, ease, function(_) goBack()));
 	}
 
 	function eventEase(name:String, direction:String):Float->Float
@@ -5415,7 +5483,7 @@ class PlayState extends MusicBeatState
 			var percent:Float = ratingPercent;
 			if(Math.isNaN(percent)) percent = 0;
 			newHighscore = (songScore > Highscore.getScore(Song.loadedSongName, storyDifficulty));
-			Highscore.saveScore(Song.loadedSongName, songScore, storyDifficulty, percent, songMisses);
+			if(!debugBotplayUsed) Highscore.saveScore(Song.loadedSongName, songScore, storyDifficulty, percent, songMisses);
 			#end
 			playbackRate = 1;
 
@@ -5806,6 +5874,7 @@ class PlayState extends MusicBeatState
 	{
 
 		var eventKey:FlxKey = event.keyCode;
+		if (debugOverlay != null && debugOverlay.blocksKey(eventKey)) return;
 		var key:Int = getKeyFromEvent(keysArray, eventKey);
 
 		if (!controls.controllerMode)
@@ -5936,6 +6005,7 @@ class PlayState extends MusicBeatState
 	private function onKeyRelease(event:KeyboardEvent):Void
 	{
 		var eventKey:FlxKey = event.keyCode;
+		if (debugOverlay != null && debugOverlay.blocksKey(eventKey)) return;
 		var key:Int = getKeyFromEvent(keysArray, eventKey);
 		if(!controls.controllerMode && key > -1) keyReleased(key);
 	}
@@ -6289,8 +6359,21 @@ class PlayState extends MusicBeatState
 		vsliceScoreRemainder -= whole;
 	}
 
+	function keepSustainPose(note:Note, playerSide:Bool):Void
+	{
+		if(!note.isSustainNote) return;
+
+		var char:Character = playerSide ? boyfriend : dad;
+		if(note.gfNote && gf != null) char = gf;
+		var extraIdx:Int = (note.extraData != null && note.extraData.exists('strumlineIndex')) ? Std.int(note.extraData.get('strumlineIndex')) : -1;
+		if(extraIdx >= 2 && extraIdx - 2 < extraCharacters.length && extraCharacters[extraIdx - 2] != null) char = extraCharacters[extraIdx - 2];
+
+		if(char != null && char.getAnimationName() != null && char.getAnimationName().startsWith('sing')) char.holdTimer = 0;
+	}
+
 	function opponentNoteHit(note:Note):Void
 	{
+		keepSustainPose(note, opponentMode);
 		if(opponentMode)
 		{
 				if(note.noteType == 'Hey!' && boyfriend.hasAnimation('hey'))
@@ -6578,6 +6661,7 @@ class PlayState extends MusicBeatState
 		if(result == LuaUtils.Function_Stop) return;
 
 		note.wasGoodHit = true;
+		keepSustainPose(note, !opponentMode);
 
 		if (note.hitsoundVolume > 0 && !note.hitsoundDisabled)
 			FlxG.sound.play(Paths.sound(note.hitsound), note.hitsoundVolume);
@@ -6954,6 +7038,8 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		if (debugOverlay != null) PlayDebugOverlay.saved = debugOverlay.saveState();
+
 		if (funkin.scripting.CustomSubstate.instance != null)
 		{
 			closeSubState();

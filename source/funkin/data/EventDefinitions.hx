@@ -20,6 +20,7 @@ class EventDefinitions
 
 	public static final EASES:Array<String> = ['linear', 'classic', 'sine', 'quad', 'cube', 'quart', 'quint', 'expo', 'circ', 'back', 'elastic', 'bounce', 'smoothStep', 'smootherStep'];
 	public static final DIRECTIONS:Array<String> = ['In', 'Out', 'InOut'];
+	public static final TWEEN_EASES:Array<String> = [for (ease in EASES) if (ease != 'classic') ease];
 
 	public static final BUILT_IN:Array<EventDefinition> = [
 		{
@@ -70,6 +71,13 @@ class EventDefinitions
 			]
 		},
 		{
+			name: 'Cam Speed',
+			description: "Changes how fast the camera follows\nits target, until the next Cam Speed.\n\nValue: new camera speed\nEmpty or 0 = back to the stage speed",
+			fields: [
+				{label: 'Value'}
+			]
+		},
+		{
 			name: 'Cam Flash',
 			description: "Flashes a camera.\n\nDuration: seconds (Default: 1)\nColor: color name or hex code (#FFFFFF)\n(Default: white)",
 			fields: [
@@ -85,6 +93,18 @@ class EventDefinitions
 				{label: 'Camera', type: 'dropdown', options: ['Game', 'HUD', 'Other', 'All'], defaultValue: 'Game', width: 120},
 				{label: 'Strength'},
 				{label: 'Duration'}
+			]
+		},
+		{
+			name: 'Cam Rotation',
+			description: "Rotates a camera without black borders.\n\nAngle: degrees, 0 = normal\nDuration: seconds, empty or 0 = instant\nForced: if checked, the camera stays rotated.\nIf unchecked, it goes back to 0 with the\nsame Duration and Ease.",
+			fields: [
+				{label: 'Camera', type: 'dropdown', options: ['Game', 'HUD', 'Other', 'All'], defaultValue: 'Game', width: 120},
+				{label: 'Angle'},
+				{label: 'Duration'},
+				{label: 'Ease', type: 'dropdown', options: TWEEN_EASES, defaultValue: 'linear', width: 120},
+				{label: 'Direction', type: 'dropdown', options: DIRECTIONS, defaultValue: 'InOut', width: 120},
+				{label: 'Forced', type: 'checkbox', defaultValue: 'true'}
 			]
 		},
 		{

@@ -9,6 +9,8 @@ class PicoTankman
 	public static inline final ENDING_OFFSET_Y:Float = -18;
 	static inline final ATLAS_OFFSET_X:Float = 732;
 	static inline final ATLAS_OFFSET_Y:Float = 278;
+	static inline final IDLE_OFFSET_X:Float = 94;
+	static inline final IDLE_OFFSET_Y:Float = 64;
 	static inline final ENDING_NO_RIM_THRESHOLD:Float = 2;
 
 	var cutscene:CutsceneHandler;
@@ -43,8 +45,7 @@ class PicoTankman
 	public function placeEnding()
 	{
 		var dad:Character = PlayState.instance.dad;
-		var idle:Array<Dynamic> = dad.animOffsets.exists('idle') ? dad.animOffsets.get('idle') : [dad.offset.x, dad.offset.y];
-		tankmanEnding.setPosition(dad.x - idle[0] + ENDING_OFFSET_X + ATLAS_OFFSET_X, dad.y - idle[1] + ENDING_OFFSET_Y + ATLAS_OFFSET_Y);
+		tankmanEnding.setPosition(dad.x - IDLE_OFFSET_X + ENDING_OFFSET_X + ATLAS_OFFSET_X, dad.y - IDLE_OFFSET_Y + ENDING_OFFSET_Y + ATLAS_OFFSET_Y);
 		tankmanEnding.scrollFactor.set(dad.scrollFactor.x, dad.scrollFactor.y);
 	}
 

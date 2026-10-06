@@ -1,0 +1,190 @@
+{
+	"events": [
+		[
+			0,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			3799,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			10200,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			16199,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			22600,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			28999,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			35400,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			41800,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			48200,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			54400,
+			[
+				[
+					"Set Cam Zoom",
+					"1",
+					"1.6",
+					"quart",
+					"Out",
+					"true"
+				],
+				[
+					"Cam Follow Pos",
+					"gf, 0, 100",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			60800,
+			[
+				[
+					"Set Cam Zoom",
+					"1.1",
+					"1.6",
+					"quart",
+					"Out",
+					"true"
+				],
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			67400,
+			[
+				[
+					"Cam Follow Pos",
+					"dad",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		],
+		[
+			73800,
+			[
+				[
+					"Cam Follow Pos",
+					"bf",
+					"",
+					"classic",
+					"InOut",
+					"true"
+				]
+			]
+		]
+	],
+	"format": "psych_v1"
+}

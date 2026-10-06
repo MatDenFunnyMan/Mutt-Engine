@@ -2,12 +2,142 @@
 	"song": {
 		"events": [
 			[
+				0,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				5333.33333333333,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				10083.3333333333,
+				[
+					[
+						"Set Cam Zoom",
+						"1.05",
+						"1",
+						"quint",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				10666,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				13333,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				16000,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				18666,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				21666,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				27000,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
 				32000,
 				[
 					[
 						"Dadbattle Spotlight",
 						"1",
 						""
+					]
+				]
+			],
+			[
+				32166,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			],
@@ -22,202 +152,28 @@
 				]
 			],
 			[
-				48333.3333333334,
+				42833,
 				[
 					[
-						"Add Cam Zoom",
+						"Cam Follow Pos",
+						"bf",
 						"",
-						""
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			],
 			[
-				48666.6666666667,
+				53333,
 				[
 					[
-						"Add Cam Zoom",
+						"Cam Follow Pos",
+						"dad",
 						"",
-						""
-					]
-				]
-			],
-			[
-				49000,
-				[
-					[
-						"Add Cam Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				49666.6666666667,
-				[
-					[
-						"Add Cam Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				50000,
-				[
-					[
-						"Add Cam Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				50333.3333333334,
-				[
-					[
-						"Add Cam Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				51000,
-				[
-					[
-						"Add Cam Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				51333.3333333334,
-				[
-					[
-						"Add Cam Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				51666.6666666667,
-				[
-					[
-						"Add Cam Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				52000,
-				[
-					[
-						"Add Cam Zoom",
-						"0.015",
-						"0"
-					]
-				]
-			],
-			[
-				52166.6666666667,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						""
-					]
-				]
-			],
-			[
-				52333.3333333334,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						""
-					]
-				]
-			],
-			[
-				52500,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						""
-					]
-				]
-			],
-			[
-				52666.6666666667,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						""
-					]
-				]
-			],
-			[
-				52833.3333333334,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						""
-					]
-				]
-			],
-			[
-				52916.6666666667,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						""
-					]
-				]
-			],
-			[
-				53000,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						""
-					]
-				]
-			],
-			[
-				53083.3333333334,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						""
-					]
-				]
-			],
-			[
-				53166.6666666667,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						""
-					]
-				]
-			],
-			[
-				53250,
-				[
-					[
-						"Add Cam Zoom",
-						"0.03",
-						""
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			],
@@ -228,6 +184,123 @@
 						"Dadbattle Spotlight",
 						"0",
 						""
+					]
+				]
+			],
+			[
+				56000,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				58666,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				61333,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				64333,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				69666,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				74666,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				77333,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				80000,
+				[
+					[
+						"Cam Follow Pos",
+						"dad",
+						"",
+						"classic",
+						"InOut",
+						"true"
+					]
+				]
+			],
+			[
+				82666,
+				[
+					[
+						"Cam Follow Pos",
+						"bf",
+						"",
+						"classic",
+						"InOut",
+						"true"
 					]
 				]
 			]

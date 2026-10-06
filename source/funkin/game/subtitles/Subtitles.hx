@@ -50,9 +50,17 @@ class Subtitles extends FlxSpriteGroup
 		this.timeSource = timeSource;
 		this.onCensor = onCensor;
 		clock = 0;
+		endTime = 0;
+		if(data != null)
+		{
+			for (line in data.lines) endTime = Math.max(endTime, line.end);
+			for (censor in data.censors) endTime = Math.max(endTime, censor.end);
+		}
 		hideLines();
 		return this;
 	}
+
+	var endTime:Float = 0;
 
 	public static function soundClock(sound:FlxSound):Void->Float
 		return () -> (sound != null && (sound.playing || sound.time > 0)) ? sound.time : -1;
@@ -103,6 +111,11 @@ class Subtitles extends FlxSpriteGroup
 
 		clock += elapsed * 1000;
 		var time:Float = timeSource != null ? timeSource() : clock;
+		if(endTime > 0 && time > endTime)
+		{
+			stop();
+			return;
+		}
 		if(data.censors.length > 0) updateCensor(time);
 
 		if(!ignorePreference && !ClientPrefs.data.subtitles)

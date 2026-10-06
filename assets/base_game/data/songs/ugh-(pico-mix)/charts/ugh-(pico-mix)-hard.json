@@ -1,7 +1,5 @@
 {
-	"player1": "pico-playable",
-	"gfVersion": "nene",
-	"events": [],
+	"player1": "pico-player",
 	"notes": [
 		{
 			"sectionBeats": 4,
@@ -1119,33 +1117,80 @@
 			"mustHitSection": false
 		},
 		{
+			"sectionNotes": [],
+			"sectionBeats": 4,
 			"gfSection": false,
 			"altAnim": false,
-			"sectionNotes": [],
 			"bpm": 160,
-			"sectionBeats": 4,
 			"changeBPM": false,
 			"mustHitSection": false
 		},
 		{
+			"sectionNotes": [],
+			"sectionBeats": 4,
 			"gfSection": false,
 			"altAnim": false,
-			"sectionNotes": [],
 			"bpm": 160,
-			"sectionBeats": 4,
 			"changeBPM": false,
 			"mustHitSection": false
 		}
 	],
 	"player2": "tankman",
-	"charter": "Fabs + Spazkid",
+	"mania": 2,
 	"offset": 0,
 	"song": "Ugh (Pico Mix)",
-	"stage": "tankmanBattlefieldErect",
+	"extraStrumlines": null,
 	"generatedBy": "P-Slice converter",
-	"needsVoices": true,
 	"speed": 2.6,
 	"artist": "tsuyunoshi (ft. Saruky)",
-	"bpm": 160,
-	"format": "psych_v1_convert"
+	"format": "psych_v1_convert",
+	"gfVersion": "nene",
+	"events": [
+		[
+			1500,
+			[
+				["Play Animation", "dad", "ugh", "true", "false"]
+			]
+		],
+		[
+			5625,
+			[
+				["Play Animation", "dad", "ugh", "false", "false"]
+			]
+		],
+		[
+			10500,
+			[
+				["Play Animation", "dad", "laugh", "true", "false"]
+			]
+		],
+		[
+			37500,
+			[
+				["Play Animation", "dad", "ugh", "true", "false"]
+			]
+		],
+		[
+			49500,
+			[
+				["Play Animation", "dad", "argh", "false", "false"]
+			]
+		],
+		[
+			50250,
+			[
+				["Play Animation", "dad", "beat", "false", "false"]
+			]
+		],
+		[
+			77625,
+			[
+				["Play Animation", "dad", "ugh", "true", "false"]
+			]
+		]
+	],
+	"charter": "Fabs + Spazkid",
+	"stage": "tankmanBattlefieldErect",
+	"needsVoices": true,
+	"bpm": 160
 }
