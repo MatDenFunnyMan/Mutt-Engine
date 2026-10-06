@@ -8,12 +8,30 @@ Base used: Cheese Engine by [@Chris](https://github.com/whenkenas) - Version 1.6
 ## CHANGES:
 
 - New source structure, re-organized for a more "modern" look.
-- EVEN better Chart Editor - Startup Wizard, Change Difficulty inside Editor, V-Slice/Codename compatibility, etc. (MORE coming in future updates)
-- Character Editor - Spritesheet View, Multi-Ghost, Icon Sub-Editor & Adobe Atlas Support (COMING SOON)
-- **Stage Editor** - TONS of bug fixes, Pixel Stage support, Atlas support (coming soon)
-- Custom States/Substates, softcoded in LUA/HX
-- Modcharting, using [@TheZoroForce420's Modcharting Tools](https://github.com/TheZoroForce240/FNF-Modcharting-Tools) as a base. (Will be changed w Funkin Modchart in future updates)
+- EVEN better Chart Editor - Startup Wizard, Change Difficulty inside Editor, V-Slice/Codename compatibility, etc.
+- Character Editor - Spritesheet View, Multi-Ghost, Icon Sub-Editor (4 icon states + animated icons)
+- **Stage Editor** - TONS of bug fixes, Pixel Stage support, base game stages converted to JSON
+- Custom States/Substates, softcoded in LUA/HX (custom Game Over, Pause Menu, etc.)
+- V-Slice style Results Screen with ranks
+- Modcharting, using [@TheZoroForce420's Modcharting Tools](https://github.com/TheZoroForce240/FNF-Modcharting-Tools) as a base.
 - [@MaybeMaru](https://github.com/MaybeMaru/flixel-animate) for better Animate Atlas support, boosting performance.
+
+## NEW IN 1.1:
+
+- **Friday Night Funkin' 0.8.6 content** - Erect stages, Pico Mixes, BF Mixes and their cutscenes, ported from [P-Slice](https://github.com/Psych-Slice/P-Slice).
+- **New Freeplay** - a Psych/V-Slice hybrid: ranks, DJ, BF/Pico switch, mod tabs and automatic song previews.
+- **New Modchart Editor** - rebuilt from scratch, with real-time preview and a timeline for modifiers and events.
+- **Revamped Options Menu** - new categories and settings, Lag Adjustment from V-Slice.
+- **Input System** - choose between Psych, Legacy and V-Slice (V-Slice also uses V-Slice style sustains).
+- **Subtitles** for cutscenes and dialogues, plus a "Naughtyness" setting to censor explicit content.
+- **Borderless camera rotation** (like Codename Engine), usable from scripts and from the new "Cam Rotation" event.
+- **New chart events** - Cam Rotation, Cam Speed, Set Camera Bopping, and a Forced option for Cam Follow Pos.
+- Base game songs now use the V-Slice camera movements, converted to Mutt events.
+- **Debug Mode** while testing from the Chart Editor (Ctrl+Shift+Enter): botplay, HUD toggle, soft reset, stop/resume song, free camera and live camera/character/song info.
+- The Chart Editor now brings you back to where you started testing.
+- Lua/HScript fixes - scripting functions are now consistent between gameplay and custom states.
+- Lower memory usage (GPU caching on by default, lighter texture loading).
+- TONS of bug fixes.
 
 **AND MORE!!**
 
