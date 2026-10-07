@@ -515,17 +515,25 @@ class PhillyStreetsErect extends BaseStage
             if (ClientPrefs.data.lowQuality)
                 return;
 
+            var picoFrame = boyfriend.updateFramePixels();
+            if (picoFrame == null)
+                return;
+
+            picoFade.loadGraphic(picoFrame.clone(), false, 0, 0, true);
             picoFade.setPosition(boyfriend.x, boyfriend.y);
-            picoFade.frames = boyfriend.frames;
-            picoFade.frame = boyfriend.frame;
+            picoFade.flipX = false;
+            picoFade.flipY = false;
+            picoFade.color = boyfriend.color;
             picoFade.alpha = 0.3;
-            picoFade.scale.set(1, 1);
+            picoFade.scale.copyFrom(boyfriend.scale);
             picoFade.updateHitbox();
+            picoFade.offset.copyFrom(boyfriend.offset);
+            picoFade.origin.copyFrom(boyfriend.origin);
             picoFade.visible = true;
 
             FlxTween.cancelTweensOf(picoFade.scale);
             FlxTween.cancelTweensOf(picoFade);
-            FlxTween.tween(picoFade.scale, {x: 1.3, y: 1.3}, 0.4);
+            FlxTween.tween(picoFade.scale, {x: picoFade.scale.x * 1.3, y: picoFade.scale.y * 1.3}, 0.4);
             FlxTween.tween(picoFade, {alpha: 0}, 0.4, {onComplete: (_) -> (picoFade.visible = false)});
         }
 

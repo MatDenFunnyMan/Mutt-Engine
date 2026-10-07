@@ -1572,7 +1572,7 @@ class PlayState extends MusicBeatState
 		#if FLX_PITCH FlxG.sound.music.pitch = playbackRate; #end
 		FlxG.sound.music.play();
 
-		if (Conductor.songPosition < vocals.length)
+		if (time - Conductor.offset < vocals.length)
 		{
 			vocals.time = time - Conductor.offset;
 			#if FLX_PITCH vocals.pitch = playbackRate; #end
@@ -1580,7 +1580,7 @@ class PlayState extends MusicBeatState
 		}
 		else vocals.pause();
 
-		if (Conductor.songPosition < opponentVocals.length)
+		if (time - Conductor.offset < opponentVocals.length)
 		{
 			opponentVocals.time = time - Conductor.offset;
 			#if FLX_PITCH opponentVocals.pitch = playbackRate; #end
@@ -2400,6 +2400,8 @@ class PlayState extends MusicBeatState
 	}
 	#end
 
+	static inline final CONDUCTOR_DRIFT_THRESHOLD:Float = 100;
+
 	function checkVocalsSync():Void
 	{
 		if(finishTimer != null || startingSong || paused || FlxG.sound.music == null || !FlxG.sound.music.playing) return;
@@ -2425,7 +2427,7 @@ class PlayState extends MusicBeatState
 		var checkVocals = [vocals, opponentVocals];
 		for (voc in checkVocals)
 		{
-			if (FlxG.sound.music.time < vocals.length)
+			if (FlxG.sound.music.time < voc.length)
 			{
 				voc.time = FlxG.sound.music.time;
 				#if FLX_PITCH voc.pitch = playbackRate; #end
@@ -2530,22 +2532,10 @@ class PlayState extends MusicBeatState
 				{
 					var musicTime:Float = FlxG.sound.music.time + Conductor.offset;
 					var timeDiff:Float = musicTime - Conductor.songPosition;
-					if (timeDiff < -2000 * playbackRate)
-					{
-						var targetTime:Float = Conductor.songPosition - Conductor.offset;
-						FlxG.sound.music.time = targetTime;
-						#if FLX_PITCH FlxG.sound.music.pitch = playbackRate; #end
-						if (vocals.playing)
-							vocals.time = targetTime;
-						if (opponentVocals.playing)
-							opponentVocals.time = targetTime;
-					}
-					else if (Math.abs(timeDiff) < 5000 * playbackRate && musicTime > 0)
-					{
+					if (Math.abs(timeDiff) > CONDUCTOR_DRIFT_THRESHOLD * playbackRate)
+						Conductor.songPosition = musicTime;
+					else
 						Conductor.songPosition = FlxMath.lerp(musicTime, Conductor.songPosition, Math.exp(-elapsed * 5));
-						if (Math.abs(timeDiff) > 1000 * playbackRate)
-							Conductor.songPosition = Conductor.songPosition + 1000 * FlxMath.signOf(timeDiff);
-					}
 				}
 			}
 		}
@@ -2853,6 +2843,7 @@ class PlayState extends MusicBeatState
 		#end
 		#end
 
+		funkin.editors.ModchartEditorState.skipStartupMenu = true;
 		MusicBeatState.switchState(new funkin.editors.ModchartEditorState());
 	}
 	#end
@@ -3716,7 +3707,7 @@ class PlayState extends MusicBeatState
 				}
 				#end
 
-			case 'Set Cam Zoom':
+			case 'Cam Zoom' | 'Set Cam Zoom':
 				var zoomValue:Float = Std.parseFloat(value1);
 				if(Math.isNaN(zoomValue)) zoomValue = defaultCamZoom;
 
@@ -4673,7 +4664,7 @@ class PlayState extends MusicBeatState
 				camZoomingMult = (frequency > 0) ? num(1, 1) : 1;
 				if(frequency > 0 && camZoomTween == null) camZooming = true;
 
-			case 'Set Cam Zoom':
+			case 'Cam Zoom' | 'Set Cam Zoom':
 				if(!hasExtraValues) return false;
 				var zoom:Float = num(0, Math.NaN);
 				if(Math.isNaN(zoom)) return true;
@@ -7178,6 +7169,15 @@ class PlayState extends MusicBeatState
 	function canCameraBop():Bool
 	{
 		return camZooming && camZoomTween == null && FlxG.camera.zoom < 1.35 && ClientPrefs.data.camZooms;
+	}
+
+	public function addCameraZoom(gameAmount:Float = 0.015, hudAmount:Float = 0.03):Void
+	{
+		if(!ClientPrefs.data.camZooms || camZoomTween != null) return;
+
+		FlxG.camera.zoom += gameAmount;
+		camHUD.zoom += hudAmount;
+		camZooming = true;
 	}
 
 	public function characterBopper(beat:Int):Void

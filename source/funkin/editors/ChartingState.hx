@@ -302,6 +302,9 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	override function create()
 	{
+		Paths.clearStoredMemory();
+		Paths.clearUnusedMemory();
+
 		instance = this;
 		if(Difficulty.list.length < 1) Difficulty.resetList();
 		_keysPressedBuffer.resize(keysArray.length);
@@ -2676,7 +2679,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					movingNotes.clear();
 					isMovingNotes = false;
 					selectedNotes = [];
-					noteHighlights.clear();
+					clearHighlights(noteHighlights);
 					onSelectNote();
 					softReloadNotes();
 					addUndoAction(DELETE_NOTE, {notes: removedNotes, events: removedEvents});
@@ -3149,7 +3152,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 						selectedNotes.remove(closest);
 						curRenderedNotes.remove(closest, true);
-						noteHighlights.clear();
+						clearHighlights(noteHighlights);
 						addUndoAction(DELETE_NOTE, !closest.isEvent ? {notes: [closest]} : {events: [closest]});
 						forceDataUpdate = true;
 						softReloadNotes();
@@ -3435,7 +3438,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		else
 		{
 			noteSelectionSine = 0;
-			sustainHighlights.clear();
+			clearHighlights(sustainHighlights);
 		}
 
 		outputTxt.alpha = outputAlpha;
@@ -3776,16 +3779,24 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			if(note.animation.curAnim != null) note.animation.curAnim.curFrame = 0;
 		}
 		selectedNotes = [];
-		noteHighlights.clear();
-		sustainHighlights.clear();
+		clearHighlights(noteHighlights);
+		clearHighlights(sustainHighlights);
 		onSelectNote();
 		forceDataUpdate = true;
 	}
 
+	function clearHighlights(group:FlxTypedGroup<FlxSprite>)
+	{
+		if(group.length < 1) return;
+		for (highlight in group.members)
+			if(highlight != null) highlight.destroy();
+		group.clear();
+	}
+
 	function onSelectNote()
 	{
-		noteHighlights.clear();
-		sustainHighlights.clear();
+		clearHighlights(noteHighlights);
+		clearHighlights(sustainHighlights);
 		
 		for (note in selectedNotes)
 		{
@@ -3845,7 +3856,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	function updateSustainHighlights(note:MetaNote)
 	{
-		sustainHighlights.clear();
+		clearHighlights(sustainHighlights);
 		
 		if(note == null || note.isEvent || note.sustainLength <= 0) return;
 		
@@ -3882,7 +3893,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			var myEvent:Array<String> = eventNote.events[curEventSelected];
 			if(myEvent != null)
 			{
-				var eventName:String = (myEvent[0] != null) ? myEvent[0] : '';
+				var eventName:String = EventDefinitions.canonicalName((myEvent[0] != null) ? myEvent[0] : '');
+				myEvent[0] = eventName;
 				var found:Bool = false;
 				for (num => event in eventsList)
 				{
@@ -3990,6 +4002,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	function loadMusic(?killAudio:Bool = false)
 	{
 		setSongPlaying(false);
+		clearWaveformDecoders();
 		var time:Float = Conductor.songPosition;
 
 				if(killAudio)
@@ -4018,7 +4031,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		try
 		{
-			FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song, Difficulty.getFilePath(curDifficultyIndex)), 0);
+			FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song, Difficulty.getFilePath(curDifficultyIndex), true, ClientPrefs.data.streamSongs), 0);
 			FlxG.sound.music.pause();
 			FlxG.sound.music.time = time;
 			FlxG.sound.music.onComplete = (function() songFinished = true);
@@ -4035,14 +4048,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			try
 			{
-				var playerVocals:Sound = Paths.voices(PlayState.SONG.song, (characterData.vocalsP1 == null || characterData.vocalsP1.length < 1) ? 'Player' : characterData.vocalsP1, Difficulty.getFilePath(curDifficultyIndex));
-				vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(PlayState.SONG.song, null, Difficulty.getFilePath(curDifficultyIndex)));
+				var playerVocals:Sound = Paths.voices(PlayState.SONG.song, (characterData.vocalsP1 == null || characterData.vocalsP1.length < 1) ? 'Player' : characterData.vocalsP1, Difficulty.getFilePath(curDifficultyIndex), true, ClientPrefs.data.streamSongs);
+				vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(PlayState.SONG.song, null, Difficulty.getFilePath(curDifficultyIndex), true, ClientPrefs.data.streamSongs));
 				vocals.volume = 0;
 				vocals.play();
 				vocals.pause();
 				vocals.time = time;
 				
-				var oppVocals:Sound = Paths.voices(PlayState.SONG.song, (characterData.vocalsP2 == null || characterData.vocalsP2.length < 1) ? 'Opponent' : characterData.vocalsP2, Difficulty.getFilePath(curDifficultyIndex));
+				var oppVocals:Sound = Paths.voices(PlayState.SONG.song, (characterData.vocalsP2 == null || characterData.vocalsP2.length < 1) ? 'Opponent' : characterData.vocalsP2, Difficulty.getFilePath(curDifficultyIndex), true, ClientPrefs.data.streamSongs);
 				if(oppVocals != null && oppVocals.length > 0)
 				{
 					opponentVocals.loadEmbedded(oppVocals);
@@ -5681,7 +5694,7 @@ end
 					selectedNotes.remove(event);
 					events.remove(event);
 					curRenderedNotes.remove(event, true);
-					noteHighlights.clear();
+					clearHighlights(noteHighlights);
 					addUndoAction(DELETE_NOTE, {events: [event]});
 					onSelectNote();
 					softReloadNotes();
@@ -6309,7 +6322,7 @@ end
 			#if HSCRIPT_ALLOWED exts.push('.hx'); #end
 			noteTypes = loadFileList('custom_notetypes/', exts);
 			
-			var defaultTypes:Array<String> = ['', 'Alt Animation', 'Hey!', 'Hurt Note', 'GF Sing', 'Opponent Sing', 'No Animation', 'GF + BF Note', 'Opponent + GF Note', 'Boyfriend SING', 'Opponent + BF + GF'];
+			var defaultTypes:Array<String> = ['', 'Alt Animation', 'Hey!', 'Censor', 'GF Sing', 'No Animation'];
 			for (id => noteType in defaultTypes)
 				if(!noteTypes.contains(noteType))
 					noteTypes.insert(id, noteType);
@@ -8428,7 +8441,9 @@ end
 		if(miniChart != null) miniChart.destroy();
 		if(miniChartBg != null) miniChartBg.destroy();
 		if(miniChartHandle != null) miniChartHandle.destroy();
-		
+		if(!ALLOW_EXTRA_STRUMS && strumsStepper != null) strumsStepper.destroy();
+		clearWaveformDecoders();
+
 		super.destroy();
 	}
 
@@ -8783,9 +8798,23 @@ end
 		wavData[1][1].resize(0);
 
 		@:privateAccess
-		var bytes:Bytes = sound._sound.__buffer.data.toBytes();
-		@:privateAccess
-		wavData = waveformData(sound._sound.__buffer, bytes, cachedSectionTimes[curSec] - Conductor.offset, cachedSectionTimes[curSec + 1] - Conductor.offset, 1, wavData, height);
+		var buffer:AudioBuffer = sound._sound.__buffer;
+		var startTime:Float = cachedSectionTimes[curSec] - Conductor.offset;
+		var endTime:Float = cachedSectionTimes[curSec + 1] - Conductor.offset;
+		var sliceStart:Float = 0;
+		var bytes:Bytes = null;
+		if(buffer.data != null) bytes = buffer.data.toBytes();
+		else
+		{
+			sliceStart = Math.max(0, startTime);
+			bytes = waveformSlice(buffer, sliceStart, endTime);
+		}
+		if(bytes == null)
+		{
+			sprite.visible = false;
+			return;
+		}
+		wavData = waveformData(buffer, bytes, startTime - sliceStart, endTime - sliceStart, 1, wavData, height);
 
 		var gSize:Int = width;
 		var hSize:Int = Std.int(gSize / 2);
@@ -8808,10 +8837,57 @@ end
 		#end
 	}
 
+	#if lime_vorbis
+	var waveformDecoders:Map<AudioBuffer, lime.media.vorbis.VorbisFile> = new Map();
+	#end
+
+	function waveformSlice(buffer:AudioBuffer, startTime:Float, endTime:Float):Bytes
+	{
+		#if lime_vorbis
+		var decoder:lime.media.vorbis.VorbisFile = waveformDecoders.get(buffer);
+		if(decoder == null)
+		{
+			var path:String = @:privateAccess buffer.__srcCustom;
+			if(path == null) return null;
+			decoder = lime.media.vorbis.VorbisFile.fromFile(path);
+			if(decoder == null) return null;
+			waveformDecoders.set(buffer, decoder);
+		}
+
+		var khz:Float = buffer.sampleRate / 1000;
+		var channels:Int = buffer.channels < 1 ? 1 : buffer.channels;
+		var frames:Int = Std.int(Math.max(0, endTime - startTime) * khz) + 1;
+		var bytes:Bytes = Bytes.alloc(frames * channels * 2);
+		if(decoder.pcmSeek(haxe.Int64.ofInt(Std.int(startTime * khz))) != 0) return null;
+
+		var total:Int = 0;
+		var holes:Int = 0;
+		while (total < bytes.length)
+		{
+			var read:Int = decoder.read(bytes, total, bytes.length - total, false, 2, true);
+			if(read == lime.media.vorbis.Vorbis.HOLE && holes++ < 8) continue;
+			if(read <= 0) break;
+			total += read;
+		}
+		if(total < bytes.length) bytes.fill(total, bytes.length - total, 0);
+		return bytes;
+		#else
+		return null;
+		#end
+	}
+
+	function clearWaveformDecoders()
+	{
+		#if lime_vorbis
+		for (decoder in waveformDecoders) decoder.clear();
+		waveformDecoders.clear();
+		#end
+	}
+
 	function waveformData(buffer:AudioBuffer, bytes:Bytes, time:Float, endTime:Float, multiply:Float = 1, ?array:Array<Array<Array<Float>>>, ?steps:Float):Array<Array<Array<Float>>>
 	{
 		#if (lime_cffi && !macro)
-		if (buffer == null || buffer.data == null) return [[[0], [0]], [[0], [0]]];
+		if (buffer == null || bytes == null) return [[[0], [0]], [[0], [0]]];
 
 		var khz:Float = (buffer.sampleRate / 1000);
 		var channels:Int = buffer.channels;

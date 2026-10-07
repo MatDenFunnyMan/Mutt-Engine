@@ -37,10 +37,10 @@ class NativeAudioSource {
 	// Can hold up to 3 hours 44100 sampleRate audio, if you are into that, theorically.
 
 	public static var STREAM_BUFFER_SAMPLES:Int = 0x2000; // how much buffers will be generating every frequency (doesnt have to be pow of 2?).
-	public static var STREAM_MIN_BUFFERS:Int = 2; // how much buffers can a stream hold on minimum or starting.
-	public static var STREAM_MAX_BUFFERS:Int = 12; // how much limit of a buffers can be used for streamed audios, must be higher than minimum.
-	public static var STREAM_MAX_FLUSH_BUFFERS:Int = 6; // how much buffers can it play.
-	public static var STREAM_PROCESS_BUFFERS:Int = 2; // how much buffers can be processed in a frequency tick.
+	public static var STREAM_MIN_BUFFERS:Int = 6; // how much buffers can a stream hold on minimum or starting.
+	public static var STREAM_MAX_BUFFERS:Int = 24; // how much limit of a buffers can be used for streamed audios, must be higher than minimum.
+	public static var STREAM_MAX_FLUSH_BUFFERS:Int = 16; // how much buffers can it play.
+	public static var STREAM_PROCESS_BUFFERS:Int = 4; // how much buffers can be processed in a frequency tick.
 	public static var POOL_MAX_BUFFERS:Int = 32; // how much buffers for the pool to hold.
 
 	public static var moreFormatsSupported:Null<Bool>;
@@ -458,7 +458,8 @@ class NativeAudioSource {
 		final sec = time / 1000;
 		if (!force) {
 			var bufferTime:Float;
-			for (i in (STREAM_MAX_BUFFERS - requestBuffers)...(STREAM_MAX_BUFFERS - STREAM_MIN_BUFFERS))
+			final first = STREAM_MAX_BUFFERS - requestBuffers;
+			for (i in first...(first + queuedBuffers))
 				if (sec >= (bufferTime = bufferTimes[i]) && sec < bufferTime + (bufferLengths[i] / wordSize / channels / sampleRate))
 			{
 				skipBuffers(i - STREAM_MAX_BUFFERS + requestBuffers);

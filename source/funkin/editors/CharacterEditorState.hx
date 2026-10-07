@@ -1150,7 +1150,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		sourceDropDown = new PsychUIDropDownMenu(165, animationDropDown.y, [''], function(_, label:String) {
 			if(label == null || label.length < 1) return;
 			animationNameInputText.text = sourceToAnimationName(label);
-		}, 150);
+		}, 130);
 		sourceDropDownText = new FlxText(sourceDropDown.x, sourceDropDown.y - 18, 150, '');
 
 		reloadAnimList();

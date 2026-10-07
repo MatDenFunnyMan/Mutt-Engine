@@ -21,6 +21,7 @@ class EventDefinitions
 	public static final EASES:Array<String> = ['linear', 'classic', 'sine', 'quad', 'cube', 'quart', 'quint', 'expo', 'circ', 'back', 'elastic', 'bounce', 'smoothStep', 'smootherStep'];
 	public static final DIRECTIONS:Array<String> = ['In', 'Out', 'InOut'];
 	public static final TWEEN_EASES:Array<String> = [for (ease in EASES) if (ease != 'classic') ease];
+	public static final DROPDOWN_WIDTH:Int = 105;
 
 	public static final BUILT_IN:Array<EventDefinition> = [
 		{
@@ -32,13 +33,13 @@ class EventDefinitions
 			]
 		},
 		{
-			name: 'Set Cam Zoom',
+			name: 'Cam Zoom',
 			description: "Changes the game camera zoom.\n\nValue: new zoom (e.g. 1.05)\nDuration: seconds, empty or 0 = instant\nEase 'classic': the camera eases to it\nlike a normal zoom, Duration is ignored\nDefault: if checked, the new zoom stays\nuntil the next change. If unchecked,\nthe camera goes back to the default zoom.",
 			fields: [
 				{label: 'Value'},
 				{label: 'Duration'},
-				{label: 'Ease', type: 'dropdown', options: EASES, defaultValue: 'linear', width: 120},
-				{label: 'Direction', type: 'dropdown', options: DIRECTIONS, defaultValue: 'InOut', width: 120},
+				{label: 'Ease', type: 'dropdown', options: EASES, defaultValue: 'linear', width: DROPDOWN_WIDTH},
+				{label: 'Direction', type: 'dropdown', options: DIRECTIONS, defaultValue: 'InOut', width: DROPDOWN_WIDTH},
 				{label: 'Default', type: 'checkbox', defaultValue: 'true'}
 			]
 		},
@@ -56,8 +57,8 @@ class EventDefinitions
 			fields: [
 				{label: 'Position'},
 				{label: 'Duration'},
-				{label: 'Ease', type: 'dropdown', options: EASES, defaultValue: 'linear', width: 120},
-				{label: 'Direction', type: 'dropdown', options: DIRECTIONS, defaultValue: 'InOut', width: 120},
+				{label: 'Ease', type: 'dropdown', options: EASES, defaultValue: 'linear', width: DROPDOWN_WIDTH},
+				{label: 'Direction', type: 'dropdown', options: DIRECTIONS, defaultValue: 'InOut', width: DROPDOWN_WIDTH},
 				{label: 'Forced', type: 'checkbox', defaultValue: 'true'}
 			]
 		},
@@ -66,8 +67,8 @@ class EventDefinitions
 			description: "Moves the camera between the player\nand the opponent and keeps it there.\nUse Cam Follow Pos with an empty\nPosition to unlock it.\n\nDuration: seconds, empty or 0 = instant\nEase 'classic': moves with the stage\ncamera speed, Duration is ignored",
 			fields: [
 				{label: 'Duration'},
-				{label: 'Ease', type: 'dropdown', options: EASES, defaultValue: 'linear', width: 120},
-				{label: 'Direction', type: 'dropdown', options: DIRECTIONS, defaultValue: 'InOut', width: 120}
+				{label: 'Ease', type: 'dropdown', options: EASES, defaultValue: 'linear', width: DROPDOWN_WIDTH},
+				{label: 'Direction', type: 'dropdown', options: DIRECTIONS, defaultValue: 'InOut', width: DROPDOWN_WIDTH}
 			]
 		},
 		{
@@ -83,14 +84,14 @@ class EventDefinitions
 			fields: [
 				{label: 'Duration'},
 				{label: 'Color'},
-				{label: 'Camera', type: 'dropdown', options: ['Game', 'HUD', 'Other'], defaultValue: 'HUD', width: 120}
+				{label: 'Camera', type: 'dropdown', options: ['Game', 'HUD', 'Other'], defaultValue: 'HUD', width: DROPDOWN_WIDTH}
 			]
 		},
 		{
 			name: 'Cam Shake',
 			description: "Shakes a camera.\n\nStrength: from 0 to 3\nDuration: seconds (Default: 0.5)",
 			fields: [
-				{label: 'Camera', type: 'dropdown', options: ['Game', 'HUD', 'Other', 'All'], defaultValue: 'Game', width: 120},
+				{label: 'Camera', type: 'dropdown', options: ['Game', 'HUD', 'Other', 'All'], defaultValue: 'Game', width: DROPDOWN_WIDTH},
 				{label: 'Strength'},
 				{label: 'Duration'}
 			]
@@ -99,11 +100,11 @@ class EventDefinitions
 			name: 'Cam Rotation',
 			description: "Rotates a camera without black borders.\n\nAngle: degrees, 0 = normal\nDuration: seconds, empty or 0 = instant\nForced: if checked, the camera stays rotated.\nIf unchecked, it goes back to 0 with the\nsame Duration and Ease.",
 			fields: [
-				{label: 'Camera', type: 'dropdown', options: ['Game', 'HUD', 'Other', 'All'], defaultValue: 'Game', width: 120},
+				{label: 'Camera', type: 'dropdown', options: ['Game', 'HUD', 'Other', 'All'], defaultValue: 'Game', width: DROPDOWN_WIDTH},
 				{label: 'Angle'},
 				{label: 'Duration'},
-				{label: 'Ease', type: 'dropdown', options: TWEEN_EASES, defaultValue: 'linear', width: 120},
-				{label: 'Direction', type: 'dropdown', options: DIRECTIONS, defaultValue: 'InOut', width: 120},
+				{label: 'Ease', type: 'dropdown', options: TWEEN_EASES, defaultValue: 'linear', width: DROPDOWN_WIDTH},
+				{label: 'Direction', type: 'dropdown', options: DIRECTIONS, defaultValue: 'InOut', width: DROPDOWN_WIDTH},
 				{label: 'Forced', type: 'checkbox', defaultValue: 'true'}
 			]
 		},
@@ -144,7 +145,7 @@ class EventDefinitions
 			name: 'Change Notes',
 			description: "Changes the note skins.\n\nEmpty fields are left as they are,\nwrite 'default' to go back to the base skin.\nSkins can be a name or a path\n(e.g. myNote or noteSkins/myNote).",
 			fields: [
-				{label: 'Target', type: 'dropdown', options: ['BF', 'Dad', 'Both'], defaultValue: 'Both', width: 120},
+				{label: 'Target', type: 'dropdown', options: ['BF', 'Dad', 'Both'], defaultValue: 'Both', width: DROPDOWN_WIDTH},
 				{label: 'Note Skin'},
 				{label: 'Strum Skin'},
 				{label: 'Splash Skin'},
@@ -155,7 +156,7 @@ class EventDefinitions
 			name: 'Set Note Speed',
 			description: "Changes the scroll speed of the notes.\n\nValue: speed multiplier (1 = chart speed)\nDuration: seconds, empty or 0 = instant",
 			fields: [
-				{label: 'Target', type: 'dropdown', options: ['Opponent', 'Player', 'All'], defaultValue: 'All', width: 120},
+				{label: 'Target', type: 'dropdown', options: ['Opponent', 'Player', 'All'], defaultValue: 'All', width: DROPDOWN_WIDTH},
 				{label: 'Value'},
 				{label: 'Duration'}
 			]
@@ -165,7 +166,7 @@ class EventDefinitions
 			description: "Plays a video.\n\nVideo: video file name\nLayer: number, 0 = bottom\n(empty = default)",
 			fields: [
 				{label: 'Video'},
-				{label: 'Camera', type: 'dropdown', options: ['Game', 'HUD', 'Other'], defaultValue: 'Other', width: 120},
+				{label: 'Camera', type: 'dropdown', options: ['Game', 'HUD', 'Other'], defaultValue: 'Other', width: DROPDOWN_WIDTH},
 				{label: 'Layer'},
 				{label: 'Can Skip', type: 'checkbox', defaultValue: 'false'},
 				{label: 'Mid-Song', type: 'checkbox', defaultValue: 'true'},
@@ -185,6 +186,7 @@ class EventDefinitions
 
 	public static final HIDDEN:Array<String> = [
 		'Hey!', 'Set Property', 'Play Sound',
+		'Set Cam Zoom',
 		'Dadbattle Spotlight', 'Philly Glow', 'Kill Henchmen', 'BG Freaks Expression', 'Trigger BG Ghouls',
 		'Add Camera Zoom', 'Set Camera Bopping', 'Camera Follow Pos', 'Target Follow Pos', 'Target Camera',
 		'(STEPS) Set Cam Zoom', '(STEPS) Target Camera', '(STEPS) Target Follow Pos',
@@ -195,10 +197,14 @@ class EventDefinitions
 	public static function get(name:String):EventDefinition
 	{
 		if(name == null) return null;
+		name = canonicalName(name);
 		for (def in BUILT_IN)
 			if(def.name == name) return def;
 		return null;
 	}
+
+	public static inline function canonicalName(name:String):String
+		return name == 'Set Cam Zoom' ? 'Cam Zoom' : name;
 
 	inline public static function isHidden(name:String):Bool
 		return HIDDEN.contains(name);

@@ -2581,18 +2581,19 @@
 					80775.8620689655,
 					3,
 					0,
-					"Alt Animation"
+					"Censor"
 				],
 				[
 					81034.4827586207,
 					1,
 					0,
-					"Alt Animation"
+					"Censor"
 				],
 				[
 					81206.8965517241,
 					3,
-					0
+					0,
+					"No Animation"
 				]
 			],
 			"sectionBeats": 4,

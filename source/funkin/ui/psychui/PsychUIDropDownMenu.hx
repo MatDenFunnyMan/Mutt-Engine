@@ -116,6 +116,7 @@ class PsychUIDropDownMenu extends PsychUIInputText
 
 	var _items:Array<PsychUIDropDownItem> = [];
 	public var curScroll:Int = 0;
+	public var maxVisibleItems:Int = 10;
 	override function update(elapsed:Float)
 	{
 		var lastFocus = PsychUIInputText.focusOn;
@@ -159,6 +160,19 @@ class PsychUIDropDownMenu extends PsychUIInputText
 		}
 	}
 
+	public function consumeOpenItemClick():Bool
+	{
+		if(!FlxG.mouse.justPressed) return false;
+		for (item in _items)
+		{
+			if(item == null || !item.active || !item.visible || !FlxG.mouse.overlaps(item.bg, camera)) continue;
+			item.onClick();
+			@:privateAccess FlxG.mouse._leftButton.current = PRESSED;
+			return true;
+		}
+		return false;
+	}
+
 	public function showDropDown(vis:Bool = true, scroll:Int = 0, onlyAllowed:Array<String> = null)
 	{
 		if(!vis)
@@ -167,7 +181,9 @@ class PsychUIDropDownMenu extends PsychUIInputText
 			_curFilter = null;
 		}
 
-		curScroll = Std.int(Math.max(0, Math.min(onlyAllowed != null ? (onlyAllowed.length - 1) : (list.length - 1), scroll)));
+		var itemCount:Int = onlyAllowed != null ? onlyAllowed.length : list.length;
+		var maxScroll:Int = Std.int(Math.max(0, itemCount - maxVisibleItems));
+		curScroll = Std.int(Math.max(0, Math.min(maxScroll, scroll)));
 		if(vis)
 		{
 			var n:Int = 0;
@@ -177,14 +193,14 @@ class PsychUIDropDownMenu extends PsychUIInputText
 				{
 					if(onlyAllowed.contains(item.label))
 					{
-						item.active = item.visible = (n >= curScroll);
+						item.active = item.visible = (n >= curScroll && n < curScroll + maxVisibleItems);
 						n++;
 					}
 					else item.active = item.visible = false;
 				}
 				else
 				{
-					item.active = item.visible = (n >= curScroll);
+					item.active = item.visible = (n >= curScroll && n < curScroll + maxVisibleItems);
 					n++;
 				}
 			}

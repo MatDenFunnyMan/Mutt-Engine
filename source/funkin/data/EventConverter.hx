@@ -113,7 +113,7 @@ class EventConverter
 			case 'Set Cam Zoom' | '(STEPS) Set Cam Zoom':
 				if(name == 'Set Cam Zoom' && !trailingEmpty) return null;
 				var tween:EventTween = parseTween(v(2), '1', 'linear', name.startsWith('(STEPS)'), time, stepSecondsAt);
-				return [['Set Cam Zoom', v(1), tween.duration, tween.ease, tween.direction, 'true']];
+				return [['Cam Zoom', v(1), tween.duration, tween.ease, tween.direction, 'true']];
 
 			case 'Play Animation':
 				if(!trailingEmpty) return null;

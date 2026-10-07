@@ -140,17 +140,7 @@ class SpookyMansionErect extends BaseStage
 		lightningStrikeBeat = curBeat;
 		lightningOffset = FlxG.random.int(8, 24);
 
-		if (ClientPrefs.data.camZooms)
-		{
-			FlxG.camera.zoom += 0.015;
-			camHUD.zoom += 0.03;
-
-			if (!game.camZooming)
-			{
-				FlxTween.tween(FlxG.camera, {zoom: defaultCamZoom}, 0.5);
-				FlxTween.tween(camHUD, {zoom: 1}, 0.5);
-			}
-		}
+		game.addCameraZoom();
 	}
 
 	function setLightning(on:Bool)

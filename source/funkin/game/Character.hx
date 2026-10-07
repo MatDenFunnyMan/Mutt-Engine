@@ -459,6 +459,7 @@ class Character extends animate.FlxAnimate
 			canPlayOtherAnims = true;
 		}
 		if(animSuffix.length > 0 && hasAnimation(AnimName + animSuffix)) AnimName += animSuffix;
+		if(!hasAnimation(AnimName) && AnimName.lastIndexOf('-') > 0 && hasAnimation(AnimName.substr(0, AnimName.lastIndexOf('-')))) AnimName = AnimName.substr(0, AnimName.lastIndexOf('-'));
 
 		specialAnim = false;
 		if(loopAnim != null && AnimName != loopAnim) loopAnim = null;

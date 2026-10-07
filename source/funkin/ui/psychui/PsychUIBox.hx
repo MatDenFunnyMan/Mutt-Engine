@@ -197,7 +197,16 @@ class PsychUIBox extends FlxSpriteGroup
 				PsychUIEventHandler.event(MINIMIZE_EVENT, this);
 		}
 		else if(selectedTab != null && !isMinimized)
+		{
+			if(FlxG.mouse.justPressed && selectedTab.menu != null)
+				for(member in selectedTab.menu.members)
+				{
+					if(member == null || !member.exists || !member.visible || !Std.isOfType(member, PsychUIDropDownMenu)) continue;
+					var drop:PsychUIDropDownMenu = cast member;
+					if(drop.consumeOpenItemClick()) break;
+				}
 			selectedTab.updateMenu(this, elapsed);
+		}
 
 		if(minimizeOnFocusLost && FlxG.mouse.justPressed && !isMinimized && !FlxG.mouse.overlaps(bg, camera) && (selectedTab == null || selectedTab.menu == null || !FlxG.mouse.overlaps(selectedTab.menu, camera)))
 		{

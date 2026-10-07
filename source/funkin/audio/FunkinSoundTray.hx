@@ -14,6 +14,30 @@ class FunkinSoundTray extends FlxSoundTray
 	var volumeMaxSound:String;
 	var _lastMod:String = '';
 
+	public static inline final MIN_VOLUME:Float = 0.001;
+	public static inline final VOLUME_STEPS:Int = 10;
+	public static var volumeLevel:Int = VOLUME_STEPS;
+
+	public static function levelToVolume(level:Int):Float
+	{
+		if(level <= 0) return 0;
+		if(level >= VOLUME_STEPS) return 1;
+		return Math.exp(Math.log(MIN_VOLUME) * (1 - level / VOLUME_STEPS));
+	}
+
+	public static function volumeToLevel(volume:Float):Int
+	{
+		if(volume <= 0) return 0;
+		var linear:Float = 1 - Math.log(Math.max(volume, MIN_VOLUME)) / Math.log(MIN_VOLUME);
+		return Std.int(FlxMath.bound(Math.round(linear * VOLUME_STEPS), 0, VOLUME_STEPS));
+	}
+
+	public static function syncVolume()
+	{
+		volumeLevel = volumeToLevel(FlxG.sound.volume);
+		FlxG.sound.volume = levelToVolume(volumeLevel);
+	}
+
 	public function new()
 	{
 		super();
@@ -132,12 +156,13 @@ class FunkinSoundTray extends FlxSoundTray
 		active = true;
 		if (parent != null)
 			parent.setChildIndex(this, parent.numChildren - 1);
-		var globalVolume:Int = Math.round(FlxG.sound.volume * 10);
-
-		if (FlxG.sound.muted)
+		if (funkin.Main.focusVolume == null && FlxG.sound.volume != levelToVolume(volumeLevel))
 		{
-			globalVolume = 0;
+			volumeLevel = Std.int(FlxMath.bound(volumeLevel + (up ? 1 : -1), 0, VOLUME_STEPS));
+			FlxG.sound.volume = levelToVolume(volumeLevel);
 		}
+
+		var globalVolume:Int = FlxG.sound.muted ? 0 : volumeLevel;
 
 		if (!silent)
 		{

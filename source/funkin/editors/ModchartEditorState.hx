@@ -14,6 +14,9 @@ import funkin.data.Song.SwagSection;
 import funkin.ui.psychui.PsychUIInputText.FilterMode;
 import funkin.editors.content.Prompt;
 import funkin.editors.content.FileDialogHandler;
+import funkin.editors.content.EditorSongs;
+import funkin.editors.content.ModchartStartupPrompt;
+import flixel.util.FlxSave;
 
 import modcharting.Modifier;
 import modcharting.PlayfieldRenderer;
@@ -288,8 +291,26 @@ class ModchartEditorState extends MusicBeatState
 	var helpPageText:FlxText;
 	var helpPage:Int = 0;
 
+	public static var skipStartupMenu:Bool = false;
+	var showStartup:Bool = true;
+
+	var editorLoop:FlxSound = new FlxSound();
+	var editorLoopTimer:FlxTimer;
+	var editorMusicMuted:Bool = false;
+	var instVolumeSlider:PsychUISlider;
+	var playerVolumeSlider:PsychUISlider;
+	var opponentVolumeSlider:PsychUISlider;
+	var hitsoundPlayerSlider:PsychUISlider;
+	var hitsoundOpponentSlider:PsychUISlider;
+	var instMuteCheckBox:PsychUICheckBox;
+	var playerMuteCheckBox:PsychUICheckBox;
+	var opponentMuteCheckBox:PsychUICheckBox;
+
 	override function create()
 	{
+		showStartup = !skipStartupMenu;
+		skipStartupMenu = false;
+
 		initPsychCamera().bgColor = 0xFF1B1B22;
 
 		var previewZoom:Float = PREVIEW_H / FlxG.height;
@@ -341,6 +362,137 @@ class ModchartEditorState extends MusicBeatState
 		refreshTimelineData();
 		refreshProps();
 		super.create();
+
+		editorMusicMuted = EditorHelper.isEditorMusicMuted();
+		FlxG.sound.list.add(editorLoop);
+		editorLoop.loadEmbedded(Paths.music('chartEditorLoop'), true, false);
+		editorLoop.autoDestroy = false;
+		editorLoop.volume = 0;
+		scheduleEditorLoop(showStartup ? 1 : 10);
+		updateAudioVolume();
+
+		var data:ModchartJson = modchartData();
+		if(data.modifiers.length > 0 || data.events.length > 0) pushRecent();
+		if(showStartup) openStartupPrompt();
+	}
+
+	static function bindModchartSave():FlxSave
+	{
+		var save:FlxSave = new FlxSave();
+		save.bind('modchart_editor_data', CoolUtil.getSavePath());
+		return save;
+	}
+
+	static function recentEntries():Array<String>
+	{
+		var save:FlxSave = bindModchartSave();
+		var list:Array<String> = save.data.recentModcharts;
+		save.close();
+		return (list != null) ? list.copy() : [];
+	}
+
+	function pushRecent()
+	{
+		var song:String = EditorSongs.baseSongOf(PlayState.SONG.song);
+		var diff:String = Difficulty.getString(PlayState.storyDifficulty, false);
+		if(diff == null || diff.length < 1) diff = Difficulty.getDefault();
+		var entry:String = song + '|' + diff;
+		var list:Array<String> = recentEntries();
+		list.remove(entry);
+		list.insert(0, entry);
+		while(list.length > 10) list.pop();
+
+		var save:FlxSave = bindModchartSave();
+		save.data.recentModcharts = list;
+		save.flush();
+		save.close();
+	}
+
+	var startupPrompt:ModchartStartupPrompt;
+	function openStartupPrompt()
+	{
+		var entries:Array<String> = recentEntries();
+		var labels:Array<String> = [for (entry in entries) entry.split('|').join(' - ')];
+
+		startupPrompt = new ModchartStartupPrompt(PlayState.SONG.song);
+		startupPrompt.persistentDraw = false;
+		startupPrompt.onOpenRecent = function(i:Int)
+		{
+			var parts:Array<String> = entries[i].split('|');
+			openSong(parts[0], parts.length > 1 ? parts[1] : Difficulty.getDefault());
+		};
+		startupPrompt.onFromSong = function()
+		{
+			var songPrompt:ModchartSongPrompt = new ModchartSongPrompt();
+			songPrompt.onLoad = openSong;
+			startupPrompt.openSubState(songPrompt);
+		};
+		openSubState(startupPrompt);
+		startupPrompt.setRecents(labels);
+	}
+
+	function openSong(song:String, diff:String):Bool
+	{
+		var savedDiffs:Array<String> = Difficulty.list.copy();
+		var savedIndex:Int = PlayState.storyDifficulty;
+		if(!EditorSongs.loadChart(song, diff))
+		{
+			Difficulty.list = savedDiffs;
+			PlayState.storyDifficulty = savedIndex;
+			showMessage('Could not load "$song" ($diff): chart not found', true);
+			return false;
+		}
+
+		ModchartFile.editorData = null;
+		stopAudio();
+		skipStartupMenu = true;
+		MusicBeatState.switchState(new ModchartEditorState());
+		return true;
+	}
+
+	function scheduleEditorLoop(delay:Float)
+	{
+		stopEditorLoopFade();
+		if(editorMusicMuted)
+		{
+			editorLoop.volume = 0;
+			return;
+		}
+		editorLoopTimer = new FlxTimer().start(delay, function(_) {
+			editorLoopTimer = null;
+			editorLoop.fadeIn(1.5, 0, 0.75);
+		});
+	}
+
+	function stopEditorLoopFade()
+	{
+		if(editorLoopTimer != null)
+		{
+			editorLoopTimer.cancel();
+			editorLoopTimer = null;
+		}
+		if(editorLoop.fadeTween != null)
+		{
+			editorLoop.fadeTween.cancel();
+			editorLoop.fadeTween = null;
+		}
+	}
+
+	function muteEditorLoop()
+	{
+		stopEditorLoopFade();
+		editorLoop.volume = 0;
+	}
+
+	inline function sliderVolume(slider:PsychUISlider):Float
+		return FlxMath.bound(slider.value / 100, 0, 1);
+
+	function updateAudioVolume()
+	{
+		if(instVolumeSlider == null) return;
+		FlxG.sound.music.volume = instMuteCheckBox.checked ? 0 : sliderVolume(instVolumeSlider);
+		vocals.volume = playerMuteCheckBox.checked ? 0 : sliderVolume(playerVolumeSlider);
+		opponentVocals.volume = opponentMuteCheckBox.checked ? 0 : sliderVolume(opponentVolumeSlider);
 	}
 
 	function loadAudio()
@@ -753,7 +905,7 @@ class ModchartEditorState extends MusicBeatState
 
 	function createUpperMenu()
 	{
-		upperBox = new PsychUIBox(0, 0, 150, 90, ['File']);
+		upperBox = new PsychUIBox(0, 0, 150, 90, ['File', 'Audio']);
 		upperBox.scrollFactor.set();
 		upperBox.isMinimized = true;
 		upperBox.minimizeOnFocusLost = true;
@@ -784,6 +936,75 @@ class ModchartEditorState extends MusicBeatState
 			btn.text.alignment = LEFT;
 			menu.add(btn);
 		}
+
+		createAudioTab();
+	}
+
+	function createAudioTab()
+	{
+		var tab = upperBox.getTab('Audio');
+		tab.menuOffsetX = 75;
+		var menu = tab.menu;
+		var labelX:Int = 8;
+		var sliderX:Int = 105;
+		var sliderWid:Int = 125;
+		var muteX:Int = 235;
+		var objY:Int = 18;
+		var rowStep:Int = 36;
+
+		var panel:FlxSprite = new FlxSprite().makeGraphic(300, 230, FlxColor.BLACK, true);
+		panel.alpha = 0.8;
+		menu.add(panel);
+
+		var labels:Array<FlxText> = [];
+
+		instVolumeSlider = new PsychUISlider(sliderX, objY, null, 60, 0, 100, sliderWid);
+		instMuteCheckBox = new PsychUICheckBox(muteX, objY - 6, 'Mute', 60, updateAudioVolume);
+		labels.push(new FlxText(labelX, objY - 2, 95, 'Inst.', 8));
+
+		objY += rowStep;
+		playerVolumeSlider = new PsychUISlider(sliderX, objY, null, 100, 0, 100, sliderWid);
+		playerMuteCheckBox = new PsychUICheckBox(muteX, objY - 6, 'Mute', 60, updateAudioVolume);
+		labels.push(new FlxText(labelX, objY - 2, 95, 'Player Vocals', 8));
+
+		objY += rowStep;
+		opponentVolumeSlider = new PsychUISlider(sliderX, objY, null, 100, 0, 100, sliderWid);
+		opponentMuteCheckBox = new PsychUICheckBox(muteX, objY - 6, 'Mute', 60, updateAudioVolume);
+		labels.push(new FlxText(labelX, objY - 2, 95, 'Opp. Vocals', 8));
+
+		objY += rowStep;
+		hitsoundPlayerSlider = new PsychUISlider(sliderX, objY, null, 0, 0, 100, sliderWid);
+		labels.push(new FlxText(labelX, objY - 2, 95, 'Hitsound (P)', 8));
+
+		objY += rowStep;
+		hitsoundOpponentSlider = new PsychUISlider(sliderX, objY, null, 0, 0, 100, sliderWid);
+		labels.push(new FlxText(labelX, objY - 2, 95, 'Hitsound (O)', 8));
+
+		for (slider in [instVolumeSlider, playerVolumeSlider, opponentVolumeSlider, hitsoundPlayerSlider, hitsoundOpponentSlider])
+		{
+			slider.decimals = 0;
+			slider.minText.visible = slider.maxText.visible = false;
+			menu.add(slider);
+		}
+		for (slider in [instVolumeSlider, playerVolumeSlider, opponentVolumeSlider])
+			slider.onChange = function(_) updateAudioVolume();
+
+		menu.add(instMuteCheckBox);
+		menu.add(playerMuteCheckBox);
+		menu.add(opponentMuteCheckBox);
+		for (txt in labels) menu.add(txt);
+
+		objY += rowStep + 6;
+		var musicCheckBox:PsychUICheckBox = new PsychUICheckBox(labelX + 2, objY, 'Mute Editor Music', 150);
+		musicCheckBox.checked = editorMusicMuted;
+		musicCheckBox.onClick = function()
+		{
+			editorMusicMuted = musicCheckBox.checked;
+			EditorHelper.setEditorMusicMuted(editorMusicMuted);
+			if(editorMusicMuted) muteEditorLoop();
+			else if(!FlxG.sound.music.playing) scheduleEditorLoop(1);
+		};
+		menu.add(musicCheckBox);
 	}
 
 	function createHelp()
@@ -1081,6 +1302,7 @@ class ModchartEditorState extends MusicBeatState
 				note.active = true;
 				note.visible = true;
 				note.wasGoodHit = false;
+				note.extraData.remove(EDITOR_HIT);
 			}
 			dirtyNotes = false;
 		}
@@ -1790,6 +2012,7 @@ class ModchartEditorState extends MusicBeatState
 				File.saveContent(path, content);
 				playfieldRenderer.modchart.filePath = path;
 				markSaved();
+				pushRecent();
 				showMessage('Saved: ' + path);
 				return;
 			}
@@ -1941,16 +2164,20 @@ class ModchartEditorState extends MusicBeatState
 				if(sound.time < sound.length) sound.play();
 			}
 			FlxG.sound.music.play();
+			updateAudioVolume();
+			muteEditorLoop();
 			playfieldRenderer.editorPaused = false;
 			dirtyNotes = true;
 			dirtyEvents = true;
 		}
 		else
 		{
+			var wasPlaying:Bool = FlxG.sound.music.playing;
 			FlxG.sound.music.pause();
 			vocals.pause();
 			opponentVocals.pause();
 			playfieldRenderer.editorPaused = true;
+			if(wasPlaying) scheduleEditorLoop(3.5);
 		}
 	}
 
@@ -1976,6 +2203,8 @@ class ModchartEditorState extends MusicBeatState
 		dirtyEvents = true;
 	}
 
+	static inline final EDITOR_HIT:String = 'modchartEditorHit';
+
 	function updateNotes()
 	{
 		var spawnTime:Float = 2000;
@@ -1989,13 +2218,30 @@ class ModchartEditorState extends MusicBeatState
 		}
 
 		var killOffset:Float = 350 / PlayState.SONG.speed;
+		var playing:Bool = FlxG.sound.music.playing;
+		var hitPlayer:Bool = playing && hitsoundPlayerSlider.value > 0;
+		var hitOpponent:Bool = playing && hitsoundOpponentSlider.value > 0;
 		for (note in notes.members.copy())
 		{
 			if(note == null || !note.alive) continue;
 
-			if(Conductor.songPosition >= note.strumTime && !note.wasGoodHit)
+			if(Conductor.songPosition >= note.strumTime && note.extraData.get(EDITOR_HIT) != true)
 			{
+				note.extraData.set(EDITOR_HIT, true);
 				note.wasGoodHit = true;
+				if(!note.isSustainNote)
+				{
+					if(note.mustPress && hitPlayer)
+					{
+						FlxG.sound.play(Paths.sound('chartingSounds/hitNotePlayer'), sliderVolume(hitsoundPlayerSlider));
+						hitPlayer = false;
+					}
+					else if(!note.mustPress && hitOpponent)
+					{
+						FlxG.sound.play(Paths.sound('chartingSounds/hitNoteOpponent'), sliderVolume(hitsoundOpponentSlider));
+						hitOpponent = false;
+					}
+				}
 				var strum:StrumNote = strumLineNotes.members[note.noteData + (note.mustPress ? NoteMovement.keyCount : 0)];
 				if(strum != null)
 				{
@@ -2274,6 +2520,8 @@ class ModchartEditorState extends MusicBeatState
 		FlxG.sound.music.stop();
 		vocals.stop();
 		opponentVocals.stop();
+		stopEditorLoopFade();
+		editorLoop.stop();
 	}
 }
 
