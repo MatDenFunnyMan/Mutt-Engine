@@ -30,12 +30,10 @@
 			6075,
 			[
 				[
-					"Cam Follow Pos",
-					"gf, -50, 20",
-					"3.038",
-					"expo",
-					"Out",
-					"true"
+					"Center Camera",
+					"",
+					"classic",
+					"Out"
 				]
 			]
 		],
@@ -147,12 +145,10 @@
 			24303,
 			[
 				[
-					"Cam Follow Pos",
-					"gf, -50, 20",
-					"3.038",
-					"expo",
-					"Out",
-					"true"
+					"Center Camera",
+					"",
+					"classic",
+					"Out"
 				]
 			]
 		],
@@ -319,12 +315,10 @@
 			54683,
 			[
 				[
-					"Cam Follow Pos",
-					"gf, -50, 20",
-					"3.038",
-					"expo",
-					"Out",
-					"true"
+					"Center Camera",
+					"",
+					"classic",
+					"Out"
 				]
 			]
 		],
@@ -475,12 +469,10 @@
 			72911,
 			[
 				[
-					"Cam Follow Pos",
-					"gf, -50, 20",
-					"3.038",
-					"expo",
-					"Out",
-					"true"
+					"Center Camera",
+					"",
+					"classic",
+					"Out"
 				]
 			]
 		],
@@ -693,12 +685,10 @@
 			109367,
 			[
 				[
-					"Cam Follow Pos",
-					"gf, -50, 20",
-					"3.038",
-					"expo",
-					"Out",
-					"true"
+					"Center Camera",
+					"",
+					"classic",
+					"Out"
 				]
 			]
 		],

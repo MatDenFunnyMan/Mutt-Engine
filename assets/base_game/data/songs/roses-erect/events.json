@@ -112,18 +112,16 @@
 			22500,
 			[
 				[
-					"Cam Follow Pos",
-					"gf, -50, 20",
-					"3.75",
-					"expo",
-					"Out",
-					"true"
+					"Center Camera",
+					"",
+					"classic",
+					"Out"
 				],
 				[
-					"Set Cam Zoom",
-					"1.05",
-					"3.75",
-					"expo",
+					"Cam Zoom",
+					"0.9",
+					"",
+					"classic",
 					"Out",
 					"true"
 				]
@@ -431,12 +429,10 @@
 			60468,
 			[
 				[
-					"Cam Follow Pos",
-					"gf, -50, 20",
-					"3.75",
-					"expo",
-					"Out",
-					"true"
+					"Center Camera",
+					"",
+					"classic",
+					"Out"
 				]
 			]
 		],
@@ -444,10 +440,23 @@
 			60468.75,
 			[
 				[
-					"Set Cam Zoom",
-					"1.05",
-					"3.75",
-					"expo",
+					"Cam Zoom",
+					"0.9",
+					"",
+					"classic",
+					"Out",
+					"true"
+				]
+			]
+		],
+		[
+			63750,
+			[
+				[
+					"Cam Zoom",
+					"0.95",
+					"",
+					"classic",
 					"Out",
 					"true"
 				]
@@ -472,6 +481,14 @@
 					"",
 					"classic",
 					"InOut",
+					"true"
+				],
+				[
+					"Cam Zoom",
+					"1",
+					"",
+					"classic",
+					"Out",
 					"true"
 				]
 			]
