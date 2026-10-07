@@ -68,7 +68,7 @@ class Main extends Sprite
 	public static var screenshotCounter:Int = 1;
 	public static var engineName:String = "Mutt Engine";
 	public static var windowTitle:String = "Friday Night Funkin' Mutt Engine";
-	public static var engineVersion:String = "1.1.0";
+	public static var engineVersion:String = "1.1.1";
 	public static var audioDisconnected:Bool = false;
 	public static var changeID:Int = 0;
 	public static var focusVolume:Null<Float> = null;
