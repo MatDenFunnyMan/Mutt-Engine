@@ -5,6 +5,12 @@ import haxe.Json;
 import funkin.data.Song;
 import funkin.scripting.ModchartSprite;
 
+typedef StageCharacterSlot = {
+	var position:Array<Float>;
+	var camera:Array<Float>;
+	@:optional var camera_follow:String;
+}
+
 typedef StageFile = {
 	var directory:String;
 	var defaultZoom:Float;
@@ -22,9 +28,11 @@ typedef StageFile = {
 	var camera_opponent:Array<Float>;
 	var camera_girlfriend:Array<Float>;
 	var camera_speed:Null<Float>;
+	@:optional var extra_characters:Array<StageCharacterSlot>;
 
 	@:optional var preload:Dynamic;
 	@:optional var objects:Array<Dynamic>;
+	@:optional var shaders:Array<Dynamic>;
 	@:optional var _editorMeta:Dynamic;
 }
 
@@ -116,10 +124,37 @@ class StageData {
 		return 'stage';
 	}
 
-	public static var reservedNames:Array<String> = ['gf', 'gfGroup', 'dad', 'dadGroup', 'boyfriend', 'boyfriendGroup']; //blocks these names from being used on stage editor's name input text
+	public static var reservedNames:Array<String> = buildReservedNames(); //blocks these names from being used on stage editor's name input text
+
+	static function buildReservedNames():Array<String>
+	{
+		var names:Array<String> = ['gf', 'gfGroup', 'dad', 'dadGroup', 'boyfriend', 'boyfriendGroup'];
+		for (slot in Song.FIRST_EXTRA_SLOT...Song.MAX_CHARACTERS + 1)
+		{
+			names.push(extraCharacterType(slot));
+			names.push(extraCharacterType(slot) + 'Group');
+		}
+		return names;
+	}
+
+	public static function extraCharacterType(slot:Int):String
+		return 'character$slot';
+
+	public static function extraSlotFromType(type:String):Int
+	{
+		if(type == null || !type.startsWith('character')) return -1;
+		var number:String = type.substr('character'.length);
+		if(number.endsWith('Group')) number = number.substr(0, number.length - 'Group'.length);
+		var slot:Null<Int> = Std.parseInt(number);
+		if(slot == null || Std.string(slot) != number || slot < Song.FIRST_EXTRA_SLOT || slot > Song.MAX_CHARACTERS) return -1;
+		return slot;
+	}
+
+	public static function isCharacterType(type:String):Bool
+		return type == 'gf' || type == 'dad' || type == 'boyfriend' || extraSlotFromType(type) > 0;
 	public static var editorHiddenStages:Array<String> = ['spooky', 'philly', 'limo', 'mall', 'mallEvil', 'school', 'schoolEvil', 'schoolPico', 'tank', 'phillyStreets', 'phillyBlazin',
 		'mainStageErect', 'spookyMansionErect', 'phillyTrainErect', 'limoRideErect', 'mallXmasErect', 'schoolErect', 'schoolEvilErect', 'tankmanBattlefieldErect', 'phillyStreetsErect']; //base game stages, hidden from the stage editor's list
-	public static function addObjectsToState(objectList:Array<Dynamic>, gf:FlxSprite, dad:FlxSprite, boyfriend:FlxSprite, ?group:Dynamic = null, ?ignoreFilters:Bool = false)
+	public static function addObjectsToState(objectList:Array<Dynamic>, gf:FlxSprite, dad:FlxSprite, boyfriend:FlxSprite, ?group:Dynamic = null, ?ignoreFilters:Bool = false, ?extras:Array<FlxSprite> = null)
 	{
 		var addedObjects:Map<String, FlxSprite> = [];
 		for (num => data in objectList)
@@ -206,8 +241,23 @@ class StageData {
 						if(dat != null) Reflect.setProperty(spr, varName, dat);
 					}
 
+					if(data.blend != null && Std.string(data.blend).length > 0)
+						spr.blend = funkin.scripting.LuaUtils.blendModeFromString(Std.string(data.blend));
+
 					if (group != null) group.add(spr);
 					addedObjects.set(data.name, spr);
+
+				case type if(extraSlotFromType(type) > 0):
+					var slot:Int = extraSlotFromType(type);
+					var name:String = extraCharacterType(slot);
+					var index:Int = slot - Song.FIRST_EXTRA_SLOT;
+					var extra:FlxSprite = (extras != null && index < extras.length) ? extras[index] : null;
+					if(extra != null && !addedObjects.exists(name))
+					{
+						extra.ID = num;
+						if (group != null) group.add(extra);
+						addedObjects.set(name, extra);
+					}
 
 				default:
 					var err = '[Stage .JSON file] Unknown sprite type detected: ${data.type}';

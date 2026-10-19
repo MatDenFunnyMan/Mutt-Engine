@@ -111,8 +111,13 @@ class AudioBuffer
 		__srcBuffer = null;
 		#end
 		#if lime_vorbis
-		if (__srcVorbisFile != null) __srcVorbisFile.clear();
-		__srcVorbisFile = null;
+		if (__srcVorbisFile != null)
+		{
+			@:privateAccess lime._internal.backend.native.NativeAudioSource.streamMutex.acquire();
+			__srcVorbisFile.clear();
+			__srcVorbisFile = null;
+			@:privateAccess lime._internal.backend.native.NativeAudioSource.streamMutex.release();
+		}
 		#end
 	}
 
@@ -329,10 +334,12 @@ class AudioBuffer
 			final isBigEndian = lime.system.System.endianness == lime.system.Endian.BIG_ENDIAN;
 			final bytes = Bytes.alloc(Std.int((pcmTotal.high * 4294967296. + (pcmTotal.low >> 0)) * info.channels * (audioBuffer.bitsPerSample >> 3)));
 			var total = 0, result = 0;
-			do {
-				result = vorbisFile.read(bytes, total, 0x1000, isBigEndian, 2, true);
+			while (total < bytes.length) {
+				result = vorbisFile.read(bytes, total, bytes.length - total < 0x1000 ? bytes.length - total : 0x1000, isBigEndian, 2, true);
+				if (result == Vorbis.HOLE) continue;
+				if (result <= 0) break;
 				total += result;
-			} while (result > 0 || result == Vorbis.HOLE);
+			}
 
 			audioBuffer.data = new UInt8Array(bytes);
 			vorbisFile.clear();

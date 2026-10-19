@@ -222,6 +222,14 @@ class HScript extends Iris
 		set('SCREEN', BlendMode.SCREEN);
 		set('SHADER', BlendMode.SHADER);
 		set('SUBTRACT', BlendMode.SUBTRACT);
+		set('COLORDODGE', BlendMode.COLORDODGE);
+		set('COLORBURN', BlendMode.COLORBURN);
+		set('SOFTLIGHT', BlendMode.SOFTLIGHT);
+		set('EXCLUSION', BlendMode.EXCLUSION);
+		set('HUE', BlendMode.HUE);
+		set('SATURATION', BlendMode.SATURATION);
+		set('COLOR', BlendMode.COLOR);
+		set('LUMINOSITY', BlendMode.LUMINOSITY);
 		set('Countdown', funkin.game.stages.BaseStage.Countdown);
 		set('PlayState', PlayState);
 		set('Paths', Paths);
@@ -346,6 +354,12 @@ class HScript extends Iris
 				return true;
 			}
 			return false;
+		});
+		set('autoPlay', function(?on:Null<Bool>) {
+			var game:PlayState = PlayState.instance;
+			if(game == null) return false;
+			if(on != null) game.autoPlay = on;
+			return game.autoPlay;
 		});
 		set('debugPrint', function(text:String, ?color:FlxColor = null) {
 			if(color == null) color = FlxColor.WHITE;

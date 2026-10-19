@@ -24,6 +24,8 @@ class NoteMovement
     public static var keyCount = 4;
     public static var playerKeyCount = 4;
     public static var totalKeyCount = 8;
+    public static var laneCount = 8;
+    public static var characterLanes:Map<Int, Int> = [];
     public static var arrowScale:Float = 0.7;
     public static var arrowSize:Float = 112;
     public static var defaultStrumX:Array<Float> = [];
@@ -39,7 +41,7 @@ class NoteMovement
         defaultStrumY = []; 
         defaultScale = [];
         arrowSizes = [];
-        keyCount = #if (LEATHER || KADE) PlayState.strumLineNotes.length-PlayState.playerStrums.length #else game.strumLineNotes.length-game.playerStrums.length #end; //base game doesnt have opponent strums as group
+        keyCount = #if (LEATHER || KADE) PlayState.strumLineNotes.length-PlayState.playerStrums.length #else game.opponentStrums.length #end; //base game doesnt have opponent strums as group
         playerKeyCount = #if (LEATHER || KADE) PlayState.playerStrums.length #else game.playerStrums.length #end;
 
         for (i in #if (LEATHER || KADE) 0...PlayState.strumLineNotes.members.length #else 0...game.strumLineNotes.members.length #end)
@@ -64,14 +66,19 @@ class NoteMovement
         leatherEngineOffsetStuff.clear();
         #end
         totalKeyCount = keyCount + playerKeyCount;
+        laneCount = Std.int(Math.max(totalKeyCount, defaultStrumX.length));
     }
-    public static function getDefaultStrumPosFromGroup(strums:FlxTypedGroup<PlayfieldRenderer.StrumNoteType>, playerCount:Int)
+    public static function characterFirstLane(slot:Int):Int
+    {
+        return characterLanes.exists(slot) ? characterLanes.get(slot) : -1;
+    }
+    public static function getDefaultStrumPosFromGroup(strums:FlxTypedGroup<PlayfieldRenderer.StrumNoteType>, playerCount:Int, ?opponentCount:Null<Int>)
     {
         defaultStrumX = [];
         defaultStrumY = [];
         defaultScale = [];
         arrowSizes = [];
-        keyCount = strums.length - playerCount;
+        keyCount = (opponentCount != null) ? opponentCount : strums.length - playerCount;
         playerKeyCount = playerCount;
 
         for (strum in strums.members)
@@ -82,6 +89,7 @@ class NoteMovement
             arrowSizes.push(160 * 0.7);
         }
         totalKeyCount = keyCount + playerKeyCount;
+        laneCount = Std.int(Math.max(totalKeyCount, defaultStrumX.length));
     }
 
     public static function setNotePath(daNote:Note, lane:Int, scrollSpeed:Float, curPos:Float, noteDist:Float, incomingAngleX:Float, incomingAngleY:Float)

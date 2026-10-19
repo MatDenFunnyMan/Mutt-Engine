@@ -51,35 +51,15 @@ class LuaCallbacks
 	public static function registerCommon(lua:State, host:IFunkinScript)
 	{
 		Lua_helper.add_callback(lua, "switchStateWithStickers", function(stateName:String, ?mode:String, ?songName:String, ?difficulty:String) {
-			if(stateName.toLowerCase() == 'playstate')
-			{
-				if(songName != null && songName != '')
-				{
-					var diff:String = (difficulty != null && difficulty != '') ? difficulty : 'normal';
-					var diffIdx:Int = 0;
-					for(i in 0...funkin.data.Difficulty.list.length)
-						if(funkin.data.Difficulty.list[i].toLowerCase() == diff.toLowerCase()) { diffIdx = i; break; }
-					var jsonName:String = Paths.formatToSongPath(songName) + '-' + Paths.formatToSongPath(diff);
-					var folder:String = Paths.formatToSongPath(songName);
-					if(funkin.data.Song.getChart(jsonName, folder) == null)
-						jsonName = Paths.formatToSongPath(songName);
-					funkin.data.Song.loadFromJson(jsonName, folder);
-					funkin.game.states.PlayState.isStoryMode = false;
-					funkin.game.states.PlayState.storyDifficulty = diffIdx;
-				}
-				if(funkin.game.states.PlayState.SONG != null)
-					funkin.backend.MusicBeatState.switchStateWithStickers(new funkin.game.states.PlayState(), mode);
-			}
-			else
-			{
-				funkin.backend.MusicBeatState.switchStateWithStickersByName(stateName, mode);
-			}
+			LuaUtils.warnDeprecated('switchStateWithStickers', 'switchState with {transition = "stickers"}');
+			LuaSharedFunctions.switchStateWithStickers(stateName, mode, songName, difficulty);
 			return true;
 		});
 		Lua_helper.add_callback(lua, "isMusicPlaying", function() {
 			return FlxG.sound.music != null && FlxG.sound.music.playing;
 		});
 		Lua_helper.add_callback(lua, "getScore", function(songName:String, diffIndex:Int) {
+			LuaUtils.warnDeprecated('getScore', 'getHighscore');
 			return funkin.save.Highscore.getScore(songName, diffIndex);
 		});
 		Lua_helper.add_callback(lua, "getDifficultyName", function(index:Int) {
@@ -263,9 +243,15 @@ class LuaCallbacks
 				if(snd != null) snd.play();
 			}
 		});
-		Lua_helper.add_callback(lua, "FlxColor", function(color:String) return FlxColor.fromString(color));
-		Lua_helper.add_callback(lua, "getColorFromString", function(color:String) return FlxColor.fromString(color));
-		Lua_helper.add_callback(lua, "getColorFromHex", function(color:String) return FlxColor.fromString('#$color'));
+		Lua_helper.add_callback(lua, "FlxColor", function(color:String) {
+			LuaUtils.warnDeprecated('FlxColor', 'getColorFromString');
+			return FlxColor.fromString(color);
+		});
+		Lua_helper.add_callback(lua, "getColorFromString", function(color:String) return LuaUtils.colorFromLua(color));
+		Lua_helper.add_callback(lua, "getColorFromHex", function(color:String) {
+			LuaUtils.warnDeprecated('getColorFromHex', 'getColorFromString');
+			return FlxColor.fromString('#$color');
+		});
 		Lua_helper.add_callback(lua, "precacheImage", function(name:String, ?allowGPU:Bool = true) {
 			Paths.image(name, allowGPU);
 		});
@@ -303,7 +289,7 @@ class LuaCallbacks
 		Lua_helper.add_callback(lua, "keyboardPressed", function(name:String) return Reflect.getProperty(FlxG.keys.pressed, name));
 		Lua_helper.add_callback(lua, "keyboardReleased", function(name:String) return Reflect.getProperty(FlxG.keys.justReleased, name));
 		Lua_helper.add_callback(lua, "anyGamepadJustPressed", function(name:String) return FlxG.gamepads.anyJustPressed(name));
-		Lua_helper.add_callback(lua, "anyGamepadPressed", function(name:String) FlxG.gamepads.anyPressed(name));
+		Lua_helper.add_callback(lua, "anyGamepadPressed", function(name:String) return FlxG.gamepads.anyPressed(name));
 		Lua_helper.add_callback(lua, "anyGamepadReleased", function(name:String) return FlxG.gamepads.anyJustReleased(name));
 		Lua_helper.add_callback(lua, "gamepadAnalogX", function(id:Int, ?leftStick:Bool = true) {
 			var controller = FlxG.gamepads.getByID(id);
@@ -421,6 +407,7 @@ class LuaCallbacks
 			return ReflectionFunctions.callMethodFromObject(myClass, funcToRun, ReflectionFunctions.parseInstances(args));
 		});
 		Lua_helper.add_callback(lua, "makeLuaText", function(tag:String, ?text:String = '', ?width:Int = 0, ?x:Float = 0, ?y:Float = 0) {
+			LuaUtils.warnDeprecated('makeLuaText', 'createText');
 			tag = tag.replace('.', '');
 			LuaUtils.destroyObject(tag);
 			var leText:flixel.text.FlxText = new flixel.text.FlxText(x, y, width, text, 16);

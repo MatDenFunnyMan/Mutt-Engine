@@ -62,10 +62,10 @@ class ModchartStartupPrompt extends BasePrompt
 
 		addHeader(rightX, topY, 'Create New');
 		addButton(rightX, topY + 34, 'From Song...', function() if(onFromSong != null) onFromSong());
-		addHint(rightX, topY + 70, 'Pick a song and a difficulty:\nthe modchart is saved with the song.');
+		addHint(rightX, topY + 70, 'Pick a song. Modchart is applied to all difficulties.');
 
 		if(currentSong != null)
-			addHint(rightX, botY, 'Esc: keep "$currentSong"');
+			addHint(rightX, botY, 'Press ESC for "$currentSong"\nContinue where you left off!');
 
 		applyRecents();
 	}
@@ -189,7 +189,7 @@ class ModchartSongPrompt extends BasePrompt
 		if(curSong < 0)
 		{
 			diffButton.text.text = 'Difficulty: ---';
-			loadButton.text.text = 'Select a Song';
+			loadButton.text.text = 'Select Song';
 			return;
 		}
 		diffButton.text.text = 'Difficulty: ${songDiffs[curDiff]}';

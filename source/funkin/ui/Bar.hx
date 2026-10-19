@@ -9,29 +9,44 @@ class Bar extends FlxSpriteGroup
 	public var bg:FlxSprite;
 	public var valueFunction:Void->Float = null;
 	public var percent(default, set):Float = 0;
+	public var shownPercent(default, null):Float = 0;
+	public var smooth:Bool = false;
+	public var smoothSpeed:Float = 9;
 	public var bounds:Dynamic = {min: 0, max: 1};
 	public var leftToRight(default, set):Bool = true;
 	public var barCenter(default, null):Float = 0;
+	public var centerY(get, never):Float;
 
-	// you might need to change this if you want to use a custom bar
 	public var barWidth(default, set):Int = 1;
 	public var barHeight(default, set):Int = 1;
 	public var barOffset:FlxPoint = new FlxPoint(3, 3);
 
+	public var baseWidth(default, null):Int = 1;
+	public var baseHeight(default, null):Int = 1;
+	public var customFill(default, null):String = null;
+	public var customBackground(default, null):String = null;
+	public var customScale:Float = 1;
+	public var customOffset:FlxPoint = new FlxPoint();
+
+	var defaultImage:String;
+	var fillOffset:FlxPoint = new FlxPoint();
+
 	public function new(x:Float, y:Float, image:String = 'healthBar', valueFunction:Void->Float = null, boundX:Float = 0, boundY:Float = 1)
 	{
 		super(x, y);
-		
+
 		this.valueFunction = valueFunction;
+		defaultImage = image;
 		setBounds(boundX, boundY);
-		
+
 		bg = new FlxSprite().loadGraphic(Paths.image(image));
 		bg.antialiasing = ClientPrefs.data.antialiasing;
+		baseWidth = Std.int(bg.width);
+		baseHeight = Std.int(bg.height);
 		barWidth = Std.int(bg.width - 6);
 		barHeight = Std.int(bg.height - 6);
 
 		leftBar = new FlxSprite().makeGraphic(Std.int(bg.width), Std.int(bg.height), FlxColor.WHITE);
-		//leftBar.color = FlxColor.WHITE;
 		leftBar.antialiasing = antialiasing = ClientPrefs.data.antialiasing;
 
 		rightBar = new FlxSprite().makeGraphic(Std.int(bg.width), Std.int(bg.height), FlxColor.WHITE);
@@ -45,6 +60,7 @@ class Bar extends FlxSpriteGroup
 	}
 
 	public var enabled:Bool = true;
+	var snapNext:Bool = true;
 	override function update(elapsed:Float) {
 		if(!enabled)
 		{
@@ -58,9 +74,22 @@ class Bar extends FlxSpriteGroup
 			percent = (value != null ? value : 0);
 		}
 		else percent = 0;
+
+		if(snapNext)
+		{
+			snapNext = false;
+			shownPercent = percent;
+			updateBar();
+		}
+		else if(smooth && shownPercent != percent)
+		{
+			shownPercent = FlxMath.lerp(percent, shownPercent, Math.exp(-elapsed * smoothSpeed));
+			if(Math.abs(shownPercent - percent) < 0.01) shownPercent = percent;
+			updateBar();
+		}
 		super.update(elapsed);
 	}
-	
+
 	public function setBounds(min:Float, max:Float)
 	{
 		bounds.min = min;
@@ -75,16 +104,121 @@ class Bar extends FlxSpriteGroup
 			rightBar.color = right;
 	}
 
+	public function snap()
+	{
+		shownPercent = percent;
+		updateBar();
+	}
+
+	public function setFill(image:String, ?prefix:String, ?fps:Float)
+	{
+		var color1:FlxColor = leftBar.color;
+		var color2:FlxColor = rightBar.color;
+		customFill = (image != null && image.length > 0) ? image : null;
+
+		for (bar in [leftBar, rightBar])
+		{
+			if(customFill != null) loadAnimated(bar, customFill, prefix, fps);
+			else
+			{
+				bar.makeGraphic(baseWidth, baseHeight, FlxColor.WHITE);
+				bar.animation.destroyAnimations();
+			}
+		}
+		leftBar.color = color1;
+		rightBar.color = color2;
+		layout();
+	}
+
+	public function setBackground(image:String, ?prefix:String, ?fps:Float)
+	{
+		customBackground = (image != null && image.length > 0) ? image : null;
+		if(customBackground != null) loadAnimated(bg, customBackground, prefix, fps);
+		else
+		{
+			bg.loadGraphic(Paths.image(defaultImage));
+			bg.animation.destroyAnimations();
+		}
+		layout();
+	}
+
+	public function resetGraphics()
+	{
+		customScale = 1;
+		customOffset.set();
+		setBackground(null);
+		setFill(null);
+	}
+
+	function loadAnimated(sprite:FlxSprite, image:String, ?prefix:String, ?fps:Float)
+	{
+		var xml:Bool = Paths.fileExists('images/$image.xml', TEXT);
+		if(xml)
+		{
+			sprite.frames = Paths.getSparrowAtlas(image);
+			sprite.animation.addByPrefix('idle', (prefix != null) ? prefix : '', (fps != null && fps > 0) ? fps : 24, true);
+			if(sprite.animation.getByName('idle') != null) sprite.animation.play('idle', true);
+		}
+		else
+		{
+			sprite.loadGraphic(Paths.image(image));
+			sprite.animation.destroyAnimations();
+		}
+		sprite.antialiasing = ClientPrefs.data.antialiasing;
+	}
+
+	public function layout()
+	{
+		var centerX:Float = x + baseWidth / 2 + customOffset.x;
+		var middleY:Float = y + baseHeight / 2 + customOffset.y;
+		var scale:Float = 1;
+
+		if(customFill != null)
+			scale = (baseWidth - 6) / Math.max(1, leftBar.frameWidth) * customScale;
+		else if(customBackground != null)
+			scale = baseWidth / Math.max(1, bg.frameWidth) * customScale;
+
+		bg.visible = (customBackground != null || customFill == null);
+		bg.scale.set(customBackground != null ? scale : 1, customBackground != null ? scale : 1);
+		bg.updateHitbox();
+		bg.setPosition(centerX - bg.width / 2, middleY - bg.height / 2);
+
+		if(customFill != null)
+		{
+			for (bar in [leftBar, rightBar])
+			{
+				bar.scale.set(scale, scale);
+				bar.updateHitbox();
+			}
+			fillOffset.set(centerX - leftBar.width / 2 - bg.x, middleY - leftBar.height / 2 - bg.y);
+			@:bypassAccessor barWidth = leftBar.frameWidth;
+			@:bypassAccessor barHeight = leftBar.frameHeight;
+			barOffset.set(0, 0);
+			leftBar.clipRect = new FlxRect(0, 0, leftBar.frameWidth, leftBar.frameHeight);
+			rightBar.clipRect = new FlxRect(0, 0, rightBar.frameWidth, rightBar.frameHeight);
+			updateBar();
+		}
+		else
+		{
+			fillOffset.set(0, 0);
+			@:bypassAccessor barWidth = Std.int(bg.width - 6);
+			@:bypassAccessor barHeight = Std.int(bg.height - 6);
+			barOffset.set(3, 3);
+			regenerateClips();
+		}
+	}
+
 	public function updateBar()
 	{
 		if(leftBar == null || rightBar == null) return;
 
-		leftBar.setPosition(bg.x, bg.y);
-		rightBar.setPosition(bg.x, bg.y);
+		leftBar.setPosition(bg.x + fillOffset.x, bg.y + fillOffset.y);
+		rightBar.setPosition(bg.x + fillOffset.x, bg.y + fillOffset.y);
 
+		var shown:Float = smooth ? shownPercent : percent;
 		var leftSize:Float = 0;
-		if(leftToRight) leftSize = FlxMath.lerp(0, barWidth, percent / 100);
-		else leftSize = FlxMath.lerp(0, barWidth, 1 - percent / 100);
+		if(leftToRight) leftSize = FlxMath.lerp(0, barWidth, shown / 100);
+		else leftSize = FlxMath.lerp(0, barWidth, 1 - shown / 100);
 
 		leftBar.clipRect.width = leftSize;
 		leftBar.clipRect.height = barHeight;
@@ -96,9 +230,8 @@ class Bar extends FlxSpriteGroup
 		rightBar.clipRect.x = barOffset.x + leftSize;
 		rightBar.clipRect.y = barOffset.y;
 
-		barCenter = leftBar.x + leftSize + barOffset.x;
+		barCenter = leftBar.x + (leftSize + barOffset.x) * Math.abs(leftBar.scale.x);
 
-		// flixel is retarded
 		leftBar.clipRect = leftBar.clipRect;
 		rightBar.clipRect = rightBar.clipRect;
 	}
@@ -120,11 +253,15 @@ class Bar extends FlxSpriteGroup
 		updateBar();
 	}
 
+	function get_centerY():Float
+		return bg.y + bg.height / 2;
+
 	private function set_percent(value:Float)
 	{
 		var doUpdate:Bool = false;
 		if(value != percent) doUpdate = true;
 		percent = value;
+		if(!smooth) shownPercent = value;
 
 		if(doUpdate) updateBar();
 		return value;

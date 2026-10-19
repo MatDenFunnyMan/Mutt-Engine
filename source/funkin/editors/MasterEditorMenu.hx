@@ -2,24 +2,12 @@ package funkin.editors;
 
 import funkin.data.WeekData;
 
-import funkin.game.Character;
-
 import funkin.ui.states.MainMenuState;
 import funkin.ui.states.FreeplayState;
 
 class MasterEditorMenu extends MusicBeatState
 {
-	var options:Array<String> = [
-		'Chart Editor',
-		'Character Editor',
-		'Stage Editor',
-		'Week Editor',
-		'Menu Character Editor',
-		'Dialogue Editor',
-		'Dialogue Portrait Editor',
-		'Note Splash Editor',
-		'Hold Cover Editor'
-	];
+	var options:Array<String> = [for (option in EditorMenuState.EDITORS) option.name];
 	private var grpTexts:FlxTypedGroup<Alphabet>;
 	private var directories:Array<String> = [null];
 
@@ -29,6 +17,7 @@ class MasterEditorMenu extends MusicBeatState
 
 	override function create()
 	{
+		PlayState.isStoryMode = false;
 		FlxG.camera.bgColor = FlxColor.BLACK;
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
@@ -105,28 +94,7 @@ class MasterEditorMenu extends MusicBeatState
 
 		if (controls.ACCEPT)
 		{
-			switch(options[curSelected]) {
-				case 'Chart Editor'://felt it would be cool maybe
-					LoadingState.loadAndSwitchState(new ChartingState(), false);
-				case 'Character Editor':
-					LoadingState.loadAndSwitchState(new CharacterEditorState(Character.DEFAULT_CHARACTER, false));
-				case 'Stage Editor':
-					LoadingState.loadAndSwitchState(new StageEditorState());
-				case 'Week Editor':
-					MusicBeatState.switchState(new WeekEditorState());
-				case 'Menu Character Editor':
-					MusicBeatState.switchState(new MenuCharacterEditorState());
-				case 'Dialogue Editor':
-					LoadingState.loadAndSwitchState(new DialogueEditorState(), false);
-				case 'Dialogue Portrait Editor':
-					LoadingState.loadAndSwitchState(new DialogueCharacterEditorState(), false);
-				case 'Note Splash Editor':
-					MusicBeatState.switchState(new NoteSplashEditorState());
-				case 'Hold Cover Editor':
-					MusicBeatState.switchState(new HoldCoverEditorState());
-			}
-			FlxG.sound.music.volume = 0;
-			FreeplayState.destroyFreeplayVocals();
+			EditorMenuState.openEditor(EditorMenuState.EDITORS[curSelected]);
 		}
 		
 		for (num => item in grpTexts.members)

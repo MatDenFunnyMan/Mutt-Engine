@@ -367,7 +367,7 @@ class FreeplayState extends MusicBeatState
 			tabText.scrollFactor.set();
 			add(tabText);
 
-			tabHint = new FlxText(0, 182, 0, 'Press Q/E to switch MODS', 16);
+			tabHint = new FlxText(0, 182, 0, 'Q/E: Switch MODS', 16);
 			tabHint.setFormat(Paths.font('vcr.ttf'), 16, 0xFF808080, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			tabHint.scrollFactor.set();
 			add(tabHint);
@@ -633,8 +633,7 @@ class FreeplayState extends MusicBeatState
 		{
 			var difficultyName:String = Difficulty.getString(curDifficulty);
 			var chartPath:String = Paths.json('${songLowercase}/${poop}');
-			//missingText.text = 'ERROR WHILE LOADING CHART:\n\nSong: ${songs[curSelected].songName}\nDifficulty: $difficultyName\n\nChart file not found!\n\nPath: $chartPath';
-			missingText.text = 'SORRY, THIS SONG IS NOT AVAILABLE IN THE DEMO.\n\nThe only playable song is "Concrete Jungle"\nCOMING SOON! THANKS FOR PLAYING :)';
+			missingText.text = 'ERROR WHILE LOADING CHART:\n\nSong: ${songs[curSelected].songName}\nDifficulty: $difficultyName\n\nChart file not found!\n\nPath: $chartPath';
 			missingText.screenCenter(Y);
 			missingText.visible = true;
 			missingTextBG.visible = true;
@@ -1098,7 +1097,7 @@ class FreeplayState extends MusicBeatState
 
 	function playPreview(key:String, sound:Sound, cached:Bool, startTime:Float, length:Float, slot:Int = -1)
 	{
-		if(sound == null || sound == FlxAssets.getSound('flixel/sounds/beep')) return;
+		if(sound == null || sound == Paths.beepSound) return;
 
 		if(FlxG.sound.music != null && FlxG.sound.music.fadeTween != null) FlxG.sound.music.fadeTween.cancel();
 		FlxG.sound.playMusic(sound, 0);
@@ -1466,6 +1465,8 @@ class SongMetadata
 
 	public function getClear(diff:String):Int
 	{
+		var key:String = getSaveKey(diff);
+		if(Highscore.songClears.exists(key)) return Math.floor(CoolUtil.floorDecimal(Highscore.songClears.get(key) * 100, 2));
 		return Math.floor(getRating(diff) * 100);
 	}
 
@@ -1477,7 +1478,22 @@ class SongMetadata
 		if(getScore(diff) <= 0 && rating <= 0) return null;
 
 		var key:String = getSaveKey(diff);
+		var saved:ResultsRank = savedRank(key);
+		if(saved != null) return saved;
+
 		var misses:Int = Highscore.songMisses.exists(key) ? Highscore.songMisses.get(key) : ((rating >= 1) ? 0 : 1);
-		return RankData.calculate(rating, misses, (rating >= 1) ? 1 : 0, 1);
+		return RankData.fromAccuracy(rating, misses, (rating >= 1) ? 1 : 0, 1);
+	}
+
+	static function savedRank(key:String):Null<ResultsRank>
+	{
+		var name:String = Highscore.songRanks.get(key);
+		if(name == null) return null;
+		try
+		{
+			return Type.createEnum(ResultsRank, name);
+		}
+		catch(e:Dynamic) {}
+		return null;
 	}
 }

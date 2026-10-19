@@ -48,6 +48,11 @@ class Option
 	public function isLocked():Bool
 		return locked != null && locked();
 
+	public var hidden:Void->Bool = null;
+
+	public function isHidden():Bool
+		return hidden != null && hidden();
+
 	public function new(name:String, description:String = '', variable:String, type:OptionType = BOOL, ?options:Array<String> = null, ?translation:String = null)
 	{
 		_name = name;

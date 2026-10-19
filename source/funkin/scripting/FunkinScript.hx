@@ -99,6 +99,7 @@ class FunkinLuaScript extends FunkinScript
 	{
 		lua = LuaL.newstate();
 		LuaL.openlibs(lua);
+		LuaL.dostring(lua, UtilityFunctions.LUA_LIBRARY);
 		LuaSharedFunctions.registerFileAndSaveFunctions(lua, scriptTrace);
 
 		set('Function_Stop', LuaUtils.Function_Stop);

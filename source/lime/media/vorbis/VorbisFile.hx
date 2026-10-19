@@ -14,6 +14,14 @@ class VorbisFile
 	public var bitstream(default, null):Int;
 
 	@:noCompletion private var handle:Dynamic;
+	@:noCompletion private static var lock:sys.thread.Mutex = new sys.thread.Mutex();
+
+	@:noCompletion private static function copyResult(data:Dynamic):Dynamic
+	{
+		var copy:Dynamic = {};
+		for (field in Reflect.fields(data)) Reflect.setField(copy, field, Reflect.field(data, field));
+		return copy;
+	}
 
 	@:noCompletion var _filePath:String;
 	@:noCompletion var _bytes:Bytes;
@@ -61,7 +69,11 @@ class VorbisFile
 	public function comment(bitstream:Int = -1):VorbisComment
 	{
 		#if (lime_cffi && lime_vorbis && !macro)
+		lock.acquire();
 		var data = NativeCFFI.lime_vorbis_file_comment(handle, bitstream);
+		var result = (data == null) ? null : copyResult(data);
+		lock.release();
+		data = result;
 
 		if (data != null)
 		{
@@ -119,7 +131,11 @@ class VorbisFile
 	public function info(bitstream:Int = -1):VorbisInfo
 	{
 		#if (lime_cffi && lime_vorbis && !macro)
+		lock.acquire();
 		var data = NativeCFFI.lime_vorbis_file_info(handle, bitstream);
+		var result = (data == null) ? null : copyResult(data);
+		lock.release();
+		data = result;
 
 		if (data != null)
 		{
@@ -176,7 +192,11 @@ class VorbisFile
 	public function pcmTell():Int64
 	{
 		#if (lime_cffi && lime_vorbis && !macro)
+		lock.acquire();
 		var data = NativeCFFI.lime_vorbis_file_pcm_tell(handle);
+		var result = (data == null) ? null : copyResult(data);
+		lock.release();
+		data = result;
 
 		if (data != null)
 		{
@@ -190,7 +210,11 @@ class VorbisFile
 	public function pcmTotal(bitstream:Int = -1):Int64
 	{
 		#if (lime_cffi && lime_vorbis && !macro)
+		lock.acquire();
 		var data = NativeCFFI.lime_vorbis_file_pcm_total(handle, bitstream);
+		var result = (data == null) ? null : copyResult(data);
+		lock.release();
+		data = result;
 
 		if (data != null)
 		{
@@ -222,7 +246,11 @@ class VorbisFile
 	public function rawTell():Int64
 	{
 		#if (lime_cffi && lime_vorbis && !macro)
+		lock.acquire();
 		var data = NativeCFFI.lime_vorbis_file_raw_tell(handle);
+		var result = (data == null) ? null : copyResult(data);
+		lock.release();
+		data = result;
 
 		if (data != null)
 		{
@@ -236,7 +264,11 @@ class VorbisFile
 	public function rawTotal(bitstream:Int = -1):Int64
 	{
 		#if (lime_cffi && lime_vorbis && !macro)
+		lock.acquire();
 		var data = NativeCFFI.lime_vorbis_file_raw_total(handle, bitstream);
+		var result = (data == null) ? null : copyResult(data);
+		lock.release();
+		data = result;
 
 		if (data != null)
 		{
@@ -250,10 +282,15 @@ class VorbisFile
 	public function read(buffer:Bytes, position:Int, length:Int = 4096, bigEndianPacking:Bool = false, wordSize:Int = 2, signed:Bool = true):Int
 	{
 		#if (lime_cffi && lime_vorbis && !macro)
+		lock.acquire();
 		var data = NativeCFFI.lime_vorbis_file_read(handle, buffer, position, length, bigEndianPacking, wordSize, signed);
+		var result = (data == null) ? null : copyResult(data);
+		lock.release();
+		data = result;
 		if (data == null) return 0;
 		bitstream = data.bitstream;
-		return data.returnValue;
+		var value:Int = data.returnValue;
+		return (value > length) ? length : value;
 		#else
 		return 0;
 		#end
@@ -263,7 +300,11 @@ class VorbisFile
 	public function readFloat(pcmChannels:Bytes, samples:Int):Int
 	{
 		#if (lime_cffi && lime_vorbis && !macro)
+		lock.acquire();
 		var data = NativeCFFI.lime_vorbis_file_read_float(handle, pcmChannels, samples);
+		var result = (data == null) ? null : copyResult(data);
+		lock.release();
+		data = result;
 		if (data == null) return 0;
 		bitstream = data.bitstream;
 		return data.returnValue;

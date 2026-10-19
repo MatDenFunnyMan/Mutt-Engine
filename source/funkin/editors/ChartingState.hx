@@ -30,7 +30,6 @@ import funkin.editors.content.NewChartPrompt;
 import funkin.editors.content.SongAudioPrompt;
 import flash.net.FileFilter;
 import funkin.editors.content.*;
-import funkin.editors.content.CreateStrumlinePrompt.StrumlineConfigData;
 import funkin.editors.content.Prompt.BasePrompt;
 
 import funkin.data.Song;
@@ -51,6 +50,7 @@ import funkin.game.Character;
 import funkin.ui.HealthIcon;
 import funkin.game.notes.Note;
 import funkin.game.notes.StrumNote;
+import funkin.game.notes.NotePack;
 
 using DateTools;
 
@@ -65,6 +65,9 @@ enum abstract UndoAction(String)
 	var DELETE_NOTE = 'Delete Note';
 	var MOVE_NOTE = 'Move Note';
 	var SELECT_NOTE = 'Select Note';
+	var REMOVE_CHARACTER = 'Remove Character';
+	var CHANGE_STRUMLINE = 'Change Strumline';
+	var CHANGE_SIDE = 'Change Side';
 }
 
 enum abstract ChartingTheme(String)
@@ -85,7 +88,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	public static var GRID_COLUMNS_PER_PLAYER = 4;
 	public static var GRID_PLAYERS = 2;
 	public static var GRID_SIZE = 40;
-	public static final ALLOW_EXTRA_STRUMS:Bool = false;
 	public static inline final WAVE_STRIP:Int = 80;
 	static inline final CURSOR_POINTER = 0;
 	static inline final CURSOR_GRABBING = 1;
@@ -304,6 +306,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	{
 		Paths.clearStoredMemory();
 		Paths.clearUnusedMemory();
+		NotePack.clearCache();
 
 		instance = this;
 		if(Difficulty.list.length < 1) Difficulty.resetList();
@@ -369,25 +372,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		
 		changeTheme(chartEditorSave.data.theme != null ? chartEditorSave.data.theme : DEFAULT, false);
 
-		GRID_PLAYERS = 2;
-		if(PlayState.SONG != null)
-		{
-			var extraCount:Int = (PlayState.SONG.extraStrumlines != null) ? PlayState.SONG.extraStrumlines.length : 0;
-			var detectedPlayers:Int = (PlayState.SONG.mania >= 1) ? PlayState.SONG.mania : (2 + extraCount);
-			if(PlayState.SONG.notes != null)
-			{
-				var maxCol:Int = 0;
-				for(section in PlayState.SONG.notes)
-					if(section != null && section.sectionNotes != null)
-						for(note in section.sectionNotes)
-							if(note != null && Std.int(note[1]) > maxCol && Std.int(note[1]) < GRID_COLUMNS_PER_PLAYER * 8)
-								maxCol = Std.int(note[1]);
-				var detectedFromNotes:Int = Math.ceil((maxCol + 1) / GRID_COLUMNS_PER_PLAYER);
-				if(detectedFromNotes > detectedPlayers)
-					detectedPlayers = detectedFromNotes;
-			}
-			GRID_PLAYERS = Std.int(Math.max(1, detectedPlayers));
-		}
+		GRID_PLAYERS = wantedGridPlayers(false);
 
 		createGrids();
 
@@ -814,6 +799,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		
 		if(GRID_PLAYERS > 2)
 			rebuildGridPlayers();
+		gridReady = true;
 
 		loadSection(0);
 		scrollY = -FlxG.height/2;
@@ -899,10 +885,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}
 
 		clampToysToScreen();
-		updateToyCharacters();
+		applyToyVisibility();
+		syncToyState();
 
 		setToysAnimated(FlxG.sound.music != null && FlxG.sound.music.playing);
-		applyToyVisibility();
 	}
 
 	function applyToyVisibility()
@@ -944,25 +930,192 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}
 	}
 
-	function updateToyCharacters(?overrideP1:String, ?overrideP2:String)
+	function toyEventTarget(value:String, fallback:Toy):Toy
+	{
+		var key:String = (value != null) ? value.trim().toLowerCase() : '';
+		switch(key)
+		{
+			case 'bf' | 'boyfriend' | 'player': return bfToy;
+			case 'dad' | 'opponent': return opponentToy;
+			case 'gf' | 'girlfriend': return gfToy;
+		}
+
+		var parsed:Null<Int> = Std.parseInt(key);
+		if(parsed == null) return fallback;
+		switch(parsed)
+		{
+			case 0: return bfToy;
+			case 1: return opponentToy;
+			case 2: return gfToy;
+		}
+
+		var data:ExtraCharacterData = Song.getExtraCharacter(PlayState.SONG, parsed);
+		return (data != null && data.character != null && data.character.length > 0) ? null : fallback;
+	}
+
+	static function isToyCharacterToken(value:String):Bool
+	{
+		var key:String = value.trim().toLowerCase();
+		if(['bf', 'boyfriend', 'player', 'dad', 'opponent', 'gf', 'girlfriend'].contains(key)) return true;
+		var parsed:Null<Int> = Std.parseInt(key);
+		return parsed != null && Std.string(parsed) == key;
+	}
+
+	function syncToyState()
 	{
 		if(bfToy == null) return;
 
-		var raw:Array<String> = [
-			overrideP1 != null ? overrideP1 : PlayState.SONG.player1,
-			PlayState.SONG.gfVersion,
-			overrideP2 != null ? overrideP2 : PlayState.SONG.player2
-		];
 		var toys:Array<Toy> = [bfToy, gfToy, opponentToy];
-		var fallbacks:Array<String> = ['bfSigma', 'gfSigma', 'frank'];
+		var chars:Array<String> = [PlayState.SONG.player1, PlayState.SONG.gfVersion, PlayState.SONG.player2];
+		var charTimes:Array<Float> = [-1, -1, -1];
+		var suffixes:Array<String> = ['', '', ''];
+		var suffixTimes:Array<Float> = [-1, -1, -1];
+		var pos:Float = Conductor.songPosition;
 
+		for (ev in events)
+		{
+			if(ev == null || ev.strumTime > pos) continue;
+			for (sub in ev.events)
+			{
+				if(sub == null) continue;
+				switch(sub[0])
+				{
+					case 'Change Character':
+						var newChar:String = (sub[2] != null) ? sub[2].trim() : '';
+						var idx:Int = toys.indexOf(toyEventTarget(sub[1], bfToy));
+						if(newChar.length < 1 || idx < 0 || ev.strumTime < charTimes[idx]) continue;
+						chars[idx] = newChar;
+						charTimes[idx] = ev.strumTime;
+
+					case 'Set Char Idle Alt':
+						var idx:Int = toys.indexOf(toyEventTarget(sub[1], opponentToy));
+						if(idx < 0 || ev.strumTime < suffixTimes[idx]) continue;
+						suffixes[idx] = (sub[2] != null) ? sub[2].trim() : '';
+						suffixTimes[idx] = ev.strumTime;
+				}
+			}
+		}
+
+		var fallbacks:Array<String> = ['bfSigma', 'gfSigma', 'frank'];
 		for (i in 0...3)
 		{
-			if(_lastToyRaw[i] == raw[i]) continue;
+			var toy:Toy = toys[i];
+			if(!toy.visible) continue;
 
-			_lastToyRaw[i] = raw[i];
-			toys[i].changeToyCharacter(toyCharacterFor(raw[i], fallbacks[i]));
+			if(_lastToyRaw[i] != chars[i])
+			{
+				_lastToyRaw[i] = chars[i];
+				toy.changeToyCharacter(toyCharacterFor(chars[i], fallbacks[i]));
+			}
+			toy.setIdleSuffix(suffixTimes[i] >= charTimes[i] ? suffixes[i] : '');
 		}
+	}
+
+	function playToyEvents(lastTime:Float)
+	{
+		if(bfToy == null) return;
+
+		for (ev in events)
+		{
+			if(ev == null || !(Conductor.songPosition > ev.strumTime && lastTime <= ev.strumTime)) continue;
+			for (sub in ev.events)
+				if(sub != null && sub[0] == 'Play Animation') toyPlayAnimation(sub);
+		}
+	}
+
+	function toyPlayAnimation(sub:Array<String>)
+	{
+		inline function value(i:Int):String
+			return (i < sub.length && sub[i] != null) ? Std.string(sub[i]).trim() : '';
+
+		var hasExtraValues:Bool = false;
+		for (i in 3...sub.length)
+			if(value(i).length > 0) hasExtraValues = true;
+
+		if(hasExtraValues || (isToyCharacterToken(value(1)) && !isToyCharacterToken(value(2))))
+		{
+			var toy:Toy = toyEventTarget(value(1), opponentToy);
+			if(toy != null && toy.visible) toy.playEventAnim(value(2), value(3).toLowerCase() == 'true', value(4).toLowerCase() == 'true');
+			return;
+		}
+
+		var toy:Toy = opponentToy;
+		switch(value(2).toLowerCase())
+		{
+			case 'bf' | 'boyfriend': toy = bfToy;
+			case 'gf' | 'girlfriend': toy = gfToy;
+			default:
+				var parsed:Float = Std.parseFloat(value(2));
+				var rounded:Int = Math.isNaN(parsed) ? 0 : Math.round(parsed);
+				if(rounded >= Song.FIRST_EXTRA_SLOT)
+				{
+					var data:ExtraCharacterData = Song.getExtraCharacter(PlayState.SONG, rounded);
+					if(data != null && data.character != null && data.character.length > 0) return;
+				}
+				else if(rounded == 1) toy = bfToy;
+				else if(rounded == 2) toy = gfToy;
+		}
+		if(toy != null && toy.visible) toy.playLegacyEventAnim(value(1));
+	}
+
+	function toyForParent(parent:String):Toy
+	{
+		return switch(parent)
+		{
+			case 'bf': bfToy;
+			case 'gf': gfToy;
+			default: opponentToy;
+		}
+	}
+
+	function toySing(note:MetaNote)
+	{
+		if(bfToy == null || note.songData == null || note.ignoreNote) return;
+
+		var column:Int = Std.int(note.songData[1]);
+		var direction:Int = column % GRID_COLUMNS_PER_PLAYER;
+		var line:Int = Math.floor(column / GRID_COLUMNS_PER_PLAYER);
+		var type:String = (note.noteType != null) ? note.noteType : '';
+
+		var main:Toy = note.mustPress ? bfToy : opponentToy;
+		if(line < 2 && note.gfNote && type != 'Boyfriend SING') main = gfToy;
+
+		var slot:Int = Song.slotFromNoteType(type);
+		if(slot < 0 && line >= 2)
+		{
+			var lanes:Array<ExtraCharacterData> = Song.separateCharacters(PlayState.SONG);
+			if(line - 2 < lanes.length) slot = lanes[line - 2].slot;
+		}
+		if(slot >= Song.FIRST_EXTRA_SLOT)
+		{
+			var data:ExtraCharacterData = Song.getExtraCharacter(PlayState.SONG, slot);
+			if(data != null && data.character != null && data.character.length > 0) return;
+			if(data != null) main = toyForParent(data.parent);
+		}
+
+		var targets:Array<Toy> = switch(type)
+		{
+			case 'Opponent Sing': [opponentToy];
+			case 'Boyfriend SING': [bfToy];
+			case 'GF + BF Note': note.mustPress ? [bfToy, gfToy] : [gfToy];
+			case 'Opponent + GF Note': [opponentToy, gfToy];
+			case 'Opponent + BF + GF': [opponentToy, bfToy, gfToy];
+			default: [main];
+		}
+
+		var section:SwagSection = PlayState.SONG.notes[curSec];
+		var suffix:String = (section != null && section.altAnim && !note.mustPress) ? '-alt' : '';
+		if(Song.isAltCharacterNote(type)) suffix = '-alt';
+		switch(type)
+		{
+			case 'Alt Animation': suffix = (note.songData.length > 4 && note.songData[4] != null) ? Std.string(note.songData[4]) : '-alt';
+			case 'Censor': suffix = '-censor';
+		}
+
+		var noAnimation:Bool = note.noAnimation || type == 'No Animation';
+		var noteColor:FlxColor = [0xFFC04B99, 0xFF01FFFF, 0xFF12FA06, 0xFFFA3941][direction % 4];
+		for (toy in targets)
+			if(toy != null && toy.visible) toy.sing(direction, suffix, note.strumTime, note.sustainLength, noAnimation, type == 'Hey!', noteColor);
 	}
 
 	function resizeHoveredToy(wheel:Int):Bool
@@ -1064,13 +1217,17 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			if(toy != null) toy.setAnimated(v);
 	}
 
-	var _lastToySec:Int = -1;
-	function danceToys()
+	function danceToys(beat:Int)
 	{
 		if(bfToy == null) return;
 
 		for (toy in toyGroup)
-			if(toy != null) toy.dance();
+		{
+			if(toy == null || !toy.visible) continue;
+
+			var anim:String = toy.getAnimationName();
+			if(beat % toy.danceEveryNumBeats == 0 && (anim == null || !anim.startsWith('sing'))) toy.dance();
+		}
 	}
 
 	var gridColors:Array<FlxColor>;
@@ -1641,7 +1798,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				var songName:String = getSongFolderFromPath(chartPath);
 				if(meta != null && Reflect.field(meta, 'name') != null) songName = Reflect.field(meta, 'name');
 
-				chart.format = 'codename_convert';
+				chart.format = 'psych_v1_convert';
 				Codename.convertToPsych(chart, meta, songName);
 
 				loadChart(chart);
@@ -2041,45 +2198,16 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		girlfriendDropDown.selectedLabel = PlayState.SONG.gfVersion;
 		stageDropDown.selectedLabel = PlayState.SONG.stage;
 		StageData.loadDirectory(PlayState.SONG);
+		syncExtraCharactersWithStage();
 
 		// DATA TAB
 		gameOverCharDropDown.selectedLabel = PlayState.SONG.gameOverChar;
 		gameOverSndInputText.text = PlayState.SONG.gameOverSound;
 		gameOverLoopInputText.text = PlayState.SONG.gameOverLoop;
 		gameOverRetryInputText.text = PlayState.SONG.gameOverEnd;
+		refreshNotePackList();
 
-		noRGBCheckBox.checked = (PlayState.SONG.disableNoteRGB == true);
-		noSplashRGBCheckBox.checked = (PlayState.SONG.disableSplashRGB == true);
-		noHoldRGBCheckBox.checked = (PlayState.SONG.disableHoldRGB == true);
-
-		noteTextureInputText.text = PlayState.SONG.arrowSkin;
-		noteSplashesInputText.text = PlayState.SONG.splashSkin;
-		holdCoverInputText.text = PlayState.SONG.holdCoverSkin;
-
-		strumlineConfigs = [];
-		if(PlayState.SONG.extraStrumlines != null)
-			for(data in PlayState.SONG.extraStrumlines)
-				strumlineConfigs.push(data);
-
-		var extraCount:Int = strumlineConfigs.length;
-		var detectedPlayers:Int = (PlayState.SONG.mania >= 1) ? PlayState.SONG.mania : (2 + extraCount);
-		if(PlayState.SONG.notes != null)
-		{
-			var maxCol:Int = 0;
-			for(section in PlayState.SONG.notes)
-				if(section != null && section.sectionNotes != null)
-					for(note in section.sectionNotes)
-						if(note != null && Std.int(note[1]) > maxCol && Std.int(note[1]) < GRID_COLUMNS_PER_PLAYER * 8)
-								maxCol = Std.int(note[1]);
-			var detectedFromNotes:Int = Math.ceil((maxCol + 1) / GRID_COLUMNS_PER_PLAYER);
-			if(detectedFromNotes > detectedPlayers)
-				detectedPlayers = detectedFromNotes;
-		}
-		GRID_PLAYERS = Std.int(Math.max(1, detectedPlayers));
-		var savedCallback = strumsStepper.onValueChange;
-		strumsStepper.onValueChange = null;
-		strumsStepper.value = GRID_PLAYERS;
-		strumsStepper.onValueChange = savedCallback;
+		GRID_PLAYERS = wantedGridPlayers(false);
 
 		updateJsonData();
 
@@ -3279,13 +3407,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			}
 		}
 
-		if(curSec != _lastToySec){
-			_lastToySec = curSec;
-			if(toysEnabled && FlxG.sound.music != null && FlxG.sound.music.playing)
-				danceToys();
-		}
-
-		if(Conductor.songPosition != lastTime || forceDataUpdate)
+if(Conductor.songPosition != lastTime || forceDataUpdate)
 		{
 			var curTime:String = FlxStringUtil.formatTime(Conductor.songPosition / 1000, true);
 			var songLength:String = (FlxG.sound.music != null) ? FlxStringUtil.formatTime(FlxG.sound.music.length / 1000, true) : '???';
@@ -3312,40 +3434,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				note.alpha = (note.strumTime >= Conductor.songPosition) ? 1 : 0.6;
 				if(Conductor.songPosition > note.strumTime && lastTime <= note.strumTime)
 				{
-					if(toysEnabled)
-				{
-					var noteData:Int = Std.int(note.songData[1]) % 4;
-					var animName:String = ['LEFT', 'DOWN', 'UP', 'RIGHT'][noteData];
-					var sustainLength:Float = note.sustainLength;
-					var noteColor:FlxColor = [0xFFC04B99, 0xFF01FFFF, 0xFF12FA06, 0xFFFA3941][noteData];
-					
-					var section:SwagSection = PlayState.SONG.notes[curSec];
-					var isGfSection:Bool = (section != null && section.gfSection == true);
-					var isGfNote:Bool = note.gfNote;
-					
-					if(note.mustPress)
-					{
-						if(isGfNote || isGfSection)
-						{
-							gfToy.performPose(animName, sustainLength, noteColor);
-						}
-						else
-						{
-							bfToy.performPose(animName, sustainLength, noteColor);
-						}
-					}
-					else
-					{
-						if(isGfSection)
-						{
-							gfToy.performPose(animName, sustainLength, noteColor);
-						}
-						else
-						{
-							opponentToy.performPose(animName, sustainLength, noteColor);
-						}
-					}
-				}
+					if(toysEnabled) toySing(note);
 					
 					if(canPlayHitSound)
 					{
@@ -3373,13 +3462,20 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				}
 			}
 			forceDataUpdate = false;
-			
+
+			if(toysEnabled)
+			{
+				syncToyState();
+				if(FlxG.sound.music.playing) playToyEvents(lastTime);
+			}
+
 			// moved from beatHit()
 			if(metronomeSlider.value > 0 && lastBeatHit != curBeat)
 				FlxG.sound.play(Paths.sound('Metronome_Tick'), sliderVolume(metronomeSlider));
 
 			if(lastBeatHit != curBeat && FlxG.sound.music.playing)
 			{
+				if(toysEnabled) danceToys(curBeat);
 				for(icon in icons)
 				{
 					if(icon != null)
@@ -3706,7 +3802,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	{
 		if(pendingConvertedEvents > 0 && !isError)
 		{
-			message += '\nConverted $pendingConvertedEvents old events to the new format, save the chart to keep them.';
+			message += '\nConverted $pendingConvertedEvents events.';
 			pendingConvertedEvents = 0;
 		}
 		trace(message);
@@ -3911,7 +4007,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				{
 					eventDropDown.selectedLabel = '';
 					if(eventDescriptionText != null)
-						eventDescriptionText.text = EventDefinitions.isHidden(eventName) ? 'Built-in event "$eventName".\nIt can\'t be added anymore,\nbut its values can still be edited.' : 'Unknown event "$eventName".\nIts values can still be edited.';
+						eventDescriptionText.text = EventDefinitions.isHidden(eventName) ? 'Cannot add built-in event "$eventName"\nValues are editable' : 'Unknown event "$eventName".';
 				}
 				for(i in 0...valueInputTexts.length)
 					valueInputTexts[i].text = (myEvent[i + 1] != null) ? Std.string(myEvent[i + 1]) : '';
@@ -3974,13 +4070,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		PlayState.SONG = song;
 		StageData.loadDirectory(PlayState.SONG);
 		Conductor.bpm = PlayState.SONG.bpm;
-
-		strumlineConfigs = [];
-		if(PlayState.SONG.extraStrumlines != null)
-		{
-			for(data in PlayState.SONG.extraStrumlines)
-				strumlineConfigs.push(data);
-		}
 	}
 
 	function getSongFolderFromPath(path:String):String
@@ -4433,14 +4522,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		var sec = getCurChartSection();
 		if(sec != null)
 		{
-				var mustHitOptions:Array<String> = (GRID_PLAYERS == 1) ? ['BF', 'GF', 'GF (Player)'] : ['Dad', 'BF', 'GF', 'GF (Player)'];
-			if (PlayState.SONG.extraStrumlines != null)
-				for (i in 0...PlayState.SONG.extraStrumlines.length)
-					mustHitOptions.push('Strumline #${i + 3}');
+			var mustHitOptions:Array<String> = cameraTargetOptions();
 			mustHitDropDown.list = mustHitOptions;
 
-			if (sec.mustHitTarget != null && mustHitOptions.contains(sec.mustHitTarget))
-				mustHitDropDown.selectedLabel = sec.mustHitTarget;
+			var targetSlot:Int = Song.cameraTargetSlot(sec.mustHitTarget);
+			var target:String = (targetSlot > 0) ? Song.cameraTargetName(targetSlot) : sec.mustHitTarget;
+			if (target != null && mustHitOptions.contains(target))
+				mustHitDropDown.selectedLabel = target;
 			else if (sec.gfSection == true)
 				mustHitDropDown.selectedLabel = 'GF';
 			else if (sec.mustHitSection == true)
@@ -4583,11 +4671,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var characterData:Dynamic = {};
 	function updateJsonData():Void
 	{
+		var lanes:Array<ExtraCharacterData> = Song.separateCharacters(PlayState.SONG);
 		for (i in 1...GRID_PLAYERS+1)
 		{
-			var charName:String = i <= 2
-				? Reflect.field(PlayState.SONG, 'player$i')
-				: (strumlineConfigs[i - 3] != null ? strumlineConfigs[i - 3].character : null);
+			var charName:String = i <= 2 ? Reflect.field(PlayState.SONG, 'player$i') : laneCharacter(i - 3 < lanes.length ? lanes[i - 3] : null);
 			var data:CharacterFile = loadCharacterFile(charName);
 			Reflect.setField(characterData, 'iconP$i', data != null && data.healthicon != null ? data.healthicon : 'face');
 			Reflect.setField(characterData, 'vocalsP$i', data != null && data.vocals_file != null ? data.vocals_file : '');
@@ -4654,7 +4741,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			icon.changeIcon(iconName);
 		}
 
-		if(toysEnabled) updateToyCharacters(overrideP1, overrideP2);
+		if(toysEnabled) syncToyState();
 		var mustHitSection:Bool = (curSecData != null && curSecData.mustHitSection == true);
 		var mustHitTarget:String = (curSecData != null && curSecData.mustHitTarget != null) ? curSecData.mustHitTarget : '';
 		if(icons.length > 1)
@@ -4669,16 +4756,21 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					iconP2.changeIcon('gf');
 			}
 
-			if (isGfSection)
+			var targetIcon:HealthIcon = cameraTargetIcon(mustHitTarget);
+			if (targetIcon != null)
+			{
+				var targetData:ExtraCharacterData = Song.getExtraCharacter(PlayState.SONG, Song.cameraTargetSlot(mustHitTarget));
+				if (targetData.strumline != Song.SEPARATE && targetData.character != null && targetData.character.length > 0)
+				{
+					var data:CharacterFile = loadCharacterFile(targetData.character);
+					if (data != null && data.healthicon != null) targetIcon.changeIcon(data.healthicon);
+				}
+				mustHitIndicator.x = targetIcon.x + targetIcon.width / 2;
+			}
+			else if (isGfSection)
 				mustHitIndicator.x = (mustHitSection ? iconP1.x : iconP2.x) + iconP1.width / 2;
 			else if (mustHitSection)
 				mustHitIndicator.x = iconP1.x + iconP1.width / 2;
-			else if (mustHitTarget.startsWith('Strumline #'))
-			{
-				var strumIndex:Null<Int> = Std.parseInt(mustHitTarget.substr('Strumline #'.length));
-				var targetIcon:HealthIcon = (strumIndex != null && strumIndex - 1 < icons.length) ? icons[strumIndex - 1] : null;
-				mustHitIndicator.x = (targetIcon != null ? targetIcon.x : iconP2.x) + iconP2.width / 2;
-			}
 			else
 				mustHitIndicator.x = iconP2.x + iconP2.width / 2;
 		}
@@ -4896,12 +4988,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var gameOverSndInputText:PsychUIInputText;
 	var gameOverLoopInputText:PsychUIInputText;
 	var gameOverRetryInputText:PsychUIInputText;
-	var noRGBCheckBox:PsychUICheckBox;
-	var noSplashRGBCheckBox:PsychUICheckBox;
-	var noHoldRGBCheckBox:PsychUICheckBox;
-	var noteTextureInputText:PsychUIInputText;
-	var noteSplashesInputText:PsychUIInputText;
-	var holdCoverInputText:PsychUIInputText;
+	var notePackDropDown:PsychUIDropDownMenu;
 	function addDataTab()
 	{
 		var tab_group = mainBox.getTab('Data').menu;
@@ -4936,92 +5023,17 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			if(cur.trim().length < 1) Reflect.deleteField(PlayState.SONG, 'gameOverEnd');
 		}
 
-		objY += 35;
-		noRGBCheckBox = new PsychUICheckBox(objX, objY, 'Disable Note RGB', 140, updateNotesRGB);
-		noteTextureInputText = new PsychUIInputText(objX + 150, objY, 120, '');
-		noteTextureInputText.unfocus = function()
+		objY += 40;
+		notePackDropDown = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, name:String)
 		{
-			var changed:Bool = false;
-			if(PlayState.SONG.arrowSkin != noteTextureInputText.text) changed = true;
-			PlayState.SONG.arrowSkin = noteTextureInputText.text.trim();
-			if(PlayState.SONG.arrowSkin.trim().length < 1) PlayState.SONG.arrowSkin = null;
-
-			if(changed)
-			{
-				var textureLoad:String = 'images/${noteTextureInputText.text}.png';
-				if(Paths.fileExists(textureLoad, IMAGE) || noteTextureInputText.text.trim() == '')
-				{
-					for (note in notes)
-					{
-						if(note == null) continue;
-						note.reloadNote(note.texture);
-		
-						if(note.width > note.height)
-							note.setGraphicSize(GRID_SIZE);
-						else
-							note.setGraphicSize(0, GRID_SIZE);
-		
-						note.updateHitbox();
-					}
-					strumLineNotes.forEachAlive(function(n) n.destroy());
-					strumLineNotes.clear();
-					var strumStartX:Float = gridBg.x + (SHOW_EVENT_COLUMN ? GRID_SIZE : 0);
-					var strumStartY:Float = FlxG.height / 2;
-					for (i in 0...Std.int(GRID_PLAYERS * GRID_COLUMNS_PER_PLAYER))
-					{
-						var sn:StrumNote = new StrumNote(strumStartX + (GRID_SIZE * i), strumStartY, i % GRID_COLUMNS_PER_PLAYER, 0);
-						sn.scrollFactor.set();
-						sn.playAnim('static');
-						sn.alpha = 0.4;
-						sn.updateHitbox();
-						if(sn.width > sn.height)
-							sn.setGraphicSize(GRID_SIZE);
-						else
-							sn.setGraphicSize(0, GRID_SIZE);
-						sn.updateHitbox();
-						sn.x += GRID_SIZE / 2 - sn.width / 2;
-						sn.y += GRID_SIZE / 2 - sn.height / 2;
-						strumLineNotes.add(sn);
-					}
-					strumLineNotes.visible = strumLineNotes.active = vortexEnabled;
-					updateMiniChartPosition();
-					if(noteTextureInputText.text.trim().length > 0) showOutput('Reloaded notes to: "$textureLoad"');
-					else showOutput('Reloaded notes to default texture');
-				}
-				else showOutput('ERROR: "$textureLoad" not found.', true);
-			}
-		};
-
-		objY += 30;
-		noSplashRGBCheckBox = new PsychUICheckBox(objX, objY, 'Disable Note Splash RGB', 140, updateSplashRGB);
-		noteSplashesInputText = new PsychUIInputText(objX + 150, objY, 120, '');
-		noteSplashesInputText.onChange = function(old:String, cur:String)
-		{
-			PlayState.SONG.splashSkin = cur;
-			if(cur.trim().length < 1) PlayState.SONG.splashSkin = null;
-		};
-
-		objY += 30;
-		noHoldRGBCheckBox = new PsychUICheckBox(objX, objY, 'Disable Hold Cover RGB', 140, updateHoldRGB);
-		holdCoverInputText = new PsychUIInputText(objX + 150, objY, 120, '');
-		holdCoverInputText.unfocus = function()
-		{
-			var changed:Bool = false;
-			if(PlayState.SONG.holdCoverSkin != holdCoverInputText.text) changed = true;
-			PlayState.SONG.holdCoverSkin = holdCoverInputText.text.trim();
-			if(PlayState.SONG.holdCoverSkin.trim().length < 1) PlayState.SONG.holdCoverSkin = null;
-
-			if(changed)
-			{
-				var textureLoad:String = 'images/${holdCoverInputText.text}.png';
-				if(Paths.fileExists(textureLoad, IMAGE) || holdCoverInputText.text.trim() == '')
-				{
-					if(holdCoverInputText.text.trim().length > 0) showOutput('Reloaded hold covers to: "$textureLoad"');
-					else showOutput('Reloaded hold covers to default texture');
-				}
-				else showOutput('ERROR: "$textureLoad" not found.', true);
-			}
-		};
+			var current:String = (PlayState.SONG.notePack != null) ? PlayState.SONG.notePack : '';
+			if(name == current) return;
+			if(name.length < 1) Reflect.deleteField(PlayState.SONG, 'notePack');
+			else PlayState.SONG.notePack = name;
+			NotePack.clearCache();
+			reloadNoteSkins();
+			showOutput((name.length > 0) ? 'Note pack: "$name"' : 'Note pack removed');
+		}, 120);
 
 		tab_group.add(new FlxText(gameOverCharDropDown.x, gameOverCharDropDown.y - 15, 120, 'Game Over Character:'));
 		tab_group.add(new FlxText(gameOverSndInputText.x, gameOverSndInputText.y - 15, 180, 'Game Over Death Sound (sounds/):'));
@@ -5031,19 +5043,56 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		tab_group.add(gameOverLoopInputText);
 		tab_group.add(gameOverRetryInputText);
 
-		tab_group.add(noRGBCheckBox);
-		tab_group.add(new FlxText(noteTextureInputText.x, noteTextureInputText.y - 14, 120, 'Note Texture:'));
-		tab_group.add(noteTextureInputText);
-
-		tab_group.add(noSplashRGBCheckBox);
-		tab_group.add(new FlxText(noteSplashesInputText.x, noteSplashesInputText.y - 14, 140, 'Note Splashes Texture:'));
-		tab_group.add(noteSplashesInputText);
-
-		tab_group.add(noHoldRGBCheckBox);
-		tab_group.add(new FlxText(holdCoverInputText.x, holdCoverInputText.y - 14, 130, 'Hold Cover Texture:'));
-		tab_group.add(holdCoverInputText);
-
+		tab_group.add(new FlxText(notePackDropDown.x, notePackDropDown.y - 15, 120, 'Note Pack:'));
+		tab_group.add(notePackDropDown);
 		tab_group.add(gameOverCharDropDown);
+	}
+
+	function refreshNotePackList()
+	{
+		var packs:Array<String> = [''].concat(NotePack.list());
+		var current:String = (PlayState.SONG.notePack != null) ? PlayState.SONG.notePack : '';
+		if(!packs.contains(current)) packs.push(current);
+		notePackDropDown.list = packs;
+		notePackDropDown.selectedLabel = current;
+	}
+
+	function reloadNoteSkins()
+	{
+		for (note in notes)
+		{
+			if(note == null) continue;
+			note.reloadNote(note.texture);
+
+			if(note.width > note.height)
+				note.setGraphicSize(GRID_SIZE);
+			else
+				note.setGraphicSize(0, GRID_SIZE);
+
+			note.updateHitbox();
+		}
+		strumLineNotes.forEachAlive(function(n) n.destroy());
+		strumLineNotes.clear();
+		var strumStartX:Float = gridBg.x + (SHOW_EVENT_COLUMN ? GRID_SIZE : 0);
+		var strumStartY:Float = FlxG.height / 2;
+		for (i in 0...Std.int(GRID_PLAYERS * GRID_COLUMNS_PER_PLAYER))
+		{
+			var sn:StrumNote = new StrumNote(strumStartX + (GRID_SIZE * i), strumStartY, i % GRID_COLUMNS_PER_PLAYER, 0);
+			sn.scrollFactor.set();
+			sn.playAnim('static');
+			sn.alpha = 0.4;
+			sn.updateHitbox();
+			if(sn.width > sn.height)
+				sn.setGraphicSize(GRID_SIZE);
+			else
+				sn.setGraphicSize(0, GRID_SIZE);
+			sn.updateHitbox();
+			sn.x += GRID_SIZE / 2 - sn.width / 2;
+			sn.y += GRID_SIZE / 2 - sn.height / 2;
+			strumLineNotes.add(sn);
+		}
+		strumLineNotes.visible = strumLineNotes.active = vortexEnabled;
+		updateMiniChartPosition();
 	}
 
 	var eventDropDown:PsychUIDropDownMenu;
@@ -5736,6 +5785,11 @@ end
 		}
 		objY += Std.int(MAX_EVENT_VALUES / 2) * 40;
 		eventDescriptionText = new FlxText(objX, objY, 280, EventDefinitions.NOTHING_DESCRIPTION);
+		@:privateAccess
+		{
+			eventDescriptionText._defaultFormat.leading = 3;
+			eventDescriptionText.updateDefaultFormat();
+		}
 
 		for(i in 0...MAX_EVENT_VALUES)
 		{
@@ -5975,10 +6029,7 @@ end
 			}
 		}
 
-		var mustHitOptions:Array<String> = ['Dad', 'BF', 'GF', 'GF (Player)'];
-		if (PlayState.SONG.extraStrumlines != null)
-			for (i in 0...PlayState.SONG.extraStrumlines.length)
-				mustHitOptions.push('Strumline #${i + 3}');
+		var mustHitOptions:Array<String> = cameraTargetOptions();
 
 		var mustHitLabel:FlxText = new FlxText(objX, objY, 100, 'Must Hit Section:');
 		mustHitLabel.cameras = cameras;
@@ -5989,8 +6040,9 @@ end
 		{
 			var sec = getCurChartSection();
 			if (sec == null) return;
+			var targetData:ExtraCharacterData = Song.getExtraCharacter(PlayState.SONG, Song.cameraTargetSlot(val));
 			sec.mustHitTarget = val;
-			sec.mustHitSection = (val == 'BF' || val == 'GF (Player)');
+			sec.mustHitSection = (val == 'BF' || val == 'GF (Player)') || (targetData != null && targetData.parent == 'bf');
 			sec.gfSection = (val == 'GF' || val == 'GF (Player)');
 			updateHeads(true);
 		});
@@ -6349,6 +6401,13 @@ end
 				}
 			}
 			
+			if(PlayState.SONG != null && PlayState.SONG.extraCharacters != null)
+				for (data in PlayState.SONG.extraCharacters)
+					if(data != null && data.strumline != Song.SEPARATE && data.character != null && data.character.length > 0)
+						for (alt in [false, true])
+							if(!noteTypes.contains(Song.characterNoteType(data.slot, alt)))
+								noteTypes.push(Song.characterNoteType(data.slot, alt));
+
 			var displayNoteTypes:Array<String> = noteTypes.copy();
 			for (id => key in displayNoteTypes)
 			{
@@ -6435,8 +6494,6 @@ end
 	var bpmStepper:PsychUINumericStepper;
 	var scrollSpeedStepper:PsychUINumericStepper;
 	var audioOffsetStepper:PsychUINumericStepper;
-	var strumlineConfigs:Array<StrumlineConfigData> = [];
-	var strumsStepper:PsychUINumericStepper;
 
 	var characterList:Array<String> = [];
 	var stageDropDown:PsychUIDropDownMenu;
@@ -6516,81 +6573,6 @@ end
 			updateWaveform();
 		};
 
-		if(ALLOW_EXTRA_STRUMS) objY += 35;
-		strumsStepper = new PsychUINumericStepper(objX, objY, 1, 2, 1, 10, 0);
-		strumsStepper.onValueChange = function()
-		{
-			var newValue:Int = Std.int(strumsStepper.value);
-			if(newValue > GRID_PLAYERS)
-			{
-				var extraNeeded:Int = Std.int(Math.max(0, newValue - 2));
-				if(extraNeeded > strumlineConfigs.length)
-				{
-					openSubState(new CreateStrumlinePrompt(newValue, function(data:StrumlineConfigData)
-					{
-						strumlineConfigs.push(data);
-						GRID_PLAYERS = newValue;
-						updateChartData();
-						rebuildGridPlayers();
-					}, function()
-					{
-						strumsStepper.value = GRID_PLAYERS;
-					}, characterList));
-				}
-				else
-				{
-					GRID_PLAYERS = newValue;
-					updateChartData();
-					rebuildGridPlayers();
-				}
-			}
-			else if(newValue < GRID_PLAYERS)
-			{
-				var oldValue:Int = GRID_PLAYERS;
-				var removeFunc:Void->Void = function()
-				{
-					var extraNeeded:Int = Std.int(Math.max(0, newValue - 2));
-					if(extraNeeded < strumlineConfigs.length)
-						strumlineConfigs.resize(extraNeeded);
-
-					var maxColumn:Int = GRID_COLUMNS_PER_PLAYER * newValue;
-					for (section in PlayState.SONG.notes)
-						section.sectionNotes = section.sectionNotes.filter(function(n) return Std.int(n[1]) < maxColumn);
-
-					for (note in notes.copy())
-					{
-						if(note == null) continue;
-						if(Std.int(note.songData[1]) >= maxColumn)
-						{
-							note.destroy();
-							notes.remove(note);
-						}
-					}
-
-					GRID_PLAYERS = newValue;
-					rebuildGridPlayers();
-					updateChartData();
-				}
-
-				openSubState(new Prompt('Are you sure you want to delete this strumline?\nAny notes on it will be lost.', removeFunc, function()
-				{
-					strumsStepper.value = oldValue;
-				}));
-			}
-		};
-
-		var editStrumsButton:PsychUIButton = new PsychUIButton(objX + 75, objY, 'Edit Strums', function()
-		{
-			if(strumlineConfigs.length < 1) return;
-			openSubState(new CreateStrumlinePrompt(0, null, null, characterList, strumlineConfigs, function(newConfigs:Array<StrumlineConfigData>)
-			{
-				strumlineConfigs = newConfigs;
-				updateChartData();
-				updateJsonData();
-				updateHeads(true);
-			}));
-		}, 100);
-		editStrumsButton.resize(100, Std.int(strumsStepper.height));
 
 		objY += 40;
 		playerDropDown = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, character:String)
@@ -6626,8 +6608,15 @@ end
 		{
 			PlayState.SONG.stage = stage;
 			StageData.loadDirectory(PlayState.SONG);
+			syncExtraCharactersWithStage();
 			trace('selected $stage');
 		});
+
+		objY += 35;
+		var extraCharactersButton:PsychUIButton = new PsychUIButton(objX, objY, 'Extra Characters', function()
+		{
+			openSubState(new ExtraCharactersPrompt(characterList, chartStageName(), stageSpotCount(), onExtraCharactersChanged, removeExtraCharacter, changeExtraStrumline, changeSharedStrumline));
+		}, 120);
 
 		tab_group.add(new FlxText(songNameInputText.x, songNameInputText.y - 15, 80, 'Song Name:'));
 		tab_group.add(songNameInputText);
@@ -6644,17 +6633,11 @@ end
 		tab_group.add(scrollSpeedStepper);
 		tab_group.add(audioOffsetStepper);
 
-		if(ALLOW_EXTRA_STRUMS)
-		{
-			tab_group.add(new FlxText(strumsStepper.x, strumsStepper.y - 15, 60, 'Strums:'));
-			tab_group.add(strumsStepper);
-			tab_group.add(editStrumsButton);
-		}
-
 		tab_group.add(new FlxText(playerDropDown.x, playerDropDown.y - 15, 80, 'Player:'));
 		tab_group.add(new FlxText(opponentDropDown.x, opponentDropDown.y - 15, 80, 'Opponent:'));
 		tab_group.add(new FlxText(girlfriendDropDown.x, girlfriendDropDown.y - 15, 80, 'Girlfriend:'));
 		tab_group.add(new FlxText(stageDropDown.x, stageDropDown.y - 15, 80, 'Stage:'));
+		tab_group.add(extraCharactersButton);
 		tab_group.add(girlfriendDropDown);
 		tab_group.add(stageDropDown);
 		tab_group.add(playerDropDown);
@@ -7331,6 +7314,7 @@ end
 
 				if(toysEnabled) createToys();
 				applyToyVisibility();
+				if(toysEnabled) syncToyState();
 
 				btn.text.text = '  ${toyLabels[idx]} Toy: ${toyEnabled[idx] ? "ON" : "OFF"}';
 			}, btnWid);
@@ -7823,11 +7807,7 @@ end
 	function updateChartData()
 	{
 		PlayState.SONG.mania = GRID_PLAYERS;
-
-		if(strumlineConfigs.length > 0)
-			PlayState.SONG.extraStrumlines = strumlineConfigs.copy();
-		else
-			PlayState.SONG.extraStrumlines = null;
+		PlayState.SONG.extraStrumlines = null;
 
 		for (secNum => section in PlayState.SONG.notes)
 			PlayState.SONG.notes[secNum].sectionNotes = [];
@@ -7963,14 +7943,11 @@ end
 		var mustHitTarget:String = (curSecData != null && curSecData.mustHitTarget != null) ? curSecData.mustHitTarget : '';
 		if(icons.length > 1)
 		{
-			if(mustHitSection)
+			var targetIcon:HealthIcon = cameraTargetIcon(mustHitTarget);
+			if(targetIcon != null)
+				mustHitIndicator.x = targetIcon.x + targetIcon.width / 2;
+			else if(mustHitSection)
 				mustHitIndicator.x = icons[0].x + icons[0].width / 2;
-			else if (mustHitTarget.startsWith('Strumline #'))
-			{
-				var strumIndex:Null<Int> = Std.parseInt(mustHitTarget.substr('Strumline #'.length));
-				var targetIcon:HealthIcon = (strumIndex != null && strumIndex - 1 < icons.length) ? icons[strumIndex - 1] : null;
-				mustHitIndicator.x = (targetIcon != null ? targetIcon.x : icons[1].x) + icons[1].width / 2;
-			}
 			else
 				mustHitIndicator.x = icons[1].x + icons[1].width / 2;
 		}
@@ -8028,7 +8005,82 @@ end
 		}
 	}
 
-	function rebuildGridPlayers()
+	function wantedGridPlayers(fromEditorNotes:Bool):Int
+	{
+		var song:SwagSong = PlayState.SONG;
+		if(song == null) return 2;
+
+		var lanes:Int = Song.separateCharacters(song).length;
+		var players:Int = (song.mania == 1 && lanes < 1) ? 1 : 2 + lanes;
+		var maxColumn:Int = -1;
+		function check(column:Int)
+			if(column > maxColumn && column < GRID_COLUMNS_PER_PLAYER * Song.MAX_CHARACTERS) maxColumn = column;
+
+		if(fromEditorNotes)
+		{
+			for (note in notes)
+				if(note != null) check(Std.int(note.songData[1]));
+		}
+		else if(song.notes != null)
+		{
+			for (section in song.notes)
+				if(section != null && section.sectionNotes != null)
+					for (note in section.sectionNotes)
+						if(note != null) check(Std.int(note[1]));
+		}
+		return Std.int(Math.max(players, Math.ceil((maxColumn + 1) / GRID_COLUMNS_PER_PLAYER)));
+	}
+
+	var gridReady:Bool = false;
+	function syncGridPlayers()
+	{
+		if(!gridReady) return;
+		var players:Int = wantedGridPlayers(true);
+		if(players == GRID_PLAYERS)
+		{
+			updateJsonData();
+			updateHeads(true);
+			return;
+		}
+		GRID_PLAYERS = players;
+		rebuildGridPlayers(false);
+	}
+
+	function cameraTargetOptions():Array<String>
+	{
+		var options:Array<String> = (GRID_PLAYERS == 1) ? ['BF', 'GF', 'GF (Player)'] : ['Dad', 'BF', 'GF', 'GF (Player)'];
+		if(PlayState.SONG != null && PlayState.SONG.extraCharacters != null)
+			for (data in PlayState.SONG.extraCharacters)
+				if(data != null) options.push(Song.cameraTargetName(data.slot));
+		return options;
+	}
+
+	function cameraTargetIcon(target:String):HealthIcon
+	{
+		var data:ExtraCharacterData = Song.getExtraCharacter(PlayState.SONG, Song.cameraTargetSlot(target));
+		if(data == null) return null;
+		var index:Int = (data.parent == 'bf') ? 0 : 1;
+		if(data.strumline == Song.SEPARATE)
+		{
+			var lane:Int = Song.separateCharacters(PlayState.SONG).indexOf(data);
+			if(lane > -1) index = 2 + lane;
+		}
+		return (index < icons.length) ? icons[index] : null;
+	}
+
+	function laneCharacter(data:ExtraCharacterData):String
+	{
+		if(data == null) return null;
+		if(data.character != null && data.character.length > 0) return data.character;
+		return switch(data.parent)
+		{
+			case 'bf': PlayState.SONG.player1;
+			case 'gf': PlayState.SONG.gfVersion;
+			default: PlayState.SONG.player2;
+		}
+	}
+
+	function rebuildGridPlayers(reloadAll:Bool = true)
 	{
 		createGrids();
 
@@ -8093,45 +8145,20 @@ end
 		updateJsonData();
 		updateHeads(true);
 		updateWaveform();
-		reloadNotes();
-		updateMiniChartPosition();
-	}
-
-	function updateNotesRGB()
-	{
-		PlayState.SONG.disableNoteRGB = noRGBCheckBox.checked;
-
-		for (note in notes)
+		if(reloadAll) reloadNotes();
+		else
 		{
-			if(note == null) continue;
-
-			note.rgbShader.enabled = !noRGBCheckBox.checked;
-			if(note.rgbShader.enabled)
+			for (note in notes)
+				if(note != null) positionNoteXByData(note);
+			for (event in events)
 			{
-				var data = funkin.data.NoteTypesConfig.loadNoteTypeData(note.noteType);
-				if(data == null || data.length < 1) continue;
-
-				for (line in data)
-				{
-					var prop:String = line.property.join('.');
-					if(prop == 'rgbShader.enabled')
-						note.rgbShader.enabled = line.value;
-				}
+				if(event == null) continue;
+				event.x = gridBg.x;
+				event.eventText.x = event.x - event.eventText.width - 10;
 			}
+			loadSection();
 		}
-
-		for (note in strumLineNotes)
-			note.rgbShader.enabled = !noRGBCheckBox.checked;
-	}
-
-	function updateSplashRGB()
-	{
-		PlayState.SONG.disableSplashRGB = noSplashRGBCheckBox.checked;
-	}
-
-	function updateHoldRGB()
-	{
-		PlayState.SONG.disableHoldRGB = noHoldRGBCheckBox.checked;
+		updateMiniChartPosition();
 	}
 
 	function updateGridVisibility()
@@ -8441,7 +8468,6 @@ end
 		if(miniChart != null) miniChart.destroy();
 		if(miniChartBg != null) miniChartBg.destroy();
 		if(miniChartHandle != null) miniChartHandle.destroy();
-		if(!ALLOW_EXTRA_STRUMS && strumsStepper != null) strumsStepper.destroy();
 		clearWaveformDecoders();
 
 		super.destroy();
@@ -8568,7 +8594,7 @@ end
 			{
 				switch(lastAction.action)
 				{
-					case DELETE_NOTE:
+					case DELETE_NOTE | REMOVE_CHARACTER:
 						destroyFromArr(lastAction.data.notes);
 						destroyFromArr(lastAction.data.events);
 					case MOVE_NOTE:
@@ -8607,6 +8633,23 @@ end
 				selectedNotes = (action.data.old != null) ? (cast action.data.old : Array<MetaNote>).copy() : [];
 				selectedNotes = selectedNotes.filter((note:MetaNote) -> note != null && (!lockedEvents || !note.isEvent));
 				onSelectNote();
+
+			case REMOVE_CHARACTER:
+				if(PlayState.SONG.extraCharacters == null) PlayState.SONG.extraCharacters = [];
+				PlayState.SONG.extraCharacters.insert(Std.int(Math.min(action.data.index, PlayState.SONG.extraCharacters.length)), action.data.entry);
+				restoreLinks(action.data.before);
+				moveCharacterNotes(action.data.moved, true);
+				actionPushNotes(action.data.notes, null);
+				onExtraCharactersChanged();
+			case CHANGE_STRUMLINE:
+				action.data.entry.strumline = action.data.separate ? Song.SHARED : Song.SEPARATE;
+				restoreLinks(action.data.before);
+				applyStrumlineChanges(action.data.changes, true);
+				onExtraCharactersChanged();
+			case CHANGE_SIDE:
+				restoreLinks(action.data.before);
+				applyStrumlineChanges(action.data.changes, true);
+				onExtraCharactersChanged();
 		}
 		showOutput('Undo #${currentUndo+1}: ${action.action}');
 		FlxG.sound.play(Paths.sound('chartingSounds/undo'));
@@ -8640,6 +8683,22 @@ end
 				selectedNotes = (action.data.current != null) ? (cast action.data.current : Array<MetaNote>).copy() : [];
 				selectedNotes = selectedNotes.filter((note:MetaNote) -> note != null && (!lockedEvents || !note.isEvent));
 				onSelectNote();
+
+			case REMOVE_CHARACTER:
+				if(PlayState.SONG.extraCharacters != null) PlayState.SONG.extraCharacters.remove(action.data.entry);
+				restoreLinks(action.data.after);
+				moveCharacterNotes(action.data.moved, false);
+				actionRemoveNotes(action.data.notes, null);
+				onExtraCharactersChanged();
+			case CHANGE_STRUMLINE:
+				action.data.entry.strumline = action.data.separate ? Song.SEPARATE : Song.SHARED;
+				restoreLinks(action.data.after);
+				applyStrumlineChanges(action.data.changes, false);
+				onExtraCharactersChanged();
+			case CHANGE_SIDE:
+				restoreLinks(action.data.after);
+				applyStrumlineChanges(action.data.changes, false);
+				onExtraCharactersChanged();
 		}
 		showOutput('Redo #${currentUndo+1}: ${action.action}');
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
@@ -8717,6 +8776,279 @@ end
 		}
 		onSelectNote();
 		softReloadNotes();
+	}
+
+	function removeExtraCharacter(slot:Int)
+	{
+		var characters:Array<ExtraCharacterData> = PlayState.SONG.extraCharacters;
+		var entry:ExtraCharacterData = Song.getExtraCharacter(PlayState.SONG, slot);
+		if(characters == null || entry == null) return;
+
+		var lane:Int = Song.separateCharacters(PlayState.SONG).indexOf(entry);
+		var parentColumn:Int = (entry.parent == 'bf') ? 0 : GRID_COLUMNS_PER_PLAYER;
+		var before:Array<Dynamic> = captureLinks();
+		var removed:Array<MetaNote> = [];
+		var moved:Array<Dynamic> = [];
+		for (note in notes)
+		{
+			if(note == null) continue;
+			var noteSlot:Int = Song.slotFromNoteType(note.noteType);
+			if(noteSlot == slot)
+			{
+				removed.push(note);
+				continue;
+			}
+
+			var column:Int = Std.int(note.songData[1]);
+			if(lane < 0 || column < GRID_COLUMNS_PER_PLAYER * 2) continue;
+			var noteLane:Int = Std.int(column / GRID_COLUMNS_PER_PLAYER) - 2;
+			if(noteLane == lane)
+			{
+				if(noteSlot > 0) moved.push({note: note, from: column, to: parentColumn + column % GRID_COLUMNS_PER_PLAYER});
+				else removed.push(note);
+			}
+			else if(noteLane > lane) moved.push({note: note, from: column, to: column - GRID_COLUMNS_PER_PLAYER});
+		}
+
+		var index:Int = characters.indexOf(entry);
+		characters.remove(entry);
+		moveCharacterNotes(moved, false);
+		actionRemoveNotes(removed, null);
+		onExtraCharactersChanged();
+		addUndoAction(REMOVE_CHARACTER, {entry: entry, index: index, notes: removed, moved: moved, before: before, after: captureLinks()});
+		showOutput('Removed Character $slot and notes.');
+	}
+
+	function captureLinks():Array<Dynamic>
+	{
+		var links:Array<Dynamic> = [];
+		if(PlayState.SONG.extraCharacters != null)
+			for (data in PlayState.SONG.extraCharacters)
+				links.push({entry: data, parent: data.parent, strumlineOf: data.strumlineOf});
+		return links;
+	}
+
+	function restoreLinks(links:Array<Dynamic>)
+	{
+		if(links == null) return;
+		for (link in links)
+		{
+			var data:ExtraCharacterData = link.entry;
+			data.parent = link.parent;
+			if(link.strumlineOf != null) data.strumlineOf = link.strumlineOf;
+			else Reflect.deleteField(data, 'strumlineOf');
+		}
+	}
+
+	function sharedColumnBase(entry:ExtraCharacterData, lanes:Array<ExtraCharacterData>):Int
+	{
+		var host:ExtraCharacterData = (entry.strumlineOf != null) ? Song.getExtraCharacter(PlayState.SONG, entry.strumlineOf) : null;
+		var lane:Int = (host != null) ? lanes.indexOf(host) : -1;
+		if(lane > -1) return GRID_COLUMNS_PER_PLAYER * (2 + lane);
+		return (entry.parent == 'bf') ? 0 : GRID_COLUMNS_PER_PLAYER;
+	}
+
+	function changeSharedStrumline(slot:Int, hostSlot:Int, parent:String)
+	{
+		var entry:ExtraCharacterData = Song.getExtraCharacter(PlayState.SONG, slot);
+		if(entry == null || entry.strumline == Song.SEPARATE) return;
+
+		var lanes:Array<ExtraCharacterData> = Song.separateCharacters(PlayState.SONG);
+		var before:Array<Dynamic> = captureLinks();
+		var oldBase:Int = sharedColumnBase(entry, lanes);
+		if(hostSlot > 0)
+		{
+			var host:ExtraCharacterData = Song.getExtraCharacter(PlayState.SONG, hostSlot);
+			if(host == null || host.strumline != Song.SEPARATE || host == entry) return;
+			entry.strumlineOf = hostSlot;
+			entry.parent = host.parent;
+		}
+		else
+		{
+			Reflect.deleteField(entry, 'strumlineOf');
+			if(Song.PARENTS.contains(parent)) entry.parent = parent;
+		}
+		var newBase:Int = sharedColumnBase(entry, lanes);
+
+		var changes:Array<Dynamic> = [];
+		if(newBase != oldBase)
+		{
+			for (note in notes)
+			{
+				if(note == null || Song.slotFromNoteType(note.noteType) != slot) continue;
+				var column:Int = Std.int(note.songData[1]);
+				if(column < oldBase || column >= oldBase + GRID_COLUMNS_PER_PLAYER) continue;
+				var data:Array<Dynamic> = note.songData.copy();
+				data[1] = newBase + column % GRID_COLUMNS_PER_PLAYER;
+				changes.push({note: note, from: note.songData.copy(), to: data});
+			}
+		}
+
+		applyStrumlineChanges(changes, false);
+		onExtraCharactersChanged();
+		addUndoAction(CHANGE_SIDE, {changes: changes, before: before, after: captureLinks()});
+	}
+
+	function moveCharacterNotes(moved:Array<Dynamic>, back:Bool)
+	{
+		if(moved == null) return;
+		for (move in moved)
+		{
+			var note:MetaNote = move.note;
+			if(note == null) continue;
+			note.songData[1] = back ? move.from : move.to;
+			note.chartNoteData = note.songData[1];
+			positionNoteXByData(note);
+		}
+	}
+
+	function onExtraCharactersChanged()
+	{
+		Song.sanitizeExtraCharacters(PlayState.SONG);
+		syncGridPlayers();
+		reloadNotesDropdowns();
+		for (note in notes)
+		{
+			if(note == null) continue;
+			var txt:FlxText = note.findNoteTypeText(note.noteType != null ? noteTypes.indexOf(note.noteType) : 0);
+			if(txt != null) txt.visible = showNoteTypeLabels;
+		}
+		softReloadNotes();
+	}
+
+	function changeExtraStrumline(slot:Int, separate:Bool)
+	{
+		var entry:ExtraCharacterData = Song.getExtraCharacter(PlayState.SONG, slot);
+		if(entry == null || (entry.strumline == Song.SEPARATE) == separate) return;
+
+		var lanesBefore:Array<ExtraCharacterData> = Song.separateCharacters(PlayState.SONG);
+		var before:Array<Dynamic> = captureLinks();
+		var base:Int = sharedColumnBase(entry, lanesBefore);
+		entry.strumline = separate ? Song.SEPARATE : Song.SHARED;
+		if(separate) Reflect.deleteField(entry, 'strumlineOf');
+		var lane:Int = (separate ? Song.separateCharacters(PlayState.SONG) : lanesBefore).indexOf(entry);
+		var parentColumn:Int = (entry.parent == 'bf') ? 0 : GRID_COLUMNS_PER_PLAYER;
+
+		var changes:Array<Dynamic> = [];
+		var converted:Int = 0;
+		var kept:Int = 0;
+		for (note in notes)
+		{
+			if(note == null) continue;
+			var column:Int = Std.int(note.songData[1]);
+			var noteLane:Int = (column >= GRID_COLUMNS_PER_PLAYER * 2) ? Std.int(column / GRID_COLUMNS_PER_PLAYER) - 2 : -1;
+			var type:String = (note.noteType != null) ? note.noteType : '';
+			var data:Array<Dynamic> = note.songData.copy();
+			if(separate)
+			{
+				if(Song.slotFromNoteType(type) == slot && column >= base && column < base + GRID_COLUMNS_PER_PLAYER)
+				{
+					data[1] = GRID_COLUMNS_PER_PLAYER * (2 + lane) + column % GRID_COLUMNS_PER_PLAYER;
+					setDataNoteType(data, Song.isAltCharacterNote(type) ? 'Alt Animation' : '');
+					converted++;
+				}
+				else if(noteLane >= lane) data[1] = column + GRID_COLUMNS_PER_PLAYER;
+				else continue;
+			}
+			else
+			{
+				if(noteLane == lane)
+				{
+					data[1] = parentColumn + column % GRID_COLUMNS_PER_PLAYER;
+					if(type == '') setDataNoteType(data, Song.characterNoteType(slot));
+					else if(type == 'Alt Animation') setDataNoteType(data, Song.characterNoteType(slot, true));
+					else kept++;
+					converted++;
+				}
+				else if(noteLane > lane) data[1] = column - GRID_COLUMNS_PER_PLAYER;
+				else continue;
+			}
+			changes.push({note: note, from: note.songData.copy(), to: data});
+		}
+
+		applyStrumlineChanges(changes, false);
+		onExtraCharactersChanged();
+		addUndoAction(CHANGE_STRUMLINE, {entry: entry, separate: separate, changes: changes, before: before, after: captureLinks()});
+
+		var message:String = separate
+			? 'Extra strumline created for char $slot'
+			: 'Character $slot shares ' + (entry.parent == 'bf' ? 'Player' : 'Opponent') + ' Strumline';
+		if(kept > 0) message += '\nNotes stored/restored';
+		showOutput(message);
+	}
+
+	function setDataNoteType(data:Array<Dynamic>, type:String)
+	{
+		while(data.length > 3) data.pop();
+		if(type != null && type.length > 0) data.push(type);
+	}
+
+	function applyStrumlineChanges(changes:Array<Dynamic>, back:Bool)
+	{
+		for (change in changes)
+		{
+			var note:MetaNote = change.note;
+			if(note == null || !note.exists) continue;
+
+			var data:Array<Dynamic> = back ? change.from : change.to;
+			note.songData.resize(0);
+			for (value in data) note.songData.push(value);
+
+			var column:Int = Std.int(data[1]);
+			note.chartNoteData = column;
+			note.mustPress = column < GRID_COLUMNS_PER_PLAYER;
+			var type:String = (data.length > 3 && data[3] != null) ? (Std.isOfType(data[3], String) ? data[3] : Note.defaultNoteTypes[data[3]]) : '';
+			if(note.noteType != type) note.noteType = type;
+			if(type == 'Alt Animation') note.animSuffix = (data.length > 4 && data[4] != null) ? data[4] : '';
+			positionNoteXByData(note);
+		}
+	}
+
+	function chartStageName():String
+	{
+		var stage:String = PlayState.SONG.stage;
+		if(stage == null || stage.length < 1) stage = StageData.vanillaSongStage(Paths.formatToSongPath(PlayState.SONG.song));
+		return stage;
+	}
+
+	function stageSpotCount():Int
+	{
+		var stageFile:StageFile = StageData.getStageFile(chartStageName());
+		return (stageFile != null && stageFile.extra_characters != null) ? stageFile.extra_characters.length : 0;
+	}
+
+	function syncExtraCharactersWithStage()
+	{
+		var spots:Int = Std.int(Math.min(stageSpotCount(), Song.MAX_CHARACTERS - 2));
+		var stageFile:StageFile = StageData.getStageFile(chartStageName());
+		var previews:Array<Dynamic> = (stageFile != null && stageFile._editorMeta != null) ? stageFile._editorMeta.extras : null;
+		var added:Array<Int> = [];
+		for (index in 0...spots)
+		{
+			var slot:Int = Song.FIRST_EXTRA_SLOT + index;
+			if(Song.getExtraCharacter(PlayState.SONG, slot) != null) continue;
+			if(PlayState.SONG.extraCharacters == null) PlayState.SONG.extraCharacters = [];
+			var preview:Dynamic = (previews != null && index < previews.length) ? previews[index] : null;
+			var character:String = (preview != null && preview.character != null) ? Std.string(preview.character) : '';
+			var parent:String = (preview != null && Song.PARENTS.contains(preview.side)) ? preview.side : 'dad';
+			PlayState.SONG.extraCharacters.push({slot: slot, character: character, parent: parent, strumline: Song.SHARED});
+			added.push(slot);
+		}
+
+		var missing:Array<Int> = [];
+		if(PlayState.SONG.extraCharacters != null)
+			for (data in PlayState.SONG.extraCharacters)
+				if(data != null && data.slot - Song.FIRST_EXTRA_SLOT >= spots) missing.push(data.slot);
+
+		var messages:Array<String> = [];
+		if(added.length > 0)
+		{
+			onExtraCharactersChanged();
+			messages.push('Added Character ${added.join(", ")} from stage "${chartStageName()}".');
+		}
+		if(missing.length > 0)
+			messages.push('Selected stage does not include data for characters ${missing.join(", ")}');
+		if(messages.length > 0) showOutput(messages.join('\n'), added.length < 1);
 	}
 
 	function actionReplaceNotes(oldNote:MetaNote, newNote:MetaNote)

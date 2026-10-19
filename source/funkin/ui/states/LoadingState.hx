@@ -49,6 +49,7 @@ class LoadingState extends MusicBeatState
 	static var requestedBitmaps:Map<String, BitmapData> = [];
 	static var requestedSizes:Map<String, Float> = [];
 	static var mutex:Mutex;
+	static final listLock:Mutex = new Mutex();
 
 	static inline final DECODE_BUDGET:Float = 33554432;
 	static var pendingBytes:Float = 0;
@@ -356,7 +357,10 @@ class LoadingState extends MusicBeatState
 		var released:Float = 0;
 		for (entry in bitmaps)
 		{
-			if (entry.bitmap != null && Paths.cacheBitmap(entry.key, entry.bitmap) != null) {} //trace('finished preloading image $key');
+			if(lock != null) lock.acquire();
+			var cached:Bool = entry.bitmap != null && Paths.cacheBitmap(entry.key, entry.bitmap) != null;
+			if(lock != null) lock.release();
+			if (cached) {} //trace('finished preloading image $key');
 			else trace('failed to cache image ${entry.key}');
 			released += entry.size;
 		}
@@ -425,7 +429,8 @@ class LoadingState extends MusicBeatState
 	static var dontPreloadDefaultVoices:Bool = false;
 	static function _startPool()
 	{
-		#if MULTITHREADED_LOADING
+		if (threadPool != null) return;
+#if MULTITHREADED_LOADING
 		// Due to the Main thread and Discord thread, we decrease it by 2.
 		var threadCount:Int = Std.int(Math.max(1, getCPUThreadsCount() - #if DISCORD_ALLOWED 2 #else 1 #end));
 		#else
@@ -458,15 +463,25 @@ class LoadingState extends MusicBeatState
 		initialThreadCompleted = false;
 		var threadsCompleted:Int = 0;
 		var threadsMax:Int = 0;
+		var threadsFinished:Bool = false;
+		function finishIfDone()
+		{
+			listLock.acquire();
+			var ready:Bool = !threadsFinished && threadsCompleted >= threadsMax;
+			if(ready) threadsFinished = true;
+			listLock.release();
+			if(!ready) return;
+
+			clearInvalids();
+			startThreads();
+			initialThreadCompleted = true;
+		}
 		function completedThread()
 		{
+			listLock.acquire();
 			threadsCompleted++;
-			if(threadsCompleted == threadsMax)
-			{
-				clearInvalids();
-				startThreads();
-				initialThreadCompleted = true;
-			}
+			listLock.release();
+			finishIfDone();
 		}
 
 		var song:SwagSong = PlayState.SONG;
@@ -622,29 +637,24 @@ class LoadingState extends MusicBeatState
 					songsToPrepare.push(songVariant(prefixVocals));
 			}
 
+			var jobs:Array<Void->Void> = [];
 			if (player2 != player1)
-			{
-				threadsMax++;
-				threadPool.run(() -> {
-					try { preloadCharacter(player2, prefixVocals); } catch (e:Dynamic) {}
-					completedThread();
-				});
-			}
+				jobs.push(() -> preloadCharacter(player2, prefixVocals));
 			if (!stageData.hide_girlfriend && gfVersion != player2 && gfVersion != player1)
+				jobs.push(() -> preloadCharacter(gfVersion));
+
+			listLock.acquire();
+			threadsMax = jobs.length;
+			listLock.release();
+			for (job in jobs)
 			{
-				threadsMax++;
 				threadPool.run(() -> {
-					try { preloadCharacter(gfVersion); } catch (e:Dynamic) {}
+					try { job(); } catch (e:Dynamic) {}
 					completedThread();
 				});
 			}
 
-			if(threadsCompleted == threadsMax)
-			{
-				clearInvalids();
-				startThreads();
-				initialThreadCompleted = true;
-			}
+			finishIfDone();
 			return true;
 		}, isIntrusive))
 		.onError((err:Dynamic) -> {
@@ -762,9 +772,9 @@ class LoadingState extends MusicBeatState
 			catch(e:Dynamic) {
 				trace('ERROR! fail on preloading $traceData: $e');
 			}
-			// mutex.acquire();
+			listLock.acquire();
 			loaded++;
-			// mutex.release();
+			listLock.release();
 		});
 	}
 
@@ -797,12 +807,14 @@ class LoadingState extends MusicBeatState
 				isAnimateAtlas = true;
 			#end
 
+			var images:Array<String> = [];
+			var songs:Array<String> = [];
 			if(!isAnimateAtlas)
 			{
 				var split:Array<String> = img.split(',');
 				for (file in split)
 				{
-					imagesToPrepare.push(file.trim());
+					images.push(file.trim());
 				}
 			}
 			#if flxanimate
@@ -816,18 +828,25 @@ class LoadingState extends MusicBeatState
 					if(Paths.fileExists('images/$img/spritemap$st.png', IMAGE))
 					{
 						//trace('found Sprite PNG');
-						imagesToPrepare.push('$img/spritemap$st');
+						images.push('$img/spritemap$st');
 						break;
 					}
 				}
 			}
 			#end
 	
+			var ownVoices:Bool = false;
 			if (prefixVocals != null && character.vocals_file != null && character.vocals_file.length > 0)
 			{
-				songsToPrepare.push(songVariant(prefixVocals + "-" + character.vocals_file));
-				if(char == PlayState.SONG.player1) dontPreloadDefaultVoices = true;
+				songs.push(songVariant(prefixVocals + "-" + character.vocals_file));
+				ownVoices = (char == PlayState.SONG.player1);
 			}
+
+			listLock.acquire();
+			for (image in images) imagesToPrepare.push(image);
+			for (song in songs) songsToPrepare.push(song);
+			if (ownVoices) dontPreloadDefaultVoices = true;
+			listLock.release();
 		}
 		catch(e:haxe.Exception)
 		{
@@ -841,7 +860,10 @@ class LoadingState extends MusicBeatState
 		var file:String = Paths.getPath(Language.getFileTranslation(key) + '.${Paths.SOUND_EXT}', SOUND, path, modsAllowed);
 
 		//trace('precaching sound: $file');
-		if(!Paths.currentTrackedSounds.exists(file))
+		mutex.acquire();
+		var known:Bool = Paths.currentTrackedSounds.exists(file);
+		mutex.release();
+		if(!known)
 		{
 			if (#if sys FileSystem.exists(file) || #end OpenFlAssets.exists(file, SOUND))
 			{
@@ -854,14 +876,15 @@ class LoadingState extends MusicBeatState
 			{
 				trace('SOUND NOT FOUND: $key, PATH: $path');
 				FlxG.log.error('SOUND NOT FOUND: $key, PATH: $path');
-				return FlxAssets.getSound('flixel/sounds/beep');
+				return Paths.beepSound;
 			}
 		}
 		mutex.acquire();
 		Paths.localTrackedAssets.push(file);
+		var sound:Sound = Paths.currentTrackedSounds.get(file);
 		mutex.release();
 
-		return Paths.currentTrackedSounds.get(file);
+		return sound;
 	}
 
 	// thread safe sound loader
@@ -873,7 +896,11 @@ class LoadingState extends MusicBeatState
 			#if TRANSLATIONS_ALLOWED requestKey = Language.getFileTranslation(requestKey); #end
 			if(requestKey.lastIndexOf('.') < 0) requestKey += '.png';
 
-			if (!Paths.currentTrackedAssets.exists(requestKey))
+			mutex.acquire();
+			var cachedBitmap:BitmapData = Paths.currentTrackedAssets.exists(requestKey) ? Paths.currentTrackedAssets.get(requestKey).bitmap : null;
+			var known:Bool = Paths.currentTrackedAssets.exists(requestKey);
+			mutex.release();
+			if (!known)
 			{
 				var file:String = Paths.getPath(requestKey, IMAGE);
 				if (#if sys FileSystem.exists(file) || #end OpenFlAssets.exists(file, IMAGE))
@@ -902,7 +929,7 @@ class LoadingState extends MusicBeatState
 				else trace('no such image $key exists');
 			}
 
-			return Paths.currentTrackedAssets.get(requestKey).bitmap;
+			return cachedBitmap;
 		}
 		catch(e:haxe.Exception)
 		{

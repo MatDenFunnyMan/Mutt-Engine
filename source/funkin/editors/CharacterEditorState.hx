@@ -223,7 +223,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		"A/D - Frame Advance (Back/Forward)",
 		"",
 		"OTHER",
-		"Ctrl + S - Save Character",
+		"Ctrl+S - Save Character",
 		"F12 - Toggle Silhouettes",
 		"Left Click (on Ghost List) - Remove Ghost",
 		"Hold Shift - Move Offsets 10x faster and Camera 4x faster",
@@ -874,7 +874,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			if(spr.frames == null)
 			{
 				spr.destroy();
-				showOutput('Could not load the atlas for this ghost.', true);
+				showOutput('Cannot load atlas for ghost correctly.', true);
 				return;
 			}
 			funkin.util.AtlasUtil.ModernAtlasUtil.addAnimation(spr, 'anim', myAnim.name, myAnim.indices, 0, false);
@@ -908,7 +908,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			catch(e:Dynamic)
 			{
 				atl.destroy();
-				showOutput('Could not load the atlas for this ghost.', true);
+				showOutput('Cannot load atlas for ghost correctly.', true);
 				return;
 			}
 
@@ -1131,6 +1131,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 					if(anim.anim == character.getAnimationName()) resetAnim = true;
 					if(character.hasAnimation(anim.anim))
 					{
+						if(resetAnim && !character.isAnimateAtlas) character.animation.curAnim = null;
 						if(!character.isAnimateAtlas) character.animation.remove(anim.anim);
 						else @:privateAccess character.atlas.anim.animsMap.remove(anim.anim);
 						character.animOffsets.remove(anim.anim);
@@ -1186,7 +1187,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 			for (label in AtlasUtil.getFrameLabelNames(character.atlas)) list.push(LABEL_TAG + label);
 			for (symbol in AtlasUtil.getSymbolNames(character.atlas, exclude)) list.push(symbol);
-			sourceDropDownText.text = 'Atlas Symbols/Labels:';
+			sourceDropDownText.text = 'Symbols/Labels (Atlas):';
 		}
 		else if(character.library != null)
 		{
@@ -1195,7 +1196,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 			for (label in funkin.util.AtlasUtil.ModernAtlasUtil.getFrameLabelNames(character.library)) list.push(LABEL_TAG + label);
 			for (symbol in funkin.util.AtlasUtil.ModernAtlasUtil.getSymbolNames(character.library, exclude)) list.push(symbol);
-			sourceDropDownText.text = 'Atlas Symbols/Labels:';
+			sourceDropDownText.text = 'Symbols/Labels (Atlas):';
 		}
 		else if(character.frames != null)
 		{
@@ -2167,9 +2168,9 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			updateText();
 		}
 
-		var txt = 'ERROR: No Animation Found';
+		var txt = (anims.length < 1) ? 'ERROR: No animations for character' : 'ERROR: No Animation Found';
 		var clr = FlxColor.RED;
-		if(!character.isAnimationNull())
+		if(anims.length > 0 && !character.isAnimationNull())
 		{
 			if(FlxG.keys.pressed.A || FlxG.keys.pressed.D)
 			{
@@ -2472,6 +2473,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		if(animList.length < 1) animList.push('NO ANIMATIONS'); //Prevents crash
 
 		animationDropDown.list = animList;
+		if(anims.length < 1) animationDropDown.selectedLabel = animList[0];
 	}
 
 	// save
@@ -2485,9 +2487,9 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			function() {
 				unsavedProgress = false;
 				quickSavePath = fileDialog.path;
-				showOutput('Character saved successfully to: ${fileDialog.path}');
+				showOutput('Character saved to: ${fileDialog.path}');
 			}, null,
-			function() showOutput('Error on saving character!', true));
+			function() showOutput('ERROR! Character not saved.', true));
 	}
 
 	function quickSaveCharacter()
@@ -2506,11 +2508,11 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		{
 			File.saveContent(quickSavePath, data);
 			unsavedProgress = false;
-			showOutput('Character saved successfully to: $quickSavePath');
+			showOutput('Character saved to: $quickSavePath');
 		}
 		catch(e:haxe.Exception)
 		{
-			showOutput('Error on saving character!', true);
+			showOutput('ERROR! Character not saved.', true);
 		}
 	}
 

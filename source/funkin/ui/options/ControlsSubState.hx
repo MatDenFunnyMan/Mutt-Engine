@@ -45,6 +45,7 @@ class ControlsSubState extends MusicBeatSubstate
 		[false, 'Key 3', 'modchart_editor', 'Debug Key #3'],
 		[false, 'Screenshot', 'screenshot', 'Screenshot'],
 		[false, 'Fullscreen', 'fullscreen', 'Fullscreen'],
+		[false, 'Display', 'debug_display', 'Debug Display'],
 		[false, 'Console', 'debug_console', 'Debug Console']
 	];
 	var curOptions:Array<Int>;

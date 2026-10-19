@@ -22,20 +22,38 @@ class EditorMenuState extends MusicBeatState
 	public static var ITEM_SPACING:Float = 130;
 	public static var ITEM_START_Y:Float = 120;
 
-	public var options:Array<EditorMenuOption> = [
+	public static var EDITORS:Array<EditorMenuOption> = [
 		{name: "Chart Editor", state: ChartingState, loading: true},
 		{name: "Character Editor", state: CharacterEditorState, loading: true},
 		{name: "Stage Editor", state: StageEditorState, loading: true},
+		{name: "Shader Editor", state: ShaderEditorState, loading: true},
+		{name: "Note Editor", state: NoteEditorState, loading: false},
+		#if !DISABLE_MODCHART_EDITOR
+		{name: "Modchart Editor", state: funkin.editors.ModchartEditorState, loading: false},
+		#end
 		{name: "Week Editor", state: WeekEditorState, loading: false},
 		{name: "Menu Character Editor", state: MenuCharacterEditorState, loading: false},
 		{name: "Dialogue Editor", state: DialogueEditorState, loading: true},
-		{name: "Dialogue Portrait Editor", state: DialogueCharacterEditorState, loading: true},
-		{name: "Note Splash Editor", state: NoteSplashEditorState, loading: false},
-		{name: "Hold Cover Editor", state: HoldCoverEditorState, loading: false}
-		#if !DISABLE_MODCHART_EDITOR
-		, {name: "Modchart Editor", state: funkin.editors.ModchartEditorState, loading: false}
-		#end
+		{name: "Dialogue Portrait Editor", state: DialogueCharacterEditorState, loading: true}
 	];
+
+	public static function openEditor(option:EditorMenuOption)
+	{
+		EditorHelper.saveCurrentState();
+		FreeplayState.destroyFreeplayVocals();
+
+		if (FlxG.sound.music != null)
+		{
+			FlxG.sound.music.stop();
+			FlxG.sound.music.volume = 0;
+		}
+
+		var target:MusicBeatState = cast Type.createInstance(option.state, []);
+		if (option.loading) LoadingState.loadAndSwitchState(target, false);
+		else MusicBeatState.switchState(target);
+	}
+
+	public var options:Array<EditorMenuOption> = EDITORS.copy();
 
 	var items:Array<Alphabet> = [];
 	var camFocusPoint:FlxObject;
@@ -50,6 +68,7 @@ class EditorMenuState extends MusicBeatState
 
 	override function create()
 	{
+		PlayState.isStoryMode = false;
 		initPsychCamera();
 		FlxG.camera.bgColor = FlxColor.BLACK;
 
@@ -144,21 +163,7 @@ class EditorMenuState extends MusicBeatState
 
 		var option:EditorMenuOption = options[curSelected];
 
-		FlxFlicker.flicker(items[curSelected], 0.6, ClientPrefs.data.flashing ? 0.06 : 0.15, false, false, function(_)
-		{
-			EditorHelper.saveCurrentState();
-			FreeplayState.destroyFreeplayVocals();
-
-			if (FlxG.sound.music != null)
-			{
-				FlxG.sound.music.stop();
-				FlxG.sound.music.volume = 0;
-			}
-
-			var target:MusicBeatState = cast Type.createInstance(option.state, []);
-			if (option.loading) LoadingState.loadAndSwitchState(target, false);
-			else MusicBeatState.switchState(target);
-		});
+		FlxFlicker.flicker(items[curSelected], 0.6, ClientPrefs.data.flashing ? 0.06 : 0.15, false, false, function(_) openEditor(option));
 	}
 
 	function updateSelection()

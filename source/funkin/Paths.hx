@@ -749,7 +749,14 @@ class Paths
 	}
 
 	public static var currentTrackedSounds:Map<String, Sound> = [];
-	public static function returnSound(key:String, ?path:String, ?modsAllowed:Bool = true, ?beepOnNull:Bool = true, ?stream:Bool = false)
+	public static var beepSound(get, never):Sound;
+	static var _beepSound:Sound;
+	static function get_beepSound():Sound
+	{
+		if (_beepSound == null) _beepSound = FlxAssets.getSound('flixel/sounds/beep');
+		return _beepSound;
+	}
+public static function returnSound(key:String, ?path:String, ?modsAllowed:Bool = true, ?beepOnNull:Bool = true, ?stream:Bool = false)
 	{
 		var file:String = getPath(Language.getFileTranslation(key) + '.$SOUND_EXT', SOUND, path, modsAllowed);
 
@@ -782,7 +789,7 @@ class Paths
 			{
 				trace('SOUND NOT FOUND: $key, PATH: $path');
 				FlxG.log.error('SOUND NOT FOUND: $key, PATH: $path');
-				return FlxAssets.getSound('flixel/sounds/beep');
+				return beepSound;
 			}
 		}
 		localTrackedAssets.push(file);

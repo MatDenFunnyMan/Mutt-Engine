@@ -30,10 +30,28 @@ class RankData
 	public static var GREAT_THRESHOLD:Float = 0.8;
 	public static var GOOD_THRESHOLD:Float = 0.6;
 
-	public static function calculate(percent:Float, misses:Int, sicks:Int, totalHits:Int):ResultsRank
+	public static function completion(sicks:Int, goods:Int, misses:Int, totalNotes:Int):Float
+	{
+		if(totalNotes <= 0) return 0;
+		return FlxMath.bound((sicks + goods - misses) / totalNotes, 0, 1);
+	}
+
+	public static function calculate(clear:Float, sicks:Int, totalNotes:Int):ResultsRank
+	{
+		if(totalNotes > 0 && sicks >= totalNotes) return PERFECT_GOLD;
+		if(totalNotes > 0 && clear >= 1) return PERFECT;
+		return fromPercent(clear);
+	}
+
+	public static function fromAccuracy(percent:Float, misses:Int, sicks:Int, totalHits:Int):ResultsRank
 	{
 		if(misses < 1 && totalHits > 0 && sicks >= totalHits) return PERFECT_GOLD;
 		if(misses < 1 && totalHits > 0) return PERFECT;
+		return fromPercent(percent);
+	}
+
+	static function fromPercent(percent:Float):ResultsRank
+	{
 		if(percent >= EXCELLENT_THRESHOLD) return EXCELLENT;
 		if(percent >= GREAT_THRESHOLD) return GREAT;
 		if(percent >= GOOD_THRESHOLD) return GOOD;

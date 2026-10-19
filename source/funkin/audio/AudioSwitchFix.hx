@@ -13,6 +13,7 @@ import haxe.Timer;
 class AudioSwitchFix {
 	public static function onAudioDisconnected() @:privateAccess {
 		NativeAudioSource.audioDisconnected = true;
+		funkin.util.NativeCrashHandler.markAudioSwitch();
 
 		var sources:Array<{source:AudioSource, playing:Bool, time:Float, gain:Float, pitch:Float, position:lime.math.Vector4}> = [];
 		for (source in AudioSource.activeSources) {

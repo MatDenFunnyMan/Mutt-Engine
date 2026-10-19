@@ -6,6 +6,8 @@ class Highscore
 	public static var songScores:Map<String, Int> = new Map<String, Int>();
 	public static var songRating:Map<String, Float> = new Map<String, Float>();
 	public static var songMisses:Map<String, Int> = new Map<String, Int>();
+	public static var songClears:Map<String, Float> = new Map<String, Float>();
+	public static var songRanks:Map<String, String> = new Map<String, String>();
 
 	public static function resetSong(song:String, diff:Int = 0):Void
 	{
@@ -13,6 +15,11 @@ class Highscore
 		setScore(daSong, 0);
 		setRating(daSong, 0);
 		setMisses(daSong, 0);
+		songClears.remove(daSong);
+		songRanks.remove(daSong);
+		FlxG.save.data.songClears = songClears;
+		FlxG.save.data.songRanks = songRanks;
+		FlxG.save.flush();
 	}
 
 	public static function resetWeek(week:String, diff:Int = 0):Void
@@ -21,7 +28,7 @@ class Highscore
 		setWeekScore(daWeek, 0);
 	}
 
-	public static function saveScore(song:String, score:Int = 0, ?diff:Int = 0, ?rating:Float = -1, ?misses:Int = -1):Void
+	public static function saveScore(song:String, score:Int = 0, ?diff:Int = 0, ?rating:Float = -1, ?misses:Int = -1, ?clear:Float = -1, ?rank:String = null):Void
 	{
 		if(song == null) return;
 		var daSong:String = formatSong(song, diff);
@@ -33,6 +40,7 @@ class Highscore
 				setScore(daSong, score);
 				if(rating >= 0) setRating(daSong, rating);
 				if(misses >= 0) setMisses(daSong, misses);
+				if(clear >= 0) setClear(daSong, clear, rank);
 			}
 		}
 		else
@@ -40,6 +48,7 @@ class Highscore
 			setScore(daSong, score);
 			if(rating >= 0) setRating(daSong, rating);
 			if(misses >= 0) setMisses(daSong, misses);
+			if(clear >= 0) setClear(daSong, clear, rank);
 		}
 	}
 
@@ -86,6 +95,16 @@ class Highscore
 		// Reminder that I don't need to format this song, it should come formatted!
 		songMisses.set(song, misses);
 		FlxG.save.data.songMisses = songMisses;
+		FlxG.save.flush();
+	}
+
+	static function setClear(song:String, clear:Float, rank:String):Void
+	{
+		songClears.set(song, clear);
+		if(rank != null) songRanks.set(song, rank);
+		else songRanks.remove(song);
+		FlxG.save.data.songClears = songClears;
+		FlxG.save.data.songRanks = songRanks;
 		FlxG.save.flush();
 	}
 
@@ -157,5 +176,11 @@ class Highscore
 
 		if (FlxG.save.data.songMisses != null)
 			songMisses = FlxG.save.data.songMisses;
+
+		if (FlxG.save.data.songClears != null)
+			songClears = FlxG.save.data.songClears;
+
+		if (FlxG.save.data.songRanks != null)
+			songRanks = FlxG.save.data.songRanks;
 	}
 }

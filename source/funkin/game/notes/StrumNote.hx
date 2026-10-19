@@ -4,6 +4,7 @@ import funkin.graphics.PsychAnimationController;
 
 import funkin.graphics.shaders.RGBPalette;
 import funkin.graphics.shaders.RGBPalette.RGBShaderReference;
+import funkin.data.NotePackData;
 
 class StrumNote extends FlxSprite
 {
@@ -34,7 +35,72 @@ class StrumNote extends FlxSprite
 	public var lastQuantB:FlxColor = 0xFFFFFFFF;
 	public var hasQuantColor:Bool = false;
 
-	public function new(x:Float, y:Float, leData:Int, player:Int) {
+	public var packOpponent:Bool = false;
+	public var packPart(default, null):NotePackPart = null;
+
+	public static var TINT_GLOW:Float = 0.3;
+	public var tintColor(default, set):FlxColor = FlxColor.WHITE;
+	public var tintStrength(default, set):Float = 0;
+	public var baseTintColor:FlxColor = FlxColor.WHITE;
+	public var baseTintStrength:Float = 0;
+	public var tintTweenId:Int = 0;
+	var tintApplied:Bool = false;
+
+	function set_tintColor(value:FlxColor):FlxColor
+	{
+		tintColor = value;
+		updateColorTransform();
+		return value;
+	}
+
+	function set_tintStrength(value:Float):Float
+	{
+		tintStrength = Math.max(0, Math.min(1, value));
+		updateColorTransform();
+		return tintStrength;
+	}
+
+	public function setTint(color:FlxColor, strength:Float)
+	{
+		@:bypassAccessor tintColor = color;
+		tintStrength = strength;
+	}
+
+	public function applyBaseTint()
+	{
+		var tint:NotePackTint = NotePack.tintFor(packOpponent);
+		baseTintColor = (tint != null) ? CoolUtil.colorFromString(tint.color) : FlxColor.WHITE;
+		baseTintStrength = (tint != null) ? tint.strength : 0;
+		setTint(baseTintColor, baseTintStrength);
+	}
+
+	override function updateColorTransform():Void
+	{
+		super.updateColorTransform();
+		if(colorTransform == null) return;
+
+		if(tintStrength <= 0)
+		{
+			if(tintApplied)
+			{
+				colorTransform.redOffset = colorTransform.greenOffset = colorTransform.blueOffset = 0;
+				tintApplied = false;
+			}
+			return;
+		}
+
+		colorTransform.redMultiplier *= 1 + tintStrength * (tintColor.redFloat - 1);
+		colorTransform.greenMultiplier *= 1 + tintStrength * (tintColor.greenFloat - 1);
+		colorTransform.blueMultiplier *= 1 + tintStrength * (tintColor.blueFloat - 1);
+		colorTransform.redOffset = tintStrength * tintColor.red * TINT_GLOW;
+		colorTransform.greenOffset = tintStrength * tintColor.green * TINT_GLOW;
+		colorTransform.blueOffset = tintStrength * tintColor.blue * TINT_GLOW;
+		useColorTransform = true;
+		tintApplied = true;
+	}
+
+	public function new(x:Float, y:Float, leData:Int, player:Int, ?opponentSide:Null<Bool>) {
+		packOpponent = (opponentSide != null) ? opponentSide : (player < 1);
 		animation = new PsychAnimationController(this);
 
 		var ownPalette:RGBPalette = new RGBPalette();
@@ -91,12 +157,21 @@ class StrumNote extends FlxSprite
 		texture = skin;
 		scrollFactor.set();
 		playAnim('static');
+		applyBaseTint();
 	}
 
 	public function reloadNote()
 	{
 		var lastAnim:String = null;
 		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
+
+		packPart = NotePack.partFor('strums', packOpponent);
+		if(packPart != null && loadPackStrum())
+		{
+			if(lastAnim != null) playAnim(lastAnim, true);
+			return;
+		}
+		packPart = null;
 
 		if(PlayState.isPixelStage)
 		{
@@ -171,6 +246,27 @@ class StrumNote extends FlxSprite
 		}
 	}
 
+	function loadPackStrum():Bool
+	{
+		var gridded:Bool = NotePack.isGridded(packPart);
+		if(!NotePack.loadImage(this, packPart.image, gridded ? packPart.grid : null)) return false;
+
+		@:privateAccess animation.clearAnimations();
+		var direction:Int = Std.int(Math.abs(noteData) % 4);
+		for (name in ['static', 'pressed', 'confirm'])
+			NotePack.addAnimation(this, name, NotePackData.anim(packPart, direction, name), gridded);
+
+		antialiasing = NotePack.antialiasingOf(packPart);
+		var size:Float = (packPart.scale != null) ? packPart.scale : (gridded ? PlayState.daPixelZoom : 0.7);
+		setGraphicSize(Std.int(width * size));
+		useRGBShader = packPart.rgb != false && !(PlayState.SONG != null && PlayState.SONG.disableNoteRGB);
+		updateHitbox();
+		return true;
+	}
+
+	public function refreshPack()
+		reloadNote();
+
 	public function playerPosition()
 	{
 		x += Note.swagWidth * noteData;
@@ -195,6 +291,20 @@ class StrumNote extends FlxSprite
 		{
 			centerOffsets();
 			centerOrigin();
+			if(packPart != null)
+			{
+				if(packPart.offsets != null && packPart.offsets.length > 1)
+				{
+					offset.x += packPart.offsets[0];
+					offset.y += packPart.offsets[1];
+				}
+				var packAnim:NotePackAnim = NotePackData.anim(packPart, Std.int(Math.abs(noteData) % 4), animation.curAnim.name);
+				if(packAnim != null && packAnim.offsets != null && packAnim.offsets.length > 1)
+				{
+					offset.x += packAnim.offsets[0];
+					offset.y += packAnim.offsets[1];
+				}
+			}
 		}
 		if(animation.curAnim != null)
 		{

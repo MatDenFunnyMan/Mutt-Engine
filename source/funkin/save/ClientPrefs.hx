@@ -16,6 +16,12 @@ import funkin.ui.states.TitleState;
 	public var debugBgOpacity:Float = 0.6;
 	public var flashing:Bool = true;
 	public var autoPause:Bool = false;
+	public var unfocusedVolume:Float = 0.35;
+	public var inputOverlay:Bool = false;
+	public var smoothHealthBar:Bool = true;
+	public var noteCamera:String = 'Off';
+	public var noteCameraIntensity:Int = 5;
+	public var noteCameraEase:String = 'Default';
 	public var antialiasing:Bool = true;
 	public var canSkipVideos:Bool = true;
 	public var noteSkin:String = 'Default';
@@ -24,6 +30,7 @@ import funkin.ui.states.TitleState;
 	public var quantNotes:Bool = false;
 	public var splashAlpha:Float = 0.6;
 	public var holdCoverAlpha:Float = 1.0;
+	public var holdNoteTail:String = 'Front';
 	public var strumlineBackgroundPlayer:Float = 0.0;
 	public var strumlineBackgroundOpponent:Float = 0.0;
 	public var detailedRanking:Bool = false;
@@ -133,6 +140,7 @@ class ClientPrefs {
 		'modchart_editor' => [NINE],
 		'screenshot'	=> [F3],
 		'fullscreen'	=> [F11],
+		'debug_display'	=> [F6],
 		'debug_console'	=> [F12],
 	];
 	public static var gamepadBinds:Map<String, Array<FlxGamepadInputID>> = [
@@ -204,6 +212,7 @@ class ClientPrefs {
 			if (key != 'gameplaySettings' && Reflect.hasField(FlxG.save.data, key))
 				Reflect.setField(data, key, Reflect.field(FlxG.save.data, key));
 
+		if(data.fpsMode == 'Simplier') data.fpsMode = 'Simpler';
 		data.noteSkin = defaultData.noteSkin;
 		for (key in NOT_IN_MENU)
 			Reflect.setField(data, key, Reflect.field(defaultData, key));
@@ -274,6 +283,15 @@ class ClientPrefs {
 		}
 	}
 
+	public static function cycleDebugDisplay():Void
+	{
+		var modes:Array<String> = ['Simple', 'Simpler', 'Advanced', 'Off'];
+		var index:Int = modes.indexOf(data.fpsMode);
+		data.fpsMode = modes[(index + 1) % modes.length];
+		updateFPSCounter();
+		saveSettings();
+	}
+
 	public static function updateFPSCounter():Void
 	{
 		if(Main.fpsVar != null)
@@ -283,7 +301,7 @@ class ClientPrefs {
 			
 			Main.fpsVar.visible = isVisible;
 			Main.fpsVar.isAdvanced = data.fpsMode == 'Advanced';
-			Main.fpsVar.isSimplier = data.fpsMode == 'Simplier';
+			Main.fpsVar.isSimplier = data.fpsMode == 'Simpler';
 			
 			if(Main.fpsVar.fpsValue != null)
 			{

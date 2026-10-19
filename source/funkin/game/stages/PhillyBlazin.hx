@@ -45,6 +45,7 @@ class PhillyBlazin extends BaseStage
 
 			skyAdditive = new BGSprite('phillyBlazin/skyBlur', -600, -175, 0.0, 0.0);
 			setupScale(skyAdditive);
+			skyAdditive.blend = ADD;
 			skyAdditive.visible = false;
 			add(skyAdditive);
 			

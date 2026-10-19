@@ -5,9 +5,9 @@ import funkin.game.InputSystem;
 class GameplaySettingsSubState extends BaseOptionsMenu
 {
 	static final INPUT_DESCRIPTIONS:Map<String, String> = [
-		InputSystem.PSYCH => "Psych Engine's input. Sustains count as one note:\nmiss the start or let go and the whole hold is lost.",
-		InputSystem.VSLICE => "Funkin's own input: timing-based score,\nBads and Shits break your combo,\nno Ghost Tapping and Safe Frames locked to 9.6.",
-		InputSystem.LEGACY => "Old Psych Engine input: every piece of a hold\ncounts as its own note, Safe Frames go up to 9."
+		InputSystem.PSYCH => "Psych Engine's input system.\nSustains as One Note automatically enabled and always on,\nusing a more 'modern' input.",
+		InputSystem.VSLICE => "Funkin's input system.\nBAD & SHIT break combo, Ghost Tapping force disabled,\nSafe Frames locked to 9.6.",
+		InputSystem.LEGACY => "'Old' Psych input system.\nSustains as One Note disabled and always off, Max Safe Frames are 9."
 	];
 
 	var inputOption:Option;
@@ -20,25 +20,25 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 
 		//I'd suggest using "Downscroll" as an example for making your own option since it is the simplest here
 		var option:Option = new Option('Downscroll', //Name
-			'If checked, notes go Down instead of Up, simple enough.', //Description
+			"If checked, notes go Down instead of Up, simple enough.\nI FUCKING HATE YOU DOWNSCROLL PLAYERS (kidding, i luv yall :>)", //Description
 			'downScroll', //Save data variable name
 			BOOL); //Variable type
 		addOption(option);
 
 		var option:Option = new Option('Middlescroll',
-			'If checked, your notes get centered.',
+			"If checked, player notes stay centered.\nDisable this option for mods, please. It stinks :(",
 			'middleScroll',
 			BOOL);
 		addOption(option);
 
 		var option:Option = new Option('Opponent Notes',
-			'If unchecked, opponent notes get hidden.',
+			"If unchecked, opponent notes get hidden.\nI don't have anything w this one so uhh... pee pee poo poo",
 			'opponentStrums',
 			BOOL);
 		addOption(option);
 
 		var option:Option = new Option('Ghost Tapping',
-			"If checked, you won't get misses from pressing keys\nwhile there are no notes able to be hit.",
+			"If checked, misses are disabled on free input\n(aka. when there are no notes to hit)\nDisabled if 'V-Slice' input system is on, cause fuck you :)",
 			'ghostTapping',
 			BOOL);
 		option.getValue = () -> InputSystem.ghostTapping();

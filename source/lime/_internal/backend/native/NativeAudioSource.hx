@@ -390,7 +390,7 @@ class NativeAudioSource {
 			result = n > 0 ? streamRead(data.buffer, total, n, wordSize) : 0;
 
 			if (result == Vorbis.HOLE) continue;
-			else if (result <= Vorbis.EREAD) break;
+			else if (result < 0) break;
 			else if (result == 0) {
 				if (streamEnded = wasEOF == (wasEOF = true) || loops <= streamLoops) break;
 
@@ -485,7 +485,7 @@ class NativeAudioSource {
 		var i:Int = streamSources.length, source:NativeAudioSource, process:Int, v:Int;
 		while (i-- > 0) {
 			if ((source = streamSources[i]).streamRemove) continue;
-			else if (source.parent.buffer == null) {
+			else if (source.parent.buffer == null || source.parent.buffer.__srcVorbisFile == null) {
 				source.stopStream();
 				continue;
 			}

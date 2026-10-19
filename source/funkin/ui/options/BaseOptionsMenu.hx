@@ -524,17 +524,43 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	function changeSelection(change:Int = 0)
 	{
 		curSelected = FlxMath.wrap(curSelected + change, 0, optionsArray.length - 1);
+		var step:Int = (change < 0) ? -1 : 1;
+		var tries:Int = 0;
+		while(optionsArray[curSelected].isHidden() && tries++ < optionsArray.length)
+			curSelected = FlxMath.wrap(curSelected + step, 0, optionsArray.length - 1);
 		curOption = optionsArray[curSelected]; //shorter lol
-
-		for (num => item in grpOptions.members)
-			item.targetY = num - curSelected;
 
 		refreshOptions();
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
 
+	function layoutOptions()
+	{
+		var selectedRow:Int = 0;
+		var row:Int = 0;
+		for (num => option in optionsArray)
+		{
+			if(num == curSelected) selectedRow = row;
+			if(!option.isHidden()) row++;
+		}
+
+		row = 0;
+		for (num => item in grpOptions.members)
+		{
+			var shown:Bool = !optionsArray[num].isHidden();
+			item.visible = shown;
+			item.targetY = row - selectedRow;
+			if(shown) row++;
+		}
+		for (text in grpTexts)
+			text.visible = grpOptions.members[text.ID].visible;
+		for (checkbox in checkboxGroup)
+			checkbox.visible = grpOptions.members[checkbox.ID].visible;
+	}
+
 	function refreshOptions()
 	{
+		layoutOptions();
 		for (num => item in grpOptions.members)
 		{
 			item.alpha = (num == curSelected) ? 1 : 0.6;

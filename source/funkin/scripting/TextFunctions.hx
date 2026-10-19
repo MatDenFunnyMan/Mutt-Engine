@@ -6,6 +6,7 @@ class TextFunctions
 	{
 		var lua = funk.lua;
 		Lua_helper.add_callback(lua, "makeLuaText", function(tag:String, ?text:String = '', ?width:Int = 0, ?x:Float = 0, ?y:Float = 0) {
+			LuaUtils.warnDeprecated('makeLuaText', 'createText');
 			tag = tag.replace('.', '');
 
 			LuaUtils.destroyObject(tag);

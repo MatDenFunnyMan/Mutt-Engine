@@ -2,6 +2,7 @@ package funkin.editors.content;
 import funkin.editors.ChartingState;
 
 import funkin.game.notes.Note;
+import funkin.game.notes.NotePack;
 import funkin.graphics.shaders.RGBPalette;
 import flixel.util.FlxDestroyUtil;
 
@@ -28,8 +29,12 @@ class MetaNote extends Note
 		this.songData[1] = v;
 		this.noteData = v % ChartingState.GRID_COLUMNS_PER_PLAYER;
 		this.mustPress = (v < ChartingState.GRID_COLUMNS_PER_PLAYER);
+		this.packOpponent = !this.mustPress;
 		
-		if(!PlayState.isPixelStage)
+		var defaultTexture:Bool = (texture == null || texture.length < 1);
+		if(defaultTexture && (packPart != null || NotePack.partFor('notes', packOpponent) != null))
+			reloadNote();
+		else if(!PlayState.isPixelStage)
 			loadNoteAnims();
 		else
 			loadPixelNoteAnims();

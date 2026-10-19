@@ -107,13 +107,18 @@ class LuaSharedFunctions
 			report('setDataFromSave: Save file not initialized: ' + name);
 		});
 		Lua_helper.add_callback(lua, "getSave", function(key:String) {
+			LuaUtils.warnDeprecated('getSave', 'initSaveData and getDataFromSave');
 			if(FlxG.save.data != null) return Reflect.getProperty(FlxG.save.data, key);
 			return null;
 		});
 		Lua_helper.add_callback(lua, "setSave", function(key:String, value:Dynamic) {
+			LuaUtils.warnDeprecated('setSave', 'initSaveData and setDataFromSave');
 			if(FlxG.save.data != null) Reflect.setProperty(FlxG.save.data, key, value);
 		});
-		Lua_helper.add_callback(lua, "flushSave", function() FlxG.save.flush());
+		Lua_helper.add_callback(lua, "flushSave", function() {
+			LuaUtils.warnDeprecated('flushSave', 'flushSaveData');
+			FlxG.save.flush();
+		});
 	}
 
 	public static function registerObjectOrderFunctions(lua:State, getGroupSource:Void->Dynamic, getFallbackContainer:Void->Dynamic, ?onError:String->Void)
@@ -182,6 +187,7 @@ class LuaSharedFunctions
 	public static function registerSpriteFunctions(lua:State)
 	{
 		Lua_helper.add_callback(lua, "makeLuaSprite", function(tag:String, ?image:String = null, ?x:Float = 0, ?y:Float = 0) {
+			LuaUtils.warnDeprecated('makeLuaSprite', 'createSprite');
 			tag = tag.replace('.', '');
 			LuaUtils.destroyObject(tag);
 			var leSprite:ModchartSprite = new ModchartSprite(x, y);
@@ -191,6 +197,7 @@ class LuaSharedFunctions
 			leSprite.active = true;
 		});
 		Lua_helper.add_callback(lua, "makeAnimatedLuaSprite", function(tag:String, ?image:String = null, ?x:Float = 0, ?y:Float = 0, ?spriteType:String = 'auto') {
+			LuaUtils.warnDeprecated('makeAnimatedLuaSprite', 'createSprite');
 			tag = tag.replace('.', '');
 			LuaUtils.destroyObject(tag);
 			var leSprite:ModchartSprite = new ModchartSprite(x, y);
@@ -231,6 +238,141 @@ class LuaSharedFunctions
 			if(spr != null && images != null && images.length > 0)
 				spr.frames = Paths.getMultiAtlas(images);
 		});
+	}
+
+	public static function registerCreateFunctions(lua:State, place:FlxBasic->Bool->Null<Int>->Void, ?textCamera:Void->FlxCamera)
+	{
+		registerGradient(lua, place);
+		Lua_helper.add_callback(lua, "createSprite", function(tag:String, ?image:String = null, ?x:Float = 0, ?y:Float = 0, ?options:Dynamic = null) {
+			tag = tag.replace('.', '');
+			LuaUtils.destroyObject(tag);
+			var sprite:ModchartSprite = new ModchartSprite(x, y);
+			if(image != null && image.trim().length > 0)
+			{
+				if(image.contains(',')) sprite.frames = Paths.getMultiAtlas([for (part in image.split(',')) part.trim()]);
+				else if(LuaUtils.hasAtlas(image)) LuaUtils.loadFrames(sprite, image, 'auto');
+				else sprite.loadGraphic(Paths.image(image));
+			}
+			sprite.active = true;
+			applyCreateOptions(sprite, options);
+			MusicBeatState.getVariables().set(tag, sprite);
+			place(sprite, LuaUtils.option(options, 'front') == true, zIndexOption(options));
+			return tag;
+		});
+		Lua_helper.add_callback(lua, "createText", function(tag:String, ?text:String = '', ?x:Float = 0, ?y:Float = 0, ?options:Dynamic = null) {
+			tag = tag.replace('.', '');
+			LuaUtils.destroyObject(tag);
+			var size:Null<Float> = LuaUtils.option(options, 'size');
+			var width:Null<Float> = LuaUtils.option(options, 'width');
+			var font:String = LuaUtils.option(options, 'font');
+			var leText:FlxText = new FlxText(x, y, width != null ? width : 0, text, size != null ? Std.int(size) : 16);
+			leText.setFormat(Paths.font(font != null && font.length > 0 ? font : 'vcr.ttf'), size != null ? Std.int(size) : 16, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			leText.borderSize = 2;
+			leText.scrollFactor.set();
+			if(textCamera != null && textCamera() != null) leText.cameras = [textCamera()];
+			var height:Null<Float> = LuaUtils.option(options, 'height');
+			if(height != null) leText.fieldHeight = height;
+			var autoSize:Null<Bool> = LuaUtils.option(options, 'autoSize');
+			if(autoSize != null) leText.autoSize = autoSize;
+			var color:String = LuaUtils.option(options, 'color');
+			if(color != null && color.length > 0) leText.color = CoolUtil.colorFromString(color);
+			applyCreateOptions(leText, options);
+			MusicBeatState.getVariables().set(tag, leText);
+			place(leText, LuaUtils.option(options, 'front') != false, zIndexOption(options));
+			return tag;
+		});
+	}
+
+	static function registerGradient(lua:State, place:FlxBasic->Bool->Null<Int>->Void)
+	{
+		Lua_helper.add_callback(lua, "createGradient", function(tag:String, x:Float, y:Float, width:Int, height:Int, colors:Array<String>, ?options:Dynamic = null) {
+			tag = tag.replace('.', '');
+			LuaUtils.destroyObject(tag);
+			var parsed:Array<FlxColor> = [];
+			if(colors != null) for (color in colors) parsed.push(CoolUtil.colorFromString(Std.string(color)));
+			if(parsed.length < 2) parsed = [FlxColor.WHITE, FlxColor.BLACK];
+			var angle:Null<Float> = LuaUtils.option(options, 'angle');
+			var chunkSize:Null<Float> = LuaUtils.option(options, 'chunkSize');
+			var interpolate:Null<Bool> = LuaUtils.option(options, 'interpolate');
+			var sprite:ModchartSprite = new ModchartSprite(x, y);
+			sprite.pixels = flixel.util.FlxGradient.createGradientBitmapData(Std.int(Math.max(1, width)), Std.int(Math.max(1, height)), parsed,
+				chunkSize != null ? Std.int(Math.max(1, chunkSize)) : 1, angle != null ? Std.int(angle) : 90, interpolate != false);
+			sprite.active = true;
+			applyCreateOptions(sprite, options);
+			MusicBeatState.getVariables().set(tag, sprite);
+			place(sprite, LuaUtils.option(options, 'front') == true, zIndexOption(options));
+			return tag;
+		});
+	}
+
+	public static function applyCreateOptions(obj:FlxSprite, options:Dynamic)
+	{
+		if(options == null) return;
+		var scrollX:Null<Float> = LuaUtils.option(options, 'scrollX');
+		var scrollY:Null<Float> = LuaUtils.option(options, 'scrollY');
+		if(scrollX != null || scrollY != null) obj.scrollFactor.set(scrollX != null ? scrollX : obj.scrollFactor.x, scrollY != null ? scrollY : obj.scrollFactor.y);
+		var skewX:Null<Float> = LuaUtils.option(options, 'skewX');
+		var skewY:Null<Float> = LuaUtils.option(options, 'skewY');
+		if((skewX != null || skewY != null) && Std.isOfType(obj, flixel.addons.effects.FlxSkewedSprite))
+			cast(obj, flixel.addons.effects.FlxSkewedSprite).skew.set(skewX != null ? skewX : 0, skewY != null ? skewY : 0);
+		var alpha:Null<Float> = LuaUtils.option(options, 'alpha');
+		if(alpha != null) obj.alpha = alpha;
+		var scaleX:Null<Float> = LuaUtils.option(options, 'scaleX');
+		var scaleY:Null<Float> = LuaUtils.option(options, 'scaleY');
+		if(scaleX != null || scaleY != null)
+		{
+			obj.scale.set(scaleX != null ? scaleX : obj.scale.x, scaleY != null ? scaleY : obj.scale.y);
+			obj.updateHitbox();
+		}
+		var camera:String = LuaUtils.option(options, 'camera');
+		if(camera != null && camera.length > 0) obj.cameras = [LuaUtils.cameraFromString(camera)];
+	}
+
+	public static function zIndexOption(options:Dynamic):Null<Int>
+	{
+		var zIndex:Null<Float> = LuaUtils.option(options, 'zIndex');
+		return zIndex != null ? Std.int(zIndex) : null;
+	}
+
+	public static function switchStateWithOptions(stateName:String, options:Dynamic, normal:String->Void, direct:String->Void)
+	{
+		var transition:String = LuaUtils.option(options, 'transition');
+		switch(transition != null ? transition.toLowerCase() : 'fade')
+		{
+			case 'none' | 'direct':
+				direct(stateName);
+			case 'stickers' | 'sticker':
+				switchStateWithStickers(stateName, LuaUtils.option(options, 'mode'), LuaUtils.option(options, 'song'), LuaUtils.option(options, 'difficulty'));
+			default:
+				normal(stateName);
+		}
+	}
+
+	public static function switchStateWithStickers(stateName:String, ?mode:String, ?songName:String, ?difficulty:String)
+	{
+		if(stateName.toLowerCase() == 'playstate')
+		{
+			if(songName != null && songName != '')
+			{
+				var diff:String = (difficulty != null && difficulty != '') ? difficulty : 'normal';
+				var diffIdx:Int = 0;
+				for(i in 0...funkin.data.Difficulty.list.length)
+					if(funkin.data.Difficulty.list[i].toLowerCase() == diff.toLowerCase()) { diffIdx = i; break; }
+				var jsonName:String = Paths.formatToSongPath(songName) + '-' + Paths.formatToSongPath(diff);
+				var folder:String = Paths.formatToSongPath(songName);
+				if(funkin.data.Song.getChart(jsonName, folder) == null)
+					jsonName = Paths.formatToSongPath(songName);
+				funkin.data.Song.loadFromJson(jsonName, folder);
+				funkin.game.states.PlayState.isStoryMode = false;
+				funkin.game.states.PlayState.storyDifficulty = diffIdx;
+			}
+			if(funkin.game.states.PlayState.SONG != null)
+				funkin.backend.MusicBeatState.switchStateWithStickers(new funkin.game.states.PlayState(), mode);
+		}
+		else
+		{
+			funkin.backend.MusicBeatState.switchStateWithStickersByName(stateName, mode);
+		}
 	}
 
 	public static function registerTweenFunctions(lua:State, notify:(String, Array<Dynamic>)->Void, ?onError:String->Void)
@@ -337,7 +479,8 @@ class LuaSharedFunctions
 					{
 						var variables = MusicBeatState.getVariables();
 						var originalTag:String = 'tween_' + LuaUtils.formatVariable(tag);
-						variables.set(tag, FlxTween.tween(target, values, duration, myOptions != null ? {
+						var tweenKey:String = originalTag;
+						variables.set(tweenKey, FlxTween.tween(target, values, duration, myOptions != null ? {
 							type: myOptions.type,
 							ease: myOptions.ease,
 							startDelay: myOptions.startDelay,
@@ -349,10 +492,10 @@ class LuaSharedFunctions
 								if(myOptions.onStart != null) notify(myOptions.onStart, [originalTag, vars]);
 							},
 							onComplete: function(twn:FlxTween) {
-								if(twn.type == FlxTweenType.ONESHOT || twn.type == FlxTweenType.BACKWARD) variables.remove(tag);
+								if(twn.type == FlxTweenType.ONESHOT || twn.type == FlxTweenType.BACKWARD) variables.remove(tweenKey);
 								if(myOptions.onComplete != null) notify(myOptions.onComplete, [originalTag, vars]);
 							}
-						} : null));
+						} : {onComplete: function(twn:FlxTween) variables.remove(tweenKey)}));
 						return tag;
 					}
 					else

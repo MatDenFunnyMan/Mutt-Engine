@@ -5,6 +5,7 @@ import flixel.FlxCamera;
 import funkin.save.ClientPrefs;
 import funkin.graphics.shaders.RGBPalette;
 import funkin.graphics.shaders.RGBPalette.RGBShaderReference;
+import funkin.data.NotePackData;
 
 class HoldCover extends FlxSprite
 {
@@ -28,15 +29,31 @@ class HoldCover extends FlxSprite
 	
 	private static var colors:Array<String> = ['Purple', 'Blue', 'Green', 'Red'];
 	
-	public function new(noteData:Int, isOpponent:Bool, isPixelStage:Bool, camera:FlxCamera)
+	public var useRGB:Bool = true;
+	public var packPart(default, null):NotePackPart = null;
+
+	public function new(noteData:Int, isOpponent:Bool, isPixelStage:Bool, camera:FlxCamera, ?opponentSide:Null<Bool>)
 	{
 		super();
-		
+
 		this.noteData = noteData;
 		this.isOpponent = isOpponent;
 		this.colorName = colors[noteData];
-		
+
+		packPart = NotePack.partFor('holdCovers', (opponentSide != null) ? opponentSide : isOpponent, isPixelStage);
+		if(packPart != null && packPart.animations != null && loadPackCover())
+		{
+			visible = false;
+			cameras = [camera];
+			alpha = ClientPrefs.data.holdCoverAlpha;
+			baseScaleX = scale.x;
+			baseScaleY = scale.y;
+			return;
+		}
+
 		var customSkin:String = PlayState.SONG != null ? PlayState.SONG.holdCoverSkin : null;
+		if(packPart != null) customSkin = packPart.image;
+		packPart = null;
 		var path:String = isPixelStage ? 'holdCovers/holdCoverPixelRGB' : 'holdCovers/holdCoverRGB';
 		if(customSkin != null && customSkin.trim().length > 0 && Paths.fileExists('images/$customSkin.png', IMAGE))
 			path = customSkin;
@@ -97,6 +114,31 @@ class HoldCover extends FlxSprite
 		baseScaleY = scale.y;
 	}
 	
+	function loadPackCover():Bool
+	{
+		var gridded:Bool = NotePack.isGridded(packPart);
+		if(!NotePack.loadImage(this, packPart.image, gridded ? packPart.grid : null)) return false;
+
+		var direction:Int = noteData % colors.length;
+		var base:Array<Float> = (packPart.offsets != null && packPart.offsets.length > 1) ? packPart.offsets : [0, 0];
+		configOffsetNormal = base.copy();
+		configOffsetPixel = base.copy();
+		for (name in ['hold', 'end'])
+		{
+			var anim:NotePackAnim = NotePackData.anim(packPart, direction, name);
+			NotePack.addAnimation(this, name, anim, gridded);
+			if(anim != null && anim.offsets != null && anim.offsets.length > 1)
+				configAnimOffsets.set('${name}_$noteData', [base[0] + anim.offsets[0], base[1] + anim.offsets[1]]);
+		}
+
+		var size:Float = (packPart.scale != null) ? packPart.scale : 1;
+		scale.set(size, size);
+		updateHitbox();
+		antialiasing = NotePack.antialiasingOf(packPart);
+		useRGB = packPart.rgb != false;
+		return true;
+	}
+
 	public function playHold():Void
 	{
 		if(animation.curAnim == null || animation.curAnim.name != 'hold')
@@ -136,11 +178,17 @@ class HoldCover extends FlxSprite
 		{
 			if(animation.curAnim.name == 'end' && animation.curAnim.finished)
 				visible = false;
-			else if(animation.curAnim.name == 'hold' && animation.curAnim.finished)
+			else if(animation.curAnim.name == 'hold' && animation.curAnim.finished && packPart == null)
 				animation.play('hold', true);
 		}
 	}
 	
+	public function packColors():Array<FlxColor>
+		return NotePackData.packColors(packPart, noteData);
+
+	public static function enabled():Bool
+		return ClientPrefs.data.holdCoverAlpha > 0 && ClientPrefs.data.holdNoteTail != 'Behind';
+
 	public function updatePosition(strum:StrumNote, isPixelStage:Bool):Void
 	{
 		if(disabled || invisible || forceHide)
@@ -148,7 +196,7 @@ class HoldCover extends FlxSprite
 			visible = false;
 			return;
 		}
-		if(ClientPrefs.data.holdCoverAlpha <= 0)
+		if(!enabled())
 		{
 			visible = false;
 			return;

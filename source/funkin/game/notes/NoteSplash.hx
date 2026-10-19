@@ -3,6 +3,7 @@ package funkin.game.notes;
 import funkin.graphics.PsychAnimationController;
 import funkin.graphics.shaders.RGBPalette;
 import flixel.system.FlxAssets.FlxShader;
+import funkin.data.NotePackData;
 
 typedef RGB = {
 	r:Null<Int>,
@@ -75,6 +76,17 @@ class NoteSplash extends FlxSprite
 	{
 		config = null;
 		maxAnims = 0;
+		loadedPack = null;
+
+		if((splash == null || splash.length == 0) && !inEditor)
+		{
+			var packPart:NotePackPart = NotePack.partFor('splashes', false);
+			if(packPart != null)
+			{
+				if(packPart.animations != null && loadPackSplash(packPart)) return;
+				splash = packPart.image;
+			}
+		}
 
 		if(splash == null || splash.length == 0)
 		{
@@ -248,20 +260,98 @@ class NoteSplash extends FlxSprite
 		configs.set(path, this.config);
 	}
 
+	var loadedPack:NotePackPart = null;
+	static var packConfigs:Map<String, NoteSplashConfig> = new Map();
+
+	function loadPackSplash(part:NotePackPart):Bool
+	{
+		if (!Paths.fileExists('images/${part.image}.png', IMAGE)) return false;
+		var atlas = Paths.getSparrowAtlas(part.image);
+		if (atlas == null) return false;
+		frames = atlas;
+		texture = part.image;
+
+		var key:String = part.image + '|' + part.scale + '|' + part.rgb + '|' + part.offsets + '|' + haxe.Json.stringify(part.animations);
+		var packConfig:NoteSplashConfig = packConfigs.get(key);
+		var variants:Int = 0;
+		for (i in 0...Note.colArray.length)
+		{
+			var list:Array<NotePackAnim> = NotePackData.splashAnims(part, i);
+			var count:Int = (list != null) ? list.length : 0;
+			if (variants == 0 || count < variants) variants = count;
+		}
+		if (variants < 1) return false;
+
+		if (packConfig == null)
+		{
+			packConfig = createConfig();
+			packConfig.allowRGB = part.rgb != false;
+			packConfig.allowPixel = false;
+			var size:Float = (part.scale != null) ? part.scale : 1;
+			var base:Array<Float> = (part.offsets != null && part.offsets.length > 1) ? part.offsets : [0, 0];
+			for (i => col in Note.colArray)
+			{
+				var list:Array<NotePackAnim> = NotePackData.splashAnims(part, i);
+				for (variant in 0...variants)
+				{
+					var anim:NotePackAnim = list[variant];
+					if (anim == null || anim.prefix == null) continue;
+					var fps:Int = Std.int((anim.fps != null) ? anim.fps : 24);
+					var name:String = variant > 0 ? col + (variant + 1) : col;
+					var offsets:Array<Float> = (anim.offsets != null && anim.offsets.length > 1) ? [base[0] + anim.offsets[0], base[1] + anim.offsets[1]] : base.copy();
+					var prefix:String = anim.prefix;
+					for (candidate in NotePackData.prefixCandidates(anim.prefix))
+						if (NotePack.hasPrefix(this, candidate)) { prefix = candidate; break; }
+					addAnimationToConfig(packConfig, size, name, prefix, [fps, fps], offsets, (anim.indices != null) ? anim.indices : [], i + variant * Note.colArray.length);
+				}
+			}
+			packConfigs.set(key, packConfig);
+		}
+
+		config = packConfig;
+		maxAnims = variants;
+		loadedPack = part;
+		antialiasing = NotePack.antialiasingOf(part);
+		return true;
+	}
+
+	function applyPackColors(tempShader:RGBPalette, part:NotePackPart)
+	{
+		var colors:Array<FlxColor> = NotePackData.packColors(part, noteData);
+		if (colors == null) return;
+		tempShader.r = colors[0];
+		tempShader.g = colors[1];
+		tempShader.b = colors[2];
+	}
+
 	public function spawnSplashNote(?x:Float = 0, ?y:Float = 0, ?noteData:Int = 0, ?note:Note, ?randomize:Bool = true)
 	{
 		if (note != null && note.noteSplashData.disabled)
 			return;
 
 		aliveTime = 0;
+		var colorPart:NotePackPart = null;
 
 		if (!inEditor)
 		{
 			var loadedTexture:String = defaultNoteSplash + getSplashSkinPostfix();
 			var chartSplash:String = PlayState.SONG != null ? PlayState.SONG.splashSkin : null;
 			var chartHasSplash:Bool = (chartSplash != null && chartSplash.length > 0);
-			
-			if (note != null && note.noteSplashData.texture != null)
+			var noteTexture:String = (note != null) ? note.noteSplashData.texture : null;
+			if (noteTexture == chartSplash) noteTexture = null;
+			var packPart:NotePackPart = (noteTexture == null) ? NotePack.partFor('splashes', false) : null;
+			colorPart = packPart;
+
+			if (packPart != null && packPart.animations != null)
+			{
+				if (loadedPack != packPart) loadSplash();
+				loadedTexture = texture;
+			}
+			else if (packPart != null)
+			{
+				loadedTexture = packPart.image;
+			}
+			else if (note != null && note.noteSplashData.texture != null)
 			{
 				loadedTexture = note.noteSplashData.texture;
 			}
@@ -278,8 +368,11 @@ class NoteSplash extends FlxSprite
 					loadedTexture = defaultNoteSplash;
 			}
 
-			loadedTexture = pixelOverride(loadedTexture);
-			if (texture != loadedTexture) loadSplash(loadedTexture);
+			if (loadedPack == null)
+			{
+				loadedTexture = pixelOverride(loadedTexture);
+				if (texture != loadedTexture) loadSplash(loadedTexture);
+			}
 		}
 
 		setPosition(x, y);
@@ -340,6 +433,7 @@ class NoteSplash extends FlxSprite
 						}
 					}
 					else tempShader.copyValues(Note.globalRgbShaders[noteData % Note.colArray.length]);
+					applyPackColors(tempShader, colorPart);
 
 					if (note != null)
 					{
@@ -348,7 +442,11 @@ class NoteSplash extends FlxSprite
 						if (note.noteSplashData.b != -1) tempShader.b = note.noteSplashData.b;
 					}
 				}
-				else tempShader.copyValues(Note.globalRgbShaders[noteData % Note.colArray.length]);
+				else
+				{
+					tempShader.copyValues(Note.globalRgbShaders[noteData % Note.colArray.length]);
+					applyPackColors(tempShader, colorPart);
+				}
 			}
 		}
 		rgbShader.copyValues(tempShader);
@@ -379,6 +477,7 @@ class NoteSplash extends FlxSprite
 		if (note != null) antialiasing = note.noteSplashData.antialiasing;
 		if (PlayState.isPixelStage && config.allowPixel) antialiasing = false;
 		if (texture == pixelNoteSplash) antialiasing = false;
+		if (loadedPack != null) antialiasing = NotePack.antialiasingOf(loadedPack);
 
 		var minFps:Int = 22;
 		var maxFps:Int = 26;

@@ -246,6 +246,34 @@ class WindowsCPP
     {
     }
 
+	@:functionCode('
+		HWND window = GET_MAIN_WINDOW();
+		LONG style = GetWindowLong(window, GWL_EXSTYLE);
+		if (!(style & WS_EX_LAYERED)) SetWindowLong(window, GWL_EXSTYLE, style | WS_EX_LAYERED);
+	')
+	public static function enableWindowLayered()
+	{
+	}
+
+	@:functionCode('
+		HWND window = GET_MAIN_WINDOW();
+		BOOL value = enable ? TRUE : FALSE;
+		DwmSetWindowAttribute(window, DWMWA_USE_IMMERSIVE_DARK_MODE, &value, sizeof(value));
+		SetWindowPos(window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+	')
+	public static function setWindowDarkMode(enable:Bool)
+	{
+	}
+
+	@:functionCode('
+		HWND window = GET_MAIN_WINDOW();
+		COLORREF value = (COLORREF)color;
+		DwmSetWindowAttribute(window, 34, &value, sizeof(value));
+	')
+	public static function setWindowBorderColor(color:Int)
+	{
+	}
+
 	
 	@:functionCode('
 	HWND window = GET_MAIN_WINDOW();

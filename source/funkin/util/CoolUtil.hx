@@ -52,10 +52,16 @@ class CoolUtil
 		return daList != null ? listFromString(daList) : [];
 	}
 
-	inline public static function colorFromString(color:String):FlxColor
+	public static function colorFromString(color:String):FlxColor
 	{
-		var hideChars = ~/[\t\n\r]/;
-		var color:String = hideChars.split(color).join('').trim();
+		if(color == null) return FlxColor.WHITE;
+		var buf:StringBuf = new StringBuf();
+		for (i in 0...color.length)
+		{
+			var code:Int = StringTools.fastCodeAt(color, i);
+			if(code != 9 && code != 10 && code != 13) buf.addChar(code);
+		}
+		color = buf.toString().trim();
 		if(color.startsWith('0x')) color = color.substring(color.length - 6);
 
 		var colorNum:Null<FlxColor> = FlxColor.fromString(color);

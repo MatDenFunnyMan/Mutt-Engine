@@ -1,10 +1,8 @@
 #pragma header
 
+uniform sampler2D sourceSwag;
 uniform sampler2D backgroundSwag;
-uniform sampler2D spriteSwag;
 uniform int blendMode;
-uniform vec2 uViewport;
-uniform vec4 uCamRect;
 
 // The functions below are needed for the following blend modes:
 // - HUE
@@ -112,6 +110,7 @@ const int HARDLIGHT = 5;
 const int INVERT = 6;
 const int LIGHTEN = 8;
 const int OVERLAY = 11;
+const int SUBTRACT = 14;
 const int COLORDODGE = 15;
 const int COLORBURN = 16;
 const int SOFTLIGHT = 17;
@@ -235,6 +234,10 @@ vec3 blend(vec3 bg, vec3 src)
   {
     return invert(bg);
   }
+  else if (blendMode == SUBTRACT)
+  {
+    return max(bg - src, vec3(0.0));
+  }
   else if (blendMode == COLORDODGE)
   {
     return colordodge(bg, src);
@@ -276,17 +279,12 @@ vec3 blend(vec3 bg, vec3 src)
 
 void main()
 {
-  vec4 src = texture2D(spriteSwag, openfl_TextureCoordv);
+  vec4 bg = flixel_texture2D(backgroundSwag, openfl_TextureCoordv);
+  vec4 src = flixel_texture2D(sourceSwag, openfl_TextureCoordv);
 
-  vec2 pixel = vec2(gl_FragCoord.x, uViewport.y - gl_FragCoord.y);
-  vec2 uv = (pixel - uCamRect.xy) / uCamRect.zw;
+  // Un-premultiply the alpha before blending
+  src.rgb = src.a > 0.0 ? src.rgb / src.a : src.rgb;
 
-  vec4 bg = texture2D(backgroundSwag, clamp(uv, 0.0, 1.0));
-
-  vec3 srcColor = src.a > 0.0 ? src.rgb / src.a : src.rgb;
-  vec3 bgColor = bg.a > 0.0 ? bg.rgb / bg.a : bg.rgb;
-
-  vec3 res = blend(bgColor, srcColor);
-
-  gl_FragColor = vec4(res * src.a, src.a);
+  vec3 res = blend(bg.rgb, src.rgb);
+  gl_FragColor = vec4(mix(bg.rgb, res.rgb, src.a), mix(bg.a, 1.0, src.a));
 }

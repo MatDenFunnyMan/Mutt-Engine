@@ -19,8 +19,11 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 	function getOptions()
 	{
+		optionsArray.push(new GameplayOption('Botplay', 'botplay', BOOL, false));
+		optionsArray.push(new GameplayOption('Opponent Mode', 'opponentmode', BOOL, false));
+		optionsArray.push(new GameplayOption('Instakill on Miss', 'instakill', BOOL, false));
+
 		var goption:GameplayOption = new GameplayOption('Scroll Type', 'scrolltype', STRING, 'multiplicative', ["multiplicative", "constant"]);
-		optionsArray.push(goption);
 
 		var option:GameplayOption = new GameplayOption('Scroll Speed', 'scrollspeed', FLOAT, 1);
 		option.scrollSpeed = 2.0;
@@ -38,6 +41,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 			option.maxValue = 6;
 		}
 		optionsArray.push(option);
+		optionsArray.push(goption);
 
 		#if FLX_PITCH
 		var option:GameplayOption = new GameplayOption('Playback Rate', 'songspeed', FLOAT, 1);
@@ -66,11 +70,8 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		option.displayFormat = '%vX';
 		optionsArray.push(option);
 
-		optionsArray.push(new GameplayOption('Instakill on Miss', 'instakill', BOOL, false));
 		optionsArray.push(new GameplayOption('Practice Mode', 'practice', BOOL, false));
-		optionsArray.push(new GameplayOption('Opponent Mode', 'opponentmode', BOOL, false));
 		optionsArray.push(new GameplayOption('Mirror Chart', 'mirrorchart', BOOL, false));
-		optionsArray.push(new GameplayOption('Botplay', 'botplay', BOOL, false));
 	}
 
 	public function getOptionByName(name:String)

@@ -1,14 +1,17 @@
 package funkin.editors.content;
 
 import flixel.FlxSprite;
-import flixel.util.FlxTimer;
+import flixel.util.FlxDestroyUtil;
 import funkin.game.Character;
+import funkin.game.InputSystem;
 
 class Toy extends Character
 {
 	public static inline var TOY_HEIGHT:Int = 200;
+	static inline var MEASURE_SCALE:Float = 0.05;
+	static var atlasHeights:Map<String, Float> = [];
+	static final singAnimations:Array<String> = ['singLEFT', 'singDOWN', 'singUP', 'singRIGHT'];
 
-	var singAnimations:Array<String> = ['singLEFT', 'singDOWN', 'singUP', 'singRIGHT'];
 	public var isDragging:Bool = false;
 	public var grabAllowed:Bool = false;
 	public var hitboxX:Float = 0;
@@ -21,13 +24,18 @@ class Toy extends Character
 	public var toySizeMult:Float = 1;
 	private var idleOffX:Float = 0;
 	private var idleOffY:Float = 0;
-	private var animHoldTimer:Float = 0;
-	private var currentAnim:String = '';
-	private var atlasMeasured:Bool = false;
+	private var measuringAtlas:Bool = false;
 	public var toyName:String = '';
 	public var canAnimate:Bool = false;
 	private var finishingAnim:Bool = false;
 	private var finishTimer:Float = 0;
+
+	private var holdTime:Float = 0;
+	private var holdStep:Float = 0;
+	private var holdPiece:Int = 0;
+	private var holdPieces:Int = 0;
+	private var holdAnim:String = '';
+	private var holdNoAnim:Bool = false;
 
 	public function new(x:Float, y:Float, character:String, isPlayer:Bool = false, name:String = '')
 	{
@@ -61,19 +69,21 @@ class Toy extends Character
 	function applyToyScale()
 	{
 		cacheIdleOffset();
+		scrollFactor.set();
 		if(isAnimateAtlas)
 		{
-			atlasMeasured = false;
-			toyScale = 1;
-			scale.set(1, 1);
-			scrollFactor.set();
+			var nativeH:Null<Float> = atlasHeights.get(curCharacter);
+			measuringAtlas = (nativeH == null || nativeH <= 0);
+			toyScale = measuringAtlas ? MEASURE_SCALE : (TOY_HEIGHT * toySizeMult) / nativeH;
+			scale.set(toyScale, toyScale);
+			applyToyOffset();
 			return;
 		}
+		measuringAtlas = false;
 		var h:Float = measuredHeight();
 		toyScale = (h > 0) ? (TOY_HEIGHT * toySizeMult) / h : 1;
 
 		scale.set(toyScale, toyScale);
-		scrollFactor.set();
 		applyToyOffset();
 	}
 
@@ -121,6 +131,17 @@ class Toy extends Character
 		hitboxY = y - oy;
 	}
 
+	override public function draw():Void
+	{
+		var drawnScale:Float = scale.y;
+		super.draw();
+
+		if(!measuringAtlas || !isAnimateAtlas || atlas == null || atlas.height <= 0 || drawnScale <= 0) return;
+
+		atlasHeights.set(curCharacter, atlas.height / drawnScale);
+		applyToyScale();
+	}
+
 	override public function overlapsPoint(point:FlxPoint, InScreenSpace:Bool = false, ?Camera:FlxCamera):Bool
 	{
 		if(!InScreenSpace)
@@ -164,9 +185,22 @@ class Toy extends Character
 	{
 		if(character == null || character == curCharacter) return;
 
+		if(atlas != null) atlas = FlxDestroyUtil.destroy(atlas);
+		idleSuffix = '';
+		danceEveryNumBeats = 2;
+		settingCharacterUp = true;
 		changeCharacter(character);
 		resetToIdle();
 		applyToyScale();
+	}
+
+	public function setIdleSuffix(suffix:String)
+	{
+		if(suffix == null) suffix = '';
+		if(idleSuffix == suffix) return;
+
+		idleSuffix = suffix;
+		recalculateDanceIdle();
 	}
 
 	public function setAnimated(v:Bool)
@@ -174,13 +208,14 @@ class Toy extends Character
 		if(canAnimate == v) return;
 
 		canAnimate = v;
+		holdPieces = 0;
 		if(v)
 		{
 			finishingAnim = false;
 			return;
 		}
 
-		if(animation.curAnim != null && !animation.curAnim.finished)
+		if(!isAnimationNull() && !isAnimationFinished())
 		{
 			finishingAnim = true;
 			finishTimer = 2;
@@ -193,81 +228,104 @@ class Toy extends Character
 	public function resetToIdle()
 	{
 		finishingAnim = false;
-		animHoldTimer = 0;
-		currentAnim = '';
+		holdPieces = 0;
+		holdTimer = 0;
+		heyTimer = 0;
+		specialAnim = false;
+		loopAnim = null;
+		canPlayOtherAnims = true;
 		color = FlxColor.WHITE;
 
 		super.dance();
-		if(animation.curAnim != null) animation.curAnim.curFrame = 0;
+		if(!isAnimationNull())
+		{
+			if(isAnimateAtlas) atlas.anim.curFrame = 0;
+			else animation.curAnim.curFrame = 0;
+		}
 
 		x = baseX;
 		y = baseY;
 	}
 
-	function isIdlePlaying():Bool
-	{
-		var anim = animation.curAnim;
-		if(anim == null || anim.finished) return false;
-
-		return anim.name.startsWith('idle') || anim.name.startsWith('dance');
-	}
-
-	public function performPose(direction:String, sustainLength:Float = 0, noteColor:FlxColor = FlxColor.WHITE)
+	public function sing(direction:Int, suffix:String, noteTime:Float, sustainLength:Float, noAnimation:Bool, hey:Bool, noteColor:FlxColor)
 	{
 		if(!canAnimate) return;
 
-		var animName:String = direction.toLowerCase();
+		holdTime = noteTime;
+		holdStep = Conductor.stepCrochet;
+		holdPieces = (sustainLength > 0 && holdStep > 0) ? Math.round(sustainLength / holdStep) : 0;
+		holdPiece = 0;
+		holdAnim = singAnimations[direction % singAnimations.length] + suffix;
+		holdNoAnim = noAnimation || vsliceSustains || InputSystem.isVSlice();
 
-		if(!animOffsets.exists(animName))
-			animName = 'sing$direction';
+		var heyAnim:String = (toyName == 'gf') ? 'cheer' : 'hey';
+		if(hey && hasAnimation(heyAnim))
+		{
+			playAnim(heyAnim, true);
+			specialAnim = true;
+			heyTimer = 0.6;
+		}
+		else if(!noAnimation)
+		{
+			playAnim(holdAnim, true);
+			holdTimer = 0;
+			color = noteColor;
+		}
 
-		currentAnim = animName;
-
-		var baseHoldTime:Float = Conductor.stepCrochet * 4 / 1000;
-		var sustainTime:Float = sustainLength / 1000;
-
-		animHoldTimer = Math.max(baseHoldTime, sustainTime + baseHoldTime);
-
-		playAnim(animName, true);
-
-		this.color = noteColor;
-
-		x = baseX;
-		y = baseY;
+		updateHold();
 	}
 
-	override public function update(elapsed:Float):Void
+	public function playEventAnim(anim:String, forced:Bool, loop:Bool)
 	{
-		if(!visible) return;
-		if(isAnimateAtlas)
-		{
-			atlas.update(elapsed);
+		if(!canAnimate) return;
 
-			if(!atlasMeasured && atlas.height > 0)
-			{
-				var nativeH:Float = atlas.height / Math.max(scale.y, 0.001);
-				if(nativeH > 0)
-				{
-					atlasMeasured = true;
-					toyScale = (TOY_HEIGHT * toySizeMult) / nativeH;
-					scale.set(toyScale, toyScale);
-				}
-			}
-		}
-		if(animHoldTimer > 0 && (canAnimate || finishingAnim))
+		holdPieces = 0;
+		if(anim == null || anim.length < 1) stopSpecialAnim();
+		else if(hasAnimation(anim)) playSpecialAnim(anim, forced, loop);
+	}
+
+	public function playLegacyEventAnim(anim:String)
+	{
+		if(!canAnimate || anim == null || !hasAnimation(anim)) return;
+
+		holdPieces = 0;
+		playAnim(anim, true);
+		specialAnim = true;
+	}
+
+	function updateHold()
+	{
+		if(holdPiece >= holdPieces) return;
+
+		var pos:Float = Conductor.songPosition;
+		if(pos < holdTime)
 		{
-			animHoldTimer -= elapsed;
-			if(animHoldTimer <= 0)
-			{
-				animHoldTimer = 0;
-				currentAnim = '';
-				this.color = FlxColor.WHITE;
-				dance();
-				x = baseX;
-				y = baseY;
-			}
+			holdPieces = 0;
+			return;
 		}
 
+		var reached:Int = Std.int(Math.min(holdPieces, Math.floor((pos - holdTime) / holdStep) + 1));
+		if(reached <= holdPiece) return;
+
+		holdPiece = reached;
+		sustainHit();
+	}
+
+	function sustainHit()
+	{
+		var anim:String = getAnimationName();
+		if(anim != null && anim.startsWith('sing')) holdTimer = 0;
+		if(holdNoAnim) return;
+
+		var animToPlay:String = holdAnim;
+		var hold:String = holdAnim + '-hold';
+		if(hasAnimation(hold)) animToPlay = hold;
+		if(anim != hold && anim != hold + '-loop') playAnim(animToPlay, true);
+		holdTimer = 0;
+	}
+
+	function updateDrag()
+	{
 		if(grabAllowed && FlxG.mouse.justPressed && !isDragging)
 		{
 			isDragging = true;
@@ -293,27 +351,39 @@ class Toy extends Character
 					funkin.editors.ChartingState.instance.saveToyPosition(toyName, baseX, baseY);
 			}
 		}
+	}
 
-		if((canAnimate || finishingAnim) && animation.curAnim != null)
-			animation.curAnim.update(elapsed);
+	override public function update(elapsed:Float):Void
+	{
+		if(!visible) return;
 
-		if(finishingAnim)
+		if(canAnimate || finishingAnim)
 		{
-			finishTimer -= elapsed;
-			if(finishTimer <= 0 || isAnimationNull() || isAnimationFinished())
-				resetToIdle();
+			updateHold();
+			super.update(elapsed);
+
+			var anim:String = getAnimationName();
+			if(isPlayer && anim != null && anim.startsWith('sing') && !anim.endsWith('miss') &&
+				holdTimer > Conductor.stepCrochet * (0.0011 #if FLX_PITCH / (FlxG.sound.music != null ? FlxG.sound.music.pitch : 1) #end) * singDuration)
+				dance();
+
+			if(finishingAnim)
+			{
+				finishTimer -= elapsed;
+				if(finishTimer <= 0 || isAnimationNull() || isAnimationFinished())
+					resetToIdle();
+			}
 		}
 
+		updateDrag();
 		applyToyOffset();
 	}
 
 	override public function dance():Void
 	{
-		if(isDragging || animHoldTimer > 0 || finishingAnim) return;
-		if(!canAnimate || isIdlePlaying()) return;
+		if(!canAnimate && !finishingAnim) return;
 
+		color = FlxColor.WHITE;
 		super.dance();
-		x = baseX;
-		y = baseY;
 	}
 }

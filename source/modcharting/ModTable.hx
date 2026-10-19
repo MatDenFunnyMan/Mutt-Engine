@@ -69,17 +69,28 @@ class ModTable
         add(new YModifier('y'));
         add(new ZModifier('z'));
         add(new ConfusionModifier('confusion'));
-        for (i in 0...((NoteMovement.keyCount+NoteMovement.playerKeyCount)))
-        {
-            add(new XModifier('x'+i, ModifierType.LANESPECIFIC));
-            add(new YModifier('y'+i, ModifierType.LANESPECIFIC));
-            add(new ZModifier('z'+i, ModifierType.LANESPECIFIC));
-            add(new ConfusionModifier('confusion'+i, ModifierType.LANESPECIFIC));
-            setModTargetLane('x'+i, i);
-            setModTargetLane('y'+i, i);
-            setModTargetLane('z'+i, i);
-            setModTargetLane('confusion'+i, i);
-        }
+        for (i in 0...NoteMovement.laneCount)
+            addLaneModifiers(i);
+    }
+
+    function addLaneModifiers(i:Int) : Void
+    {
+        add(new XModifier('x'+i, ModifierType.LANESPECIFIC));
+        add(new YModifier('y'+i, ModifierType.LANESPECIFIC));
+        add(new ZModifier('z'+i, ModifierType.LANESPECIFIC));
+        add(new ConfusionModifier('confusion'+i, ModifierType.LANESPECIFIC));
+        setModTargetLane('x'+i, i);
+        setModTargetLane('y'+i, i);
+        setModTargetLane('z'+i, i);
+        setModTargetLane('confusion'+i, i);
+    }
+
+    public function refreshLanes() : Void
+    {
+        for (i in 0...NoteMovement.laneCount)
+            if (!modifiers.exists('x'+i))
+                addLaneModifiers(i);
+        reconstructTable();
     }
 
     public function reconstructTable() : Void
@@ -91,7 +102,7 @@ class ModTable
             if (table[pf] == null)
                 table[pf] = [];
 
-            for (lane in 0...NoteMovement.totalKeyCount)
+            for (lane in 0...NoteMovement.laneCount)
             {
                 table[pf].push([]);
 

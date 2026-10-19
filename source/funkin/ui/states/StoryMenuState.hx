@@ -335,6 +335,7 @@ class StoryMenuState extends MusicBeatState
 				Song.loadFromJson(PlayState.storyPlaylist[0].toLowerCase() + diffic, PlayState.storyPlaylist[0].toLowerCase());
 				PlayState.campaignScore = 0;
 				PlayState.campaignMisses = 0;
+				PlayState.campaignTallies = [0, 0, 0, 0, 0];
 			}
 			catch(e:Dynamic)
 			{

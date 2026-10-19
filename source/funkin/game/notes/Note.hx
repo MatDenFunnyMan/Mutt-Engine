@@ -2,6 +2,7 @@ package funkin.game.notes;
 
 import funkin.graphics.PsychAnimationController;
 import funkin.data.NoteTypesConfig;
+import funkin.data.NotePackData;
 
 import funkin.graphics.shaders.RGBPalette;
 import funkin.graphics.shaders.RGBPalette.RGBShaderReference;
@@ -91,6 +92,8 @@ class Note extends FlxSprite
 
 	public var animSuffix:String = '';
 	public var gfNote:Bool = false;
+	public var characterSlot:Int = -1;
+	public var strumline:Int = -1;
 	public var earlyHitMult:Float = 1;
 	public var lateHitMult:Float = 1;
 	public var lowPriority:Bool = false;
@@ -133,6 +136,9 @@ class Note extends FlxSprite
 	public var ratingDisabled:Bool = false;
 
 	public var texture(default, set):String = null;
+
+	public var packOpponent:Bool = false;
+	public var packPart(default, null):NotePackPart = null;
 
 	public var noAnimation:Bool = false;
 	public var noMissAnimation:Bool = false;
@@ -243,9 +249,11 @@ class Note extends FlxSprite
 		return value;
 	}
 
-	public function new(strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null)
+	public function new(strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null, ?opponentSide:Bool = false)
 	{
 		super();
+
+		packOpponent = opponentSide;
 
 		animation = new PsychAnimationController(this);
 
@@ -333,6 +341,7 @@ class Note extends FlxSprite
 		{
 			centerOffsets();
 			centerOrigin();
+			applyPackOffsets();
 		}
 		x += offsetX;
 	}
@@ -369,6 +378,10 @@ class Note extends FlxSprite
 	public function reloadNote(texture:String = '', postfix:String = '') {
 		if(texture == null) texture = '';
 		if(postfix == null) postfix = '';
+
+		packPart = (texture.length < 1 && noteData > -1) ? NotePack.partFor('notes', packOpponent) : null;
+		if(packPart != null && reloadPackNote()) return;
+		packPart = null;
 
 		var skin:String = texture;
 		if(texture.length < 1)
@@ -465,6 +478,78 @@ class Note extends FlxSprite
 
 		if(animName != null)
 			animation.play(animName, true);
+	}
+
+	function reloadPackNote():Bool
+	{
+		var direction:Int = noteData % colArray.length;
+		var useHoldImage:Bool = isSustainNote && packPart.holdImage != null && packPart.holdImage.length > 0;
+		var image:String = useHoldImage ? packPart.holdImage : packPart.image;
+		var grid:Array<Int> = useHoldImage ? packPart.holdGrid : packPart.grid;
+		var gridded:Bool = grid != null && grid.length > 1 && grid[0] > 0 && grid[1] > 0;
+
+		var animName:String = (animation.curAnim != null) ? animation.curAnim.name : null;
+		var lastScaleY:Float = scale.y;
+		if(!NotePack.loadImage(this, image, gridded ? grid : null)) return false;
+
+		@:privateAccess animation.clearAnimations();
+		var color:String = colArray[direction];
+		if(isSustainNote)
+		{
+			NotePack.addAnimation(this, color + 'holdend', NotePackData.anim(packPart, direction, 'holdEnd'), gridded);
+			NotePack.addAnimation(this, color + 'hold', NotePackData.anim(packPart, direction, 'hold'), gridded);
+			if(gridded) originalHeight = frameHeight;
+		}
+		else NotePack.addAnimation(this, color + 'Scroll', NotePackData.anim(packPart, direction, 'note'), gridded);
+
+		var size:Float = (packPart.scale != null) ? packPart.scale : (gridded ? PlayState.daPixelZoom : 0.7);
+		setGraphicSize(Std.int(width * size));
+		updateHitbox();
+		antialiasing = NotePack.antialiasingOf(packPart);
+		if(rgbShader != null) rgbShader.enabled = packPart.rgb != false && !(PlayState.SONG != null && PlayState.SONG.disableNoteRGB);
+
+		if(isSustainNote && PlayState.isPixelStage)
+		{
+			offsetX += _lastNoteOffX;
+			_lastNoteOffX = (width - 7) * (PlayState.daPixelZoom / 2);
+			offsetX -= _lastNoteOffX;
+		}
+		if(isSustainNote) scale.y = lastScaleY;
+		updateHitbox();
+		applyPackOffsets();
+		if(animName != null && animation.exists(animName)) animation.play(animName, true);
+		return true;
+	}
+
+	public function refreshPackPart()
+	{
+		if(noteData > -1) packPart = NotePack.partFor('notes', packOpponent);
+	}
+
+	public function applyPackOffsets()
+	{
+		if(packPart == null || isSustainNote) return;
+		var offsets:Array<Float> = packOffsets('note');
+		offset.x += offsets[0];
+		offset.y += offsets[1];
+	}
+
+	function packOffsets(name:String):Array<Float>
+	{
+		var result:Array<Float> = [0, 0];
+		if(packPart == null) return result;
+		if(packPart.offsets != null && packPart.offsets.length > 1)
+		{
+			result[0] += packPart.offsets[0];
+			result[1] += packPart.offsets[1];
+		}
+		var anim:NotePackAnim = NotePackData.anim(packPart, noteData % colArray.length, name);
+		if(anim != null && anim.offsets != null && anim.offsets.length > 1)
+		{
+			result[0] += anim.offsets[0];
+			result[1] += anim.offsets[1];
+		}
+		return result;
 	}
 
 	public static function getNoteSkinPostfix()
@@ -566,6 +651,14 @@ class Note extends FlxSprite
 		if (!myStrum.downScroll) distance *= -1;
 
 		var angleDir = strumDirection * Math.PI / 180;
+		var packX:Float = 0;
+		var packY:Float = 0;
+		if(isSustainNote && packPart != null && animation.curAnim != null)
+		{
+			var holdOffsets:Array<Float> = packOffsets(animation.curAnim.name.endsWith('end') ? 'holdEnd' : 'hold');
+			packX = holdOffsets[0];
+			packY = holdOffsets[1];
+		}
 		if (copyAngle)
 			angle = strumDirection - 90 + strumAngle + offsetAngle;
 
@@ -573,11 +666,11 @@ class Note extends FlxSprite
 			alpha = strumAlpha * multAlpha;
 
 		if(copyX)
-			x = strumX + offsetX + Math.cos(angleDir) * distance;
+			x = strumX + offsetX - packX + Math.cos(angleDir) * distance;
 
 		if(copyY)
 		{
-			y = strumY + offsetY + correctionOffset + Math.sin(angleDir) * distance;
+			y = strumY + offsetY - packY + correctionOffset + Math.sin(angleDir) * distance;
 			if(myStrum.downScroll && isSustainNote)
 			{
 				if(PlayState.isPixelStage)

@@ -174,7 +174,7 @@ class PlayDebugOverlay extends FlxGroup
 			strum.resetAnim = 0;
 		}
 
-		if(notify) showNotice(value ? 'Botplay Enabled' : 'Botplay Disabled');
+		if(notify) showNotice(value ? 'Botplay ON' : 'Botplay OFF');
 	}
 
 	function setFrozen(value:Bool, notify:Bool)
@@ -198,7 +198,7 @@ class PlayDebugOverlay extends FlxGroup
 			freezeState = null;
 		}
 
-		if(notify) showNotice(value ? 'Song Stopped' : 'Song Resumed');
+		if(notify && value) showNotice('PAUSED');
 		refreshStatus();
 	}
 
@@ -215,7 +215,7 @@ class PlayDebugOverlay extends FlxGroup
 		}
 		else removeFreeCam();
 
-		if(notify) showNotice(value ? 'Free Cam Enabled' : 'Free Cam Disabled');
+		if(notify) showNotice(value ? 'Free Cam ON' : 'Free Cam OFF');
 		refreshStatus();
 	}
 

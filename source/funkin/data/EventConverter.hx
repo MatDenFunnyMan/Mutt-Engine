@@ -87,6 +87,15 @@ class EventConverter
 
 		switch(name)
 		{
+			case 'Background Flash':
+				var renamed:Array<String> = data.copy();
+				renamed[0] = 'BG Flash';
+				return [renamed];
+
+			case 'Play Video':
+				if(data.length < 7) return null;
+				return [['Play Video', v(1), v(2), v(3), v(4), v(6)]];
+
 			case 'Add Camera Zoom':
 				return [['Add Cam Zoom', v(1), v(2)]];
 
@@ -156,7 +165,7 @@ class EventConverter
 				var bools:Array<String> = [];
 				for (i in 0...4)
 					bools.push((v(2).length > 0 && i < flags.length) ? Std.string(flags[i] == 'true') : Std.string(flagDefaults[i]));
-				return [['Play Video', params[0], camera, (params.length > 2) ? params[2] : '', bools[0], bools[1], bools[2], bools[3]]];
+				return [['Play Video', params[0], camera, (params.length > 2) ? params[2] : '', bools[0], bools[2]]];
 
 			case 'Change Note Skin':
 				return [['Change Notes', skinTarget(v(2)), skinValue(v(1)), '', '', '']];

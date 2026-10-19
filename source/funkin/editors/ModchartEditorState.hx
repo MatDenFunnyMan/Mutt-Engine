@@ -9,8 +9,11 @@ import flixel.tweens.FlxTween;
 
 import funkin.game.notes.Note;
 import funkin.game.notes.StrumNote;
+import funkin.game.notes.NotePack;
 import funkin.data.Song;
 import funkin.data.Song.SwagSection;
+import funkin.data.Song.ExtraCharacterData;
+import funkin.game.notes.ExtraStrumlineLayout;
 import funkin.ui.psychui.PsychUIInputText.FilterMode;
 import funkin.editors.content.Prompt;
 import funkin.editors.content.FileDialogHandler;
@@ -79,7 +82,7 @@ class ModchartEditorState extends MusicBeatState
 	static inline final MIN_ZOOM:Float = 12;
 	static inline final MAX_ZOOM:Float = 240;
 	static inline final MAX_UNDO:Int = 100;
-	static inline final MAIN_VALUE:String = '(main value)';
+	static inline final MAIN_VALUE:String = '(Value)';
 	public static inline final ALL_PLAYFIELDS:String = 'All playfields';
 
 	static inline final DRAG_NONE:Int = 0;
@@ -110,46 +113,46 @@ class ModchartEditorState extends MusicBeatState
 	];
 
 	static final EFFECTS:Map<String, EffectInfo> = [
-		'X' => {desc: 'Moves arrows and notes left or right, in pixels.\nStarts at 0. 100 = 100 pixels to the right, -100 = to the left, 0 = back in place.', value: '100', sub: ''},
-		'Y' => {desc: 'Moves arrows and notes up or down, in pixels.\nStarts at 0. 100 = 100 pixels down, -100 = up, 0 = back in place.', value: '100', sub: ''},
-		'Z' => {desc: 'Moves arrows and notes closer or farther away, in pixels.\nStarts at 0. Positive = farther (smaller), negative = closer (bigger).', value: '200', sub: ''},
-		'Confusion' => {desc: 'Spins every arrow and note on itself, in degrees.\nStarts at 0. 360 = one full spin, 90 = a quarter turn.', value: '360', sub: ''},
-		'Scale' => {desc: 'Changes the size of arrows and notes.\nStarts at 1 (normal size). 2 = double, 0.5 = half.', value: '0.5', sub: ''},
-		'ScaleX' => {desc: 'Changes the width of arrows and notes.\nStarts at 1 (normal). 2 = twice as wide, 0.5 = half.', value: '2', sub: ''},
-		'ScaleY' => {desc: 'Changes the height of arrows and notes.\nStarts at 1 (normal). 2 = twice as tall, 0.5 = half.', value: '2', sub: ''},
-		'Mini' => {desc: 'Changes the size of arrows and notes, keeping them in their place.\nStarts at 1 (normal size). 0.5 = half, 2 = double.', value: '0.5', sub: ''},
-		'Stealth' => {desc: 'Makes arrows and notes invisible.\nStarts at 0 (visible). 1 = invisible, 0.5 = half visible.', value: '1', sub: ''},
-		'NoteStealth' => {desc: 'Makes only the notes invisible, the arrows stay visible.\nStarts at 0 (visible). 1 = invisible.', value: '1', sub: ''},
-		'Reverse' => {desc: 'Flips the scroll: the notes come from the other side of the screen.\nStarts at 0. 1 = fully flipped, 0.5 = arrows in the middle of the screen.', value: '1', sub: ''},
-		'Invert' => {desc: 'Swaps the arrows in pairs (left with down, up with right).\nStarts at 0. 1 = swapped.', value: '1', sub: ''},
-		'Flip' => {desc: 'Mirrors the order of the arrows (left becomes right).\nStarts at 0. 1 = mirrored.', value: '1', sub: ''},
-		'DrunkX' => {desc: 'Arrows and notes sway left and right, like they are drunk.\nStarts at 0. 1 = normal sway, 2 = double.\nSub value "speed": how fast they sway.', value: '1', sub: ''},
-		'DrunkY' => {desc: 'Arrows and notes sway up and down.\nStarts at 0. 1 = normal sway, 2 = double.\nSub value "speed": how fast they sway.', value: '1', sub: ''},
-		'DrunkZ' => {desc: 'Arrows and notes sway closer and farther.\nStarts at 0. 1 = normal sway, 2 = double.\nSub value "speed": how fast they sway.', value: '1', sub: ''},
-		'TipsyX' => {desc: 'Every arrow wobbles left and right on its own, the notes follow it.\nStarts at 0. 1 = normal wobble.', value: '1', sub: ''},
-		'TipsyY' => {desc: 'Every arrow wobbles up and down on its own, the notes follow it.\nStarts at 0. 1 = normal wobble.', value: '1', sub: ''},
-		'TipsyZ' => {desc: 'Every arrow wobbles closer and farther on its own.\nStarts at 0. 1 = normal wobble.', value: '1', sub: ''},
-		'BeatX' => {desc: 'Arrows and notes kick left and right on every beat.\nStarts at 0. 1 = small kick, 3 = big kick.', value: '2', sub: ''},
-		'BeatY' => {desc: 'Arrows and notes kick up and down on every beat.\nStarts at 0. 1 = small kick, 3 = big kick.', value: '2', sub: ''},
-		'BeatZ' => {desc: 'Arrows and notes kick closer and farther on every beat.\nStarts at 0. 1 = small kick, 3 = big kick.', value: '2', sub: ''},
-		'Jump' => {desc: 'Arrows and notes hop on every beat.\nStarts at 0. 1 = normal hop.', value: '1', sub: ''},
-		'Rotate' => {desc: 'Rotates all the arrows around the center of the screen, in 3D.\nLeave the main value at 1 and change the sub values "x" and "y" (degrees).\n"rotatePointX" / "rotatePointY" move the center of the rotation.', value: '45', sub: 'x'},
-		'StrumLineRotate' => {desc: 'Rotates each group of 4 arrows around its own center, in 3D.\nLeave the main value at 1 and change the sub values "x", "y" and "z" (degrees, "z" starts at 90).', value: '45', sub: 'x'},
-		'IncomingAngle' => {desc: 'Changes the direction the notes come from.\nLeave the main value at 1 and change the sub values "x" and "y" (degrees).', value: '45', sub: 'x'},
-		'Speed' => {desc: 'Changes how fast the notes scroll (only notes).\nStarts at 1 (normal). 2 = twice as fast, 0.5 = half speed.', value: '2', sub: ''},
-		'Boost' => {desc: 'The notes speed up when they get close to the arrows (only notes).\nStarts at 0. 1 = normal boost.', value: '1', sub: ''},
-		'Brake' => {desc: 'The notes slow down when they get close to the arrows (only notes).\nStarts at 0. 1 = normal brake.', value: '1', sub: ''},
-		'Shrink' => {desc: 'The notes change size while they come closer (only notes).\nStarts at 0. Positive = they shrink, negative = they grow.', value: '1', sub: ''},
-		'Bumpy' => {desc: 'The notes move closer and farther while they scroll (only notes).\nStarts at 0. 1 = normal.\nSub value "speed": how fast.', value: '1', sub: ''},
-		'BounceX' => {desc: 'The notes bounce sideways while they scroll (only notes).\nStarts at 0. 1 = normal bounce.\nSub value "speed": how fast.', value: '1', sub: ''},
-		'BounceY' => {desc: 'The notes bounce up and down while they scroll (only notes).\nStarts at 0. 1 = normal bounce.\nSub value "speed": how fast.', value: '1', sub: ''},
-		'BounceZ' => {desc: 'The notes bounce closer and farther while they scroll (only notes).\nStarts at 0. 1 = normal bounce.\nSub value "speed": how fast.', value: '1', sub: ''},
-		'InvertSine' => {desc: 'The notes zig-zag between their lane and the next one (only notes).\nStarts at 0. 1 = full zig-zag.', value: '1', sub: ''},
-		'EaseCurve' => {desc: 'Base of the EaseCurve effects: on its own it does nothing.\nUse EaseCurveX, EaseCurveY, EaseCurveZ or EaseCurveAngle.', value: '1', sub: ''},
-		'EaseCurveX' => {desc: 'The notes bend sideways along a curve while they scroll (only notes).\nStarts at 0. Try 100.', value: '100', sub: ''},
-		'EaseCurveY' => {desc: 'The notes bend up and down along a curve while they scroll (only notes).\nStarts at 0. Try 100.', value: '100', sub: ''},
-		'EaseCurveZ' => {desc: 'The notes bend closer and farther along a curve while they scroll (only notes).\nStarts at 0. Try 100.', value: '100', sub: ''},
-		'EaseCurveAngle' => {desc: 'The notes turn along a curve while they scroll (only notes).\nStarts at 0. Try 100.', value: '100', sub: ''}
+		'X' => {desc: 'Tween Note X Position, in pixels (default: 0)', value: '100', sub: ''},
+		'Y' => {desc: 'Tween Note Y Position, in pixels (default: 0)', value: '100', sub: ''},
+		'Z' => {desc: 'Tween Note Z Position (aka size), in pixels (default: 0)', value: '200', sub: ''},
+		'Confusion' => {desc: 'SPEEEENNNNN!\nNote Spin modifier, in degrees (default: 0)', value: '360', sub: ''},
+		'Scale' => {desc: 'Note Scale X/Y modifier (default: 1)', value: '0.5', sub: ''},
+		'ScaleX' => {desc: 'Note Scale X modifier (default: 1)', value: '2', sub: ''},
+		'ScaleY' => {desc: 'Note Scale Y modifier (default: 1)', value: '2', sub: ''},
+		'Mini' => {desc: 'Note Scale X/Y modifier (default: 1)\nSimilar to "Scale" but strums shift in position when scaled instead of being centered', value: '0.5', sub: ''},
+		'Stealth' => {desc: 'Note Alpha modifier (default: 0)\nAffects both notes & strums', value: '1', sub: ''},
+		'NoteStealth' => {desc: 'Note Alpha modifier (default: 0)\nOnly affects notes', value: '1', sub: ''},
+		'Reverse' => {desc: 'Changes strumlines position, affects scroll (default: 0)\nCan be used for easy Downscroll switch', value: '1', sub: ''},
+		'Invert' => {desc: 'Swap note position (left-down, up-right) (default: 0)', value: '1', sub: ''},
+		'Flip' => {desc: 'Mirrors strumline notes (right/up/down/left) (default: 0)', value: '1', sub: ''},
+		'DrunkX' => {desc: 'I drank a beer. Another beer. 3 beers, 4 beers, 5 BEERS, 67 BEERS\nDrunk modifier on X axis\nSpeed = velocity of effect\n(default: 0)', value: '1', sub: ''},
+		'DrunkY' => {desc: 'I drank a beer. Another beer. 3 beers, 4 beers, 5 BEERS, 67 BEERS\nDrunk modifier on Y axis\nSpeed: velocity of effect\n(default: 0)', value: '1', sub: ''},
+		'DrunkZ' => {desc: 'I drank a beer. Another beer. 3 beers, 4 beers, 5 BEERS, 67 BEERS\nDrunk modifier on Z axis\nSpeed: velocity of effect\n(default: 0)', value: '1', sub: ''},
+		'TipsyX' => {desc: 'Tipsy modifier on X axis\nMoves the notes funny (default: 0)', value: '1', sub: ''},
+		'TipsyY' => {desc: 'Tipsy modifier on Y axis\nMoves the notes funny (default: 0)', value: '1', sub: ''},
+		'TipsyZ' => {desc: 'Tipsy modifier on Z axis\nMoves the notes funny (default: 0)', value: '1', sub: ''},
+		'BeatX' => {desc: 'Dope ass effect on beat, X axis (default: 0)', value: '2', sub: ''},
+		'BeatY' => {desc: 'Dope ass effect on beat, Y axis (default: 0)', value: '2', sub: ''},
+		'BeatZ' => {desc: 'Dope ass effect on beat, Z axis (default: 0)', value: '2', sub: ''},
+		'Jump' => {desc: 'Notes go bunny hopping LOL (default: 0)', value: '1', sub: ''},
+		'Rotate' => {desc: 'Notes rotate funny, in degrees (default: 1)', value: '45', sub: 'x'},
+		'StrumLineRotate' => {desc: 'Notes rotate SUPER funny, in degrees (default: 1)\n"What changes from Rotate?" Nothing, lol', value: '45', sub: 'x'},
+		'IncomingAngle' => {desc: 'Note direction tween (default: 1)', value: '45', sub: 'x'},
+		'Speed' => {desc: 'Scrool speed modifier, similar to Chart Editor (default: 1)', value: '2', sub: ''},
+		'Boost' => {desc: 'Notes get faster closer to strumline (default: 0)', value: '1', sub: ''},
+		'Brake' => {desc: 'Notes get slower closer to strumline (default: 0)', value: '1', sub: ''},
+		'Shrink' => {desc: 'Notes shrink and resize closer to strumline (default: 0)\nIf negative, notes grow instead', value: '1', sub: ''},
+		'Bumpy' => {desc: 'buckle up, road\'s gonna be bumpy :D\nSpeed: velocity of effect\n(default: 0)', value: '1', sub: ''},
+		'BounceX' => {desc: 'Notes bounce sideways\nSpeed: velocity of effect\n(default: 0)', value: '1', sub: ''},
+		'BounceY' => {desc: 'Notes bounce up and down\nSpeed: velocity of effect\n(default: 0)', value: '1', sub: ''},
+		'BounceZ' => {desc: 'Notes BOUNCE, we\'re BOUNCING now?\nSpeed: velocity of effect\n(default: 0)', value: '1', sub: ''},
+		'InvertSine' => {desc: 'I\'m getting tired of ts cuh...\nNotes dance funny (default: 0)', value: '1', sub: ''},
+		'EaseCurve' => {desc: 'Base for EaseCurve events, USE THIS BEFORE THE OTHERS!', value: '1', sub: ''},
+		'EaseCurveX' => {desc: 'I have no idea bruh.', value: '100', sub: ''},
+		'EaseCurveY' => {desc: 'This whole shit was vibe-coded please somebody grab this engine and make it real', value: '100', sub: ''},
+		'EaseCurveZ' => {desc: 'I\'m a fat chud and I got no wife', value: '100', sub: ''},
+		'EaseCurveAngle' => {desc: 'ANGLE.', value: '100', sub: ''}
 	];
 
 	static final EXAMPLE_MODCHART:String = '{"modifiers":['
@@ -184,17 +187,22 @@ class ModchartEditorState extends MusicBeatState
 		'smootherStepIn', 'smootherStepInOut', 'smootherStepOut'
 	];
 
-	static final GUIDE_TEXT:String = 'GETTING STARTED\n\n'
-		+ '1.  Press "New" at the top left of the timeline to create a MODIFIER.\n'
-		+ '     Pick an effect (for example X, it moves the arrows sideways) and which arrows it moves.\n\n'
-		+ '2.  Right click on its row, at the beat where the effect should start.\n'
-		+ '     A mark appears: that is an EVENT.\n\n'
-		+ '3.  Click the mark: its settings open in this panel. Set the Value\n'
-		+ '     (X: 100 -> Move arrows 100 pixels to the right).\n\n'
-		+ '4.  Space: Modchart Preview.\n\n'
-		+ '5.  Add a second event later with value 0 to bring them back, then press Ctrl + S to save.\n\n'
-		+ 'Want an example? "Open File > Load Example" and try it out.\n\n'
-		+ 'Press F1 for more info!';
+	static final GUIDE_TEXT:String = 'QUICK START\n'
+		+ '\n'
+		+ '1. Press "New" to create a MODIFIER. Choose an effect and what arrows it affects, and give it a name.\n'
+		+ '\n'
+		+ '2. Below preview, add an EVENT with RIGHT CLICK on the modifier row.\n'
+		+ '\n'
+		+ '3. Clicking an event opens its SETTINGS in this panel. Customize however you want!\n'
+		+ '\n'
+		+ '4. To reset an event\'s values, create a new one after the previous with value 0.\n'
+		+ '\n'
+		+ 'It\'s that easy, ha ha!\n'
+		+ 'Press SPACE to preview modchart.\n'
+		+ '\n'
+		+ 'For a quick example, go to "File > Example Modchart" and tweak around!\n'
+		+ '\n'
+		+ 'Press F1 for more info.';
 
 	var camPreview:FlxCamera;
 	var camUI:FlxCamera;
@@ -308,6 +316,7 @@ class ModchartEditorState extends MusicBeatState
 
 	override function create()
 	{
+		NotePack.clearCache();
 		showStartup = !skipStartupMenu;
 		skipStartupMenu = false;
 
@@ -346,7 +355,7 @@ class ModchartEditorState extends MusicBeatState
 
 		generateStrums(0);
 		generateStrums(1);
-		NoteMovement.getDefaultStrumPosFromGroup(strumLineNotes, playerStrums.length);
+		generateExtraStrums();
 
 		loadedModifiers = Json.stringify(modchartData().modifiers);
 		loadedPlayfields = modchartData().playfields;
@@ -439,7 +448,7 @@ class ModchartEditorState extends MusicBeatState
 		{
 			Difficulty.list = savedDiffs;
 			PlayState.storyDifficulty = savedIndex;
-			showMessage('Could not load "$song" ($diff): chart not found', true);
+			showMessage('Could not load "$song" ($diff): Chart not found!', true);
 			return false;
 		}
 
@@ -528,25 +537,31 @@ class ModchartEditorState extends MusicBeatState
 		notes = new FlxTypedGroup<Note>();
 		add(notes);
 
+		var lines:Array<ExtraCharacterData> = Song.separateCharacters(PlayState.SONG);
 		for (section in PlayState.SONG.notes)
 		{
 			for (songNotes in section.sectionNotes)
 			{
 				var column:Int = Std.int(songNotes[1]);
-				if(column < 0 || column > 7) continue;
+				var line:Int = (column > 7) ? Std.int((column - 8) / 4) : -1;
+				if(column < 0 || line >= lines.length) continue;
 
 				var strumTime:Float = songNotes[0];
 				var noteData:Int = column % 4;
-				var mustPress:Bool = (column < 4);
+				var mustPress:Bool = (line >= 0) ? ExtraStrumlineLayout.playable(lines[line]) : (column < 4);
+				var shown:Bool = (line < 0 || lines[line].visible != false);
 
 				var oldNote:Note = (unspawnNotes.length > 0) ? unspawnNotes[unspawnNotes.length - 1] : null;
-				var note:Note = new Note(strumTime, noteData, oldNote);
+				var packOpponent:Bool = (line >= 0) ? !ExtraStrumlineLayout.isPlayer(lines[line], false) : (column >= 4);
+				var note:Note = new Note(strumTime, noteData, oldNote, false, false, null, packOpponent);
 				note.sustainLength = Math.isNaN(songNotes[2]) ? 0 : songNotes[2];
 				note.mustPress = mustPress;
 				note.gfNote = (section.gfSection && mustPress == section.mustHitSection);
 				note.noteType = songNotes[3];
 				if(!Std.isOfType(songNotes[3], String)) note.noteType = Note.defaultNoteTypes[songNotes[3]];
 				note.scrollFactor.set();
+				note.strumline = line;
+				note.visible = shown;
 				unspawnNotes.push(note);
 
 				var susLength:Int = Math.floor(note.sustainLength / Conductor.stepCrochet);
@@ -555,10 +570,12 @@ class ModchartEditorState extends MusicBeatState
 					for (susNote in 0...susLength + 1)
 					{
 						oldNote = unspawnNotes[unspawnNotes.length - 1];
-						var sustain:Note = new Note(strumTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet / FlxMath.roundDecimal(PlayState.SONG.speed, 2)), noteData, oldNote, true);
+						var sustain:Note = new Note(strumTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet / FlxMath.roundDecimal(PlayState.SONG.speed, 2)), noteData, oldNote, true, false, null, packOpponent);
 						sustain.mustPress = mustPress;
 						sustain.gfNote = note.gfNote;
 						sustain.noteType = note.noteType;
+						sustain.strumline = line;
+						sustain.visible = shown;
 						note.tail.push(sustain);
 						sustain.parent = note;
 						sustain.scrollFactor.set();
@@ -571,6 +588,32 @@ class ModchartEditorState extends MusicBeatState
 		unspawnNotes.sort(function(a:Note, b:Note) return FlxSort.byValues(FlxSort.ASCENDING, a.strumTime, b.strumTime));
 		loadedNotes = unspawnNotes.copy();
 	}
+
+	function generateExtraStrums()
+	{
+		var lines:Array<ExtraCharacterData> = Song.separateCharacters(PlayState.SONG);
+		var mainScale:Float = ExtraStrumlineLayout.sharesMainRow(lines) ? ExtraStrumlineLayout.fitMainRow(cast opponentStrums, cast playerStrums) : 1;
+		var lineScales:Array<Float> = [];
+		for (line in ExtraStrumlineLayout.create(lines, false, false))
+		{
+			for (strum in line.strums.members) strumLineNotes.add(strum);
+			lineScales.push(line.scale);
+		}
+
+		NoteMovement.getDefaultStrumPosFromGroup(strumLineNotes, playerStrums.length, opponentStrums.length);
+		var firstLane:Int = opponentStrums.length + playerStrums.length;
+		for (lane in 0...NoteMovement.defaultScale.length)
+		{
+			var scale:Float = (lane < firstLane) ? mainScale : lineScales[Std.int((lane - firstLane) / 4)];
+			NoteMovement.defaultScale[lane] *= scale;
+			NoteMovement.arrowSizes[lane] *= scale;
+		}
+		NoteMovement.characterLanes = [for (k => data in lines) data.slot => firstLane + k * 4];
+		playfieldRenderer.modifierTable.refreshLanes();
+	}
+
+	public function characterTargetLabels():Array<String>
+		return [for (data in Song.separateCharacters(PlayState.SONG)) 'Char ' + data.slot];
 
 	function generateStrums(player:Int)
 	{
@@ -656,7 +699,7 @@ class ModchartEditorState extends MusicBeatState
 		timelineLayer.cameras = [camUI];
 		add(timelineLayer);
 
-		emptyText = new FlxText(gridX(), rowY(3), gridW(), 'This modchart has no modifiers.\nPress "New" to create one.', 14);
+		emptyText = new FlxText(gridX(), rowY(3), gridW(), 'Modchart is empty.\nPress "NEW" to add a modifier.', 14);
 		emptyText.alignment = CENTER;
 		emptyText.color = 0xFF888888;
 		emptyText.cameras = [camUI];
@@ -824,7 +867,7 @@ class ModchartEditorState extends MusicBeatState
 
 		propWidget(new FlxSprite(left, PREVIEW_Y + 114).makeGraphic(SIDE_W - 20, 1, 0xFF4A4A5A));
 
-		var header:FlxText = propLabel(left, 120, 'What the event does');
+		var header:FlxText = propLabel(left, 120, 'Event Description');
 		header.fieldWidth = 200;
 		header.color = COLOR_SELECTED;
 
@@ -842,7 +885,7 @@ class ModchartEditorState extends MusicBeatState
 			});
 		}, 130));
 
-		propLabel(col2Label, 146, 'Sub value:', subWidgets);
+		propLabel(col2Label, 146, 'Sub-value:', subWidgets);
 		targetSubDropDown = propWidget(new PsychUIDropDownMenu(col2, PREVIEW_Y + 146, [MAIN_VALUE], function(_, label:String) {
 			editTarget(null, function(target:TimelineTarget) {
 				target.sub = (label == MAIN_VALUE) ? '' : label;
@@ -860,8 +903,8 @@ class ModchartEditorState extends MusicBeatState
 			});
 		};
 
-		propWidget(new PsychUIButton(SIDE_X + 196, PREVIEW_Y + 170, 'Add modifier', addTarget, 124));
-		propWidget(new PsychUIButton(SIDE_X + 326, PREVIEW_Y + 170, 'Remove current', removeTarget, 116));
+		propWidget(new PsychUIButton(SIDE_X + 196, PREVIEW_Y + 170, 'Add', addTarget, 124));
+		propWidget(new PsychUIButton(SIDE_X + 326, PREVIEW_Y + 170, 'Remove', removeTarget, 116));
 
 		targetsListText = propLabel(left, 200, '');
 		targetsListText.fieldWidth = SIDE_W - 20;
@@ -878,8 +921,9 @@ class ModchartEditorState extends MusicBeatState
 		effectDescText.fieldWidth = SIDE_W - 20;
 		effectDescText.color = 0xFFDDDDDD;
 
-		var hint:FlxText = propLabel(left, 404, 'Right click on a mark: remove modifier from event\n'
-			+ 'Delete: delete event      Ctrl + C / V: copy / paste');
+		var hint:FlxText = propLabel(left, 404, 'Right Click on Mark: Delete Modifier\n'
+			+ 'DELETE: Remove Event\n'
+			+ 'Ctrl+C/V: Copy/Paste');
 		hint.fieldWidth = SIDE_W - 20;
 		hint.size = 9;
 		hint.color = 0xFF9A9AB0;
@@ -916,13 +960,13 @@ class ModchartEditorState extends MusicBeatState
 
 		var entries:Array<Array<Dynamic>> = [
 			['  Save (Ctrl+S)', function() saveModchart(false)],
-			['  Save As... (Ctrl+Shift+S)', function() saveModchart(true)],
-			['  Open File... (Ctrl+O)', openModchartFile],
+			['  Save As...', function() saveModchart(true)],
+			['  Open Modchart', openModchartFile],
 			['  Reload', reloadFromFile],
-			['  Load Example', loadExample],
+			['  Example Modchart', loadExample],
 			['  Clear', clearModchart],
 			['  Playtest (Enter)', goToPlayState],
-			['  Exit to Editor Menu', exitToMenu]
+			['  Exit', exitToMenu]
 		];
 
 		var menu = upperBox.getTab('File').menu;
@@ -1043,59 +1087,67 @@ class ModchartEditorState extends MusicBeatState
 	}
 
 	static final HELP_PAGES:Array<String> = [
-		"HOW IT WORKS\n\n"
-		+ "A modchart moves the arrows during the song. It's made of 3 things:\n\n"
-		+ "MODIFIERS -> the rows of the timeline.\n"
-		+ "An effect with a name and a value (e.g. \"slide\" with the X effect).\n"
-		+ "At 0 it does nothing (at 1 for size and speed effects).\n"
-		+ "ALL / OPP / PLR / L0-L7 -> which arrows it moves. The number on the right -> its value right now.\n\n"
-		+ "EVENTS -> the marks on the rows. They change the value of a modifier at a certain beat.\n"
-		+ "SET (blue) -> changes instantly.\n"
-		+ "EASE (white + bar) -> changes gradually, the bar is how long it takes.\n"
-		+ "e.g. EASE on \"slide\", beat 8, length 2, value 200 -> the arrows move 200 pixels right from beat 8 to 10,\n"
-		+ "and stay there until another event brings the value back to 0.\n\n"
-		+ "PLAYFIELDS -> copies of the 8 arrows (add them with + in Information).\n"
-		+ "Set a modifier to a playfield to move only that copy.\n\n"
-		+ "Some effects only move the notes: press Space to see them!",
+		"BASIC EXPLANATION\n"
+		+ "\n"
+		+ "You should know already what a modchart is, so I'll be quick to explain.\n"
+		+ "\n"
+		+ "MODIFIERS are the effects applied to notes, having name and value (ex. \"slide\" - value: 1.5)\n"
+		+ "Value 0/1 resets previous value if changed.\n"
+		+ "OPTIONS: ALL/OPP/PLR/0-7/C\n"
+		+ "Note: Opponent (0-3), Player (4-7), Extra strumlines (8+), C = Char N\n"
+		+ "\n"
+		+ "EVENTS change a MODIFIER's value at a certain beat. They can be placed in the event timeline below the preview.\n"
+		+ "You can change its DURATION and EASING to your like.\n"
+		+ "Remember: value 0 or 1 = resets value to default\n"
+		+ "\n"
+		+ "PLAYFIELDS are essentially \"copies\" of the base strumlines. Use them for crazy visual effects and stuff.\n"
+		+ "\n"
+		+ "Be sure to test ALL the modifiers before creating a modchart. If you don't know what you're doing, experiment and keep trying!\n"
+		+ "\n"
+		+ "Use the Example Modchart for a better understanding of how this editor works.",
 
-		"CONTROLS\n\n"
+		"CONTROLS\n"
+		+ "\n"
 		+ "PLAYBACK\n"
-		+ "Space -> Play / Pause\n"
-		+ "A / D or Left / Right -> 1 beat back / forward (Shift: 1 measure)\n"
-		+ "Mouse Wheel -> Scroll the song (Shift: faster)\n"
-		+ "Home / End -> Start / End of the song\n"
-		+ "[ / ] -> Playback speed (Alt: reset)\n"
-		+ "Bottom bar -> Click or drag to jump around\n\n"
+		+ "Space - Play/Pause\n"
+		+ "A/D or LEFT/RIGHT - Move 1 beat forward/back\n"
+		+ "Mouse Wheel - Scroll Timeline (Hold SHIFT to go faster)\n"
+		+ "HOME/END - Go to Start/End of song\n"
+		+ "[ / ] - Playback Speed (ALT to reset)\n"
+		+ "Slider (below Preview) - Click or Drag to Move\n"
+		+ "\n"
 		+ "TIMELINE\n"
-		+ "Ctrl + Mouse Wheel -> Zoom\n"
-		+ "Mouse Wheel on the names -> Scroll the rows\n"
-		+ "Click on an empty spot -> Jump there\n\n"
-		+ "FILE\n"
-		+ "Ctrl + S -> Save\n"
-		+ "Ctrl + Shift + S -> Save as\n"
-		+ "Ctrl + O -> Open\n\n"
-		+ "OTHER\n"
-		+ "Enter -> Playtest (unsaved changes are kept)\n"
-		+ "Esc -> Deselect / Back to the song\n"
-		+ "F1 -> Show / Hide this help",
+		+ "Ctrl + Mouse Wheel - Zoom\n"
+		+ "Mouse Wheel on Name List - Scroll rows\n"
+		+ "Click on Empty to Snap at Position\n"
+		+ "\n"
+		+ "Ctrl+S - Save\n"
+		+ "Ctrl+Shift+S - Save As\n"
+		+ "Ctrl+O - Open Modchart\n"
+		+ "ENTER - Playtest\n"
+		+ "ESC - Back to Song\n"
+		+ "F1 - Open Help Menu",
 
-		"EDITING\n\n"
+		"EDITING\n"
+		+ "\n"
 		+ "MODIFIERS\n"
-		+ "New -> Create a modifier\n"
-		+ "Click on a name -> Edit or delete it\n"
-		+ "- / + in Information -> Remove / Add a playfield\n\n"
+		+ "New - Create Modifier\n"
+		+ "Click on Name - Edit/Delete\n"
+		+ "-/+ (Information) - Remove/Add Playfield\n"
+		+ "\n"
 		+ "EVENTS\n"
-		+ "Right click on a row -> New event\n"
-		+ "Click on an event -> Select it (settings on the right)\n"
-		+ "Drag an event -> Move it (Shift: free movement)\n"
-		+ "Shift + the +/- of Beat, Length and Every -> Steps of 0.01\n"
-		+ "Drag the yellow handle -> Change how long an ease lasts\n"
-		+ "Right click on an event -> Remove that modifier from it\n"
-		+ "Delete / Backspace -> Delete the event\n"
-		+ "Ctrl + C / V -> Copy / Paste at the red line\n\n"
-		+ "One event can change more modifiers:\n"
-		+ "use \"Add modifier\" and < > in the Event panel.\n\n"
-		+ "Ctrl + Z / Ctrl + Y -> Undo / Redo"
+		+ "Right Click on Row - New Event\n"
+		+ "Click on Event - Select it\n"
+		+ "Drag Event - Move it (Hold SHIFT to ignore snapping)\n"
+		+ "Drag Event Tail - Change Duration\n"
+		+ "SHIFT + (-/+) on Beat/Length/Every - Change by 0.01\n"
+		+ "Right Click on Event - Remove Modifier from it\n"
+		+ "DEL/BACKSPACE - Delete Event\n"
+		+ "Ctrl+C/V - Copy/Paste at current position\n"
+		+ "Ctrl+Z/Ctrl+Shift+Z - Undo/Redo\n"
+		+ "\n"
+		+ "One Event can change more Modifiers:\n"
+		+ "use \"Add\" and < > in the Event panel."
 	];
 
 	inline function modchartData():ModchartJson
@@ -1830,8 +1882,8 @@ class ModchartEditorState extends MusicBeatState
 			if(PsychUIInputText.focusOn != targetValueInput) targetValueInput.text = target.value;
 
 			var effect:String = effectOfModifier(target.mod);
-			effectTitleText.text = (effect != null) ? 'About "${target.mod}" (${effect.replace('Modifier', '')} effect)' : 'The modifier "${target.mod}" does not exist';
-			effectDescText.text = (effect != null) ? effectInfo(effect).desc : 'Pick an existing modifier in the list, or make a new one with "New".';
+			effectTitleText.text = (effect != null) ? '"${target.mod}" - ${effect.replace('Modifier', '')} Effect' : 'Modifier "${target.mod}" doesn\'t exist!';
+			effectDescText.text = (effect != null) ? effectInfo(effect).desc : 'Pick a modifier from list, or press "New" to create one.';
 		}
 		for (widget in subWidgets) setWidgetShown(widget, hasSubs);
 
@@ -1906,13 +1958,13 @@ class ModchartEditorState extends MusicBeatState
 		var mods:Array<Array<Dynamic>> = modchartData().modifiers;
 		var name:String = entry[ModchartFile.MOD_NAME];
 		var other:Int = modIndex(name);
-		if(other >= 0 && other != index) return 'Modifier "$name" already exists.';
+		if(other >= 0 && other != index) return 'Modifier with same name already exists.';
 
 		if(index < 0 || index >= mods.length)
 		{
 			applyEdit(null, function() { mods.push(entry); });
 			rowScroll = Std.int(Math.max(0, visibleMods.length - VISIBLE_ROWS));
-			showMessage('Added "$name": Right Click on its row to add event');
+			showMessage('Added "$name".');
 			return null;
 		}
 
@@ -1950,7 +2002,7 @@ class ModchartEditorState extends MusicBeatState
 			selectedEvent = -1;
 		});
 		selectEvent(-1);
-		showMessage('Deleted "$name" and removed events.');
+		showMessage('Deleted "$name". Events removed.');
 	}
 
 	function renameInEvents(oldName:String, newName:String)
@@ -1977,7 +2029,7 @@ class ModchartEditorState extends MusicBeatState
 		var count:Int = Std.int(FlxMath.bound(data.playfields + change, 1, MAX_PLAYFIELDS));
 		if(count == data.playfields) return;
 		applyEdit(null, function() { data.playfields = count; });
-		showMessage((change > 0) ? 'Playfield added: set a modifier to "Playfield ${count - 1}" to move it' : 'Playfield removed');
+		showMessage((change > 0) ? 'Playfield added.' : 'Playfield removed');
 	}
 
 	inline function songKey():String
@@ -2018,7 +2070,7 @@ class ModchartEditorState extends MusicBeatState
 			}
 			catch(e:Dynamic)
 			{
-				showMessage('Could not save to ' + path + ', choose another path!', true);
+				showMessage('Cannot save in path ' + path + '. Choose another one!', true);
 			}
 		}
 		#end
@@ -2047,7 +2099,7 @@ class ModchartEditorState extends MusicBeatState
 	function openModchartFile()
 	{
 		if(!fileDialog.completed) return;
-		fileDialog.open('modchart.json', 'Open modchart', null, function() {
+		fileDialog.open('modchart.json', 'Open Modchart', null, function() {
 			var parsed:Dynamic = null;
 			try
 			{
@@ -2057,13 +2109,13 @@ class ModchartEditorState extends MusicBeatState
 
 			if(parsed == null || !Std.isOfType(parsed.modifiers, Array) || !Std.isOfType(parsed.events, Array))
 			{
-				showMessage('File is not a valid modchart json file', true);
+				showMessage('File is not valid modchart.json file!', true);
 				return;
 			}
 			if(parsed.playfields == null) parsed.playfields = 1;
 
 			replaceData(Json.stringify(parsed));
-			showMessage('Opened: ' + fileDialog.path + '  (Ctrl+S to save)');
+			showMessage('Opened ' + fileDialog.path);
 		});
 	}
 
@@ -2074,10 +2126,10 @@ class ModchartEditorState extends MusicBeatState
 			var fresh:ModchartJson = playfieldRenderer.modchart.loadFromJson(PlayState.SONG.song.toLowerCase());
 			replaceData(Json.stringify(fresh));
 			hasUnsaved = false;
-			showMessage('Modchart reloaded');
+			showMessage('Modchart Reloaded');
 		};
 
-		if(hasUnsaved) openSubState(new Prompt('Reload the modchart?\nUnsaved changes will be lost!', reload, null, 'Reload'));
+		if(hasUnsaved) openSubState(new Prompt('Reload Modchart?\nUnsaved changes will be lost!', reload, null, 'Reload'));
 		else reload();
 	}
 
@@ -2086,7 +2138,7 @@ class ModchartEditorState extends MusicBeatState
 		var load = function() {
 			replaceData(EXAMPLE_MODCHART);
 			seekTo(0);
-			showMessage('Example loaded: press Space to Preview');
+			showMessage('Example Loaded!');
 		};
 
 		var data:ModchartJson = modchartData();
@@ -2106,9 +2158,9 @@ class ModchartEditorState extends MusicBeatState
 				selectedEvent = -1;
 			});
 			selectEvent(-1);
-			showMessage('Modchart cleared');
+			showMessage('Modchart Cleared');
 		};
-		openSubState(new Prompt('Delete all modifiers, events\nand playfields?', clear, null, 'Clear'));
+		openSubState(new Prompt('Delete everything? This cannot be undone.', clear, null, 'Clear'));
 	}
 
 	function showMessage(text:String, ?isError:Bool = false)
@@ -2148,7 +2200,7 @@ class ModchartEditorState extends MusicBeatState
 
 		helpText.text = HELP_PAGES[helpPage];
 		helpText.screenCenter();
-		helpPageText.text = '<' + (helpPage + 1) + '/' + HELP_PAGES.length + '>';
+		helpPageText.text = '<PAGE ' + (helpPage + 1) + '/' + HELP_PAGES.length + '>';
 	}
 
 	function setPlaying(play:Bool)
@@ -2397,6 +2449,7 @@ class ModchartEditorState extends MusicBeatState
 			case 'player': 'PLR';
 			case 'opponent': 'OPP';
 			case 'lane' | 'lanespecific': 'L' + parseIntSafe(mod[ModchartFile.MOD_LANE], 0);
+			case 'character' | 'char': 'C' + parseIntSafe(mod[ModchartFile.MOD_LANE], 0);
 			default: 'ALL';
 		}
 		var pf:Int = parseIntSafe(mod[ModchartFile.MOD_PF], -1);
@@ -2510,7 +2563,7 @@ class ModchartEditorState extends MusicBeatState
 			FlxG.sound.playMusic(Paths.music('freakyMenu'));
 		};
 
-		if(hasUnsaved) openSubState(new Prompt('There\'s unsaved progress,\nare you sure you want to exit?', leave, null, 'Exit'));
+		if(hasUnsaved) openSubState(new Prompt('WARNING\nUnsaved progress, make sure to Save before Exit!', leave, null, 'Exit'));
 		else leave();
 	}
 
@@ -2590,14 +2643,14 @@ class ModifierPopup extends MusicBeatSubstate
 		descText.color = 0xFFDDDDDD;
 
 		widget(new FlxText(x0, y0 + 215, 90, 'Moves:', 10));
-		typeDropDown = widget(new PsychUIDropDownMenu(fx, y0 + 212, ModchartEditorState.TYPE_LABELS, function(_, label:String) refreshLane(), 110));
+		typeDropDown = widget(new PsychUIDropDownMenu(fx, y0 + 212, ModchartEditorState.TYPE_LABELS.concat(editor.characterTargetLabels()), function(_, label:String) refreshLane(), 110));
 		laneLabel = widget(new FlxText(fx + 160, y0 + 215, 50, 'Lane:', 10));
-		laneStepper = widget(new PsychUINumericStepper(fx + 210, y0 + 212, 1, 0, 0, 7, 0, 40));
-		hint(fx, y0 + 234, 'All = Both strumlines, Player/Opponent = 1 strumline, Lane = 1 strum arrow (0-3 OPP, 4-7 PLAYER)');
+		laneStepper = widget(new PsychUINumericStepper(fx + 210, y0 + 212, 1, 0, 0, Math.max(7, NoteMovement.laneCount - 1), 0, 40));
+		hint(fx, y0 + 234, 'All, Player/Opp, Char N, Lane (0-3/4-7, 8+: extra)');
 
 		widget(new FlxText(x0, y0 + 263, 90, 'Playfield:', 10));
 		playfieldDropDown = widget(new PsychUIDropDownMenu(fx, y0 + 260, editor.playfieldLabels(), null, 140));
-		hint(fx, y0 + 282, 'Keep "All playfields" unless you added more.');
+		hint(fx, y0 + 282, 'Keep "All playfields" unless more were added.');
 
 		errorText = widget(new FlxText(x0, y0 + 306, W - 40, '', 10));
 		errorText.alignment = CENTER;
@@ -2669,6 +2722,7 @@ class ModifierPopup extends MusicBeatSubstate
 				case 'player': 'Player';
 				case 'opponent': 'Opponent';
 				case 'lane' | 'lanespecific': 'Lane';
+				case 'character' | 'char': 'Char ' + Std.string(entry[ModchartFile.MOD_LANE]);
 				default: 'All';
 			}
 
@@ -2706,11 +2760,14 @@ class ModifierPopup extends MusicBeatSubstate
 		var name:String = nameInput.text.trim();
 		if(name.length < 1) name = editor.uniqueModName(effect, index);
 
-		var type:String = (typeDropDown.selectedLabel != null) ? typeDropDown.selectedLabel.toLowerCase() : 'all';
+		var label:String = (typeDropDown.selectedLabel != null) ? typeDropDown.selectedLabel : 'All';
+		var character:Null<Int> = label.startsWith('Char ') ? Std.parseInt(label.substr('Char '.length)) : null;
+		var type:String = (character != null) ? 'character' : label.toLowerCase();
 		var pf:Int = ModchartEditorState.playfieldFromLabel(playfieldDropDown.selectedLabel);
 
 		var entry:Array<Dynamic> = [name, effect, type, pf];
 		if(type == 'lane') entry.push(Std.int(laneStepper.value));
+		if(character != null) entry.push(character);
 
 		var error:String = editor.submitModifier(index, entry);
 		if(error != null)

@@ -25,6 +25,13 @@ class NotesSettingsSubState extends BaseOptionsMenu
 		option.decimals = 1;
 		addOption(option);
 
+		var option:Option = new Option('Hold Note Tail',
+			"Where the hold note tail is drawn.\nFront uses classic style, Behind makes it look cleaner\nand may help with modcharting",
+			'holdNoteTail',
+			STRING,
+			['Front', 'Behind']);
+		addOption(option);
+
 		var option:Option = new Option('Quant Notes',
 			"If checked, notes are colored by their beat quantization\ninstead of their lane color.",
 			'quantNotes',

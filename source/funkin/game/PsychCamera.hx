@@ -9,7 +9,9 @@ import flixel.system.FlxAssets.FlxShader;
 import funkin.graphics.BitmapDataUtil;
 import funkin.util.Logger;
 import funkin.graphics.FixedBitmapData;
-import funkin.graphics.shaders.CustomBlendShader;
+import funkin.graphics.shaders.RuntimeCustomBlendShader;
+import animate.internal.RenderTexture;
+import openfl.Lib;
 import openfl.display.BitmapData;
 import openfl.display.BlendMode;
 import openfl.geom.ColorTransform;
@@ -20,19 +22,44 @@ import flixel.tweens.FlxEase.EaseFunction;
 // PsychCamera handles followLerp based on elapsed
 // and stops camera from snapping at higher framerates
 
+@:access(openfl.display.DisplayObject)
+@:access(openfl.geom.ColorTransform)
 class PsychCamera extends FlxCamera
 {
 	public static var blendShaderEnabled:Bool = true;
-	public static var MAX_BLEND_LAYERS:Int = 8;
+
+	public static final SHADER_BLEND_MODES:Array<BlendMode> = [
+		DARKEN,
+		HARDLIGHT,
+		LIGHTEN,
+		OVERLAY,
+		DIFFERENCE,
+		INVERT,
+		SUBTRACT,
+		COLORDODGE,
+		COLORBURN,
+		SOFTLIGHT,
+		EXCLUSION,
+		HUE,
+		SATURATION,
+		COLOR,
+		LUMINOSITY
+	];
 
 	static var _blendBroken:Bool = false;
 
-	var _blendShaders:Array<CustomBlendShader> = [];
-	var _blendCaptures:Array<FixedBitmapData> = [];
-	var _blendIndex:Int = 0;
+	public var crossCameraBlending:Bool = false;
+
+	var _blendShader:RuntimeCustomBlendShader;
+	var _blendRenderTexture:RenderTexture;
+	var _backgroundRenderTexture:RenderTexture;
+	var _cameraTexture:FixedBitmapData;
+	var _cameraTextureWidth:Int = 0;
+	var _cameraTextureHeight:Int = 0;
+	var _cameraMatrix:FlxMatrix = new FlxMatrix();
+	var _blendMatrix:FlxMatrix = new FlxMatrix();
+	var _blendVertices:DrawData<Float> = new DrawData<Float>();
 	var _capturing:Bool = false;
-	var _captureWidth:Int = 0;
-	var _captureHeight:Int = 0;
 
 	public var viewAngle:Float = 0;
 
@@ -113,65 +140,130 @@ class PsychCamera extends FlxCamera
 		if (!_capturing) beginRotationFrame();
 	}
 
-	inline function needsBlendShader(blend:BlendMode, shader:FlxShader):Bool
-		return blendShaderEnabled && !_blendBroken && blend != null && shader == null && !_capturing
-			&& CustomBlendShader.SUPPORTED.contains(blend) && CustomBlendShader.available;
+	inline function needsBlendShader(blend:BlendMode):Bool
+		return blendShaderEnabled && !_blendBroken && !_capturing && blend != null && !FlxG.renderBlit
+			&& SHADER_BLEND_MODES.contains(blend) && RuntimeCustomBlendShader.available;
 
-	function prepareBlendShader(blend:BlendMode, ?source:BitmapData):CustomBlendShader
+	function prepareBlendTextures():Void
+	{
+		var w:Int = Std.int(Math.max(1, width));
+		var h:Int = Std.int(Math.max(1, height));
+
+		if (_blendShader == null) _blendShader = new RuntimeCustomBlendShader();
+		if (_blendRenderTexture == null) _blendRenderTexture = new RenderTexture(w, h);
+		if (_backgroundRenderTexture == null) _backgroundRenderTexture = new RenderTexture(w, h);
+		if (_cameraTexture == null || _cameraTextureWidth != w || _cameraTextureHeight != h)
+		{
+			if (_cameraTexture != null) _cameraTexture.dispose();
+			_cameraTexture = FixedBitmapData.create(w, h);
+			_cameraTextureWidth = w;
+			_cameraTextureHeight = h;
+		}
+	}
+
+	function captureBackground():Void
+	{
+		_capturing = true;
+		if (crossCameraBlending)
+		{
+			var index:Int = FlxG.cameras.list.indexOf(this);
+			var below:Array<FlxCamera> = [for (i in 0...(index + 1)) FlxG.cameras.list[i]];
+			if (index < 0) below = [this];
+			BitmapDataUtil.drawCameraScreens(_cameraTexture, below);
+			for (camera in below)
+			{
+				camera.clearDrawStack();
+				camera.canvas.graphics.clear();
+			}
+		}
+		else
+		{
+			BitmapDataUtil.drawCameraScreen(_cameraTexture, this);
+			clearDrawStack();
+			canvas.graphics.clear();
+		}
+		_capturing = false;
+	}
+
+	function drawBlended(blend:BlendMode, smoothing:Bool, drawSource:FlxCamera->Void):Bool
 	{
 		try
 		{
-			var w:Int = Std.int(width);
-			var h:Int = Std.int(height);
-			if (w < 1) w = 1;
-			if (h < 1) h = 1;
+			prepareBlendTextures();
+			captureBackground();
 
-			if (_captureWidth != w || _captureHeight != h)
+			var w:Int = Std.int(Math.max(1, width));
+			var h:Int = Std.int(Math.max(1, height));
+
+			_blendRenderTexture.init(w, h);
+			_blendRenderTexture.antialiasing = smoothing;
+			_blendRenderTexture.drawToCamera((camera, _) -> drawSource(camera));
+			_blendRenderTexture.render();
+
+			var sourceFrame:FlxFrame = _blendRenderTexture.graphic.imageFrame.frame;
+			_blendShader.sourceSwag = _blendRenderTexture.graphic.bitmap;
+			_blendShader.backgroundSwag = _cameraTexture;
+			_blendShader.blendSwag = blend;
+
+			var clampedScale:Float = Math.max(1, Lib.current.stage.window.scale);
+			var colorTransform:ColorTransform = canvas.transform.colorTransform;
+			_backgroundRenderTexture.init(Std.int(w * clampedScale), Std.int(h * clampedScale));
+			_backgroundRenderTexture.drawToCamera((camera, matrix) ->
 			{
-				for (bmp in _blendCaptures) bmp.dispose();
-				_blendCaptures = [];
-				_captureWidth = w;
-				_captureHeight = h;
-			}
+				camera.zoom = zoom;
+				matrix.scale(clampedScale, clampedScale);
+				camera.drawPixels(sourceFrame, null, matrix, colorTransform, null, false, _blendShader);
+			});
+			_backgroundRenderTexture.render();
 
-			var index:Int = _blendIndex;
-			if (index >= MAX_BLEND_LAYERS) index = MAX_BLEND_LAYERS - 1;
-			else _blendIndex++;
-
-			while (_blendShaders.length <= index) _blendShaders.push(new CustomBlendShader());
-			while (_blendCaptures.length <= index) _blendCaptures.push(FixedBitmapData.create(w, h));
-
-			var capture:FixedBitmapData = _blendCaptures[index];
-			var shader:CustomBlendShader = _blendShaders[index];
-
-			_capturing = true;
-			BitmapDataUtil.drawCameraScreen(capture, this, true);
-			_capturing = false;
-
-			shader.setBackground(capture);
-			shader.setSource(source);
-			shader.setBlend(blend);
-			shader.updateViewInfo(this);
-
-			return shader;
+			_cameraMatrix.identity();
+			_cameraMatrix.scale(1 / (scaleX * clampedScale), 1 / (scaleY * clampedScale));
+			_cameraMatrix.translate((width - width / scaleX) * 0.5, (height - height / scaleY) * 0.5);
+			super.drawPixels(_backgroundRenderTexture.graphic.imageFrame.frame, null, _cameraMatrix, null, null, smoothing, null);
+			return true;
 		}
 		catch (e:Dynamic)
 		{
 			_capturing = false;
 			_blendBroken = true;
-			Logger.error('PsychCamera: blend shader disabled after an error: ' + Std.string(e));
-			return null;
+			Logger.error('PsychCamera: advanced blend modes disabled after an error: ' + Std.string(e));
+			return false;
 		}
+	}
+
+	function cameraScaledMatrix(matrix:FlxMatrix):FlxMatrix
+	{
+		var pivotX:Float = width / 2;
+		var pivotY:Float = height / 2;
+		_blendMatrix.copyFrom(matrix);
+		_blendMatrix.translate(-pivotX, -pivotY);
+		_blendMatrix.scale(scaleX, scaleY);
+		_blendMatrix.translate(pivotX, pivotY);
+		return _blendMatrix;
+	}
+
+	function cameraScaledVertices(vertices:DrawData<Float>, ?position:FlxPoint):DrawData<Float>
+	{
+		var offsetX:Float = (position != null) ? position.x : 0;
+		var offsetY:Float = (position != null) ? position.y : 0;
+		var pivotX:Float = width / 2;
+		var pivotY:Float = height / 2;
+
+		_blendVertices.length = vertices.length;
+		var i:Int = 0;
+		while (i < vertices.length - 1)
+		{
+			_blendVertices[i] = (vertices[i] + offsetX - pivotX) * scaleX + pivotX;
+			_blendVertices[i + 1] = (vertices[i + 1] + offsetY - pivotY) * scaleY + pivotY;
+			i += 2;
+		}
+		return _blendVertices;
 	}
 
 	override public function render():Void
 	{
 		super.render();
-		if (!_capturing)
-		{
-			_blendIndex = 0;
-			restoreMargins();
-		}
+		if (!_capturing) restoreMargins();
 	}
 
 	override public function drawPixels(?frame:FlxFrame, ?pixels:BitmapData, matrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
@@ -184,8 +276,15 @@ class PsychCamera extends FlxCamera
 	override public function copyPixels(?frame:FlxFrame, ?pixels:BitmapData, ?sourceRect:Rectangle, destPoint:Point, ?transform:ColorTransform,
 		?blend:BlendMode, ?smoothing:Bool = false, ?shader:FlxShader):Void
 	{
-		if (!_rotating || frame == null)
+		if ((!_rotating && !needsBlendShader(blend)) || frame == null)
 			return super.copyPixels(frame, pixels, sourceRect, destPoint, transform, blend, smoothing, shader);
+
+		if (!_rotating)
+		{
+			_rotMatrix.identity();
+			_rotMatrix.translate(destPoint.x + frame.offset.x, destPoint.y + frame.offset.y);
+			return drawPixelsWithBlend(frame, pixels, _rotMatrix, transform, blend, smoothing, shader);
+		}
 
 		_rotMatrix.identity();
 		_rotMatrix.translate(destPoint.x + frame.offset.x, destPoint.y + frame.offset.y);
@@ -195,15 +294,12 @@ class PsychCamera extends FlxCamera
 	function drawPixelsWithBlend(?frame:FlxFrame, ?pixels:BitmapData, matrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 		?smoothing:Bool = false, ?shader:FlxShader):Void
 	{
-		if (FlxG.renderBlit || !needsBlendShader(blend, shader))
+		if (frame == null || !needsBlendShader(blend))
 			return super.drawPixels(frame, pixels, matrix, transform, blend, smoothing, shader);
 
-		var source:BitmapData = (frame != null && frame.parent != null) ? frame.parent.bitmap : pixels;
-		var blendShader:CustomBlendShader = prepareBlendShader(blend, source);
-		if (blendShader == null)
-			return super.drawPixels(frame, pixels, matrix, transform, blend, smoothing, shader);
-
-		super.drawPixels(frame, pixels, matrix, transform, null, smoothing, blendShader);
+		var scaled:FlxMatrix = cameraScaledMatrix(matrix);
+		if (!drawBlended(blend, smoothing, (camera) -> camera.drawPixels(frame, pixels, scaled, transform, null, smoothing, shader)))
+			super.drawPixels(frame, pixels, matrix, transform, blend, smoothing, shader);
 	}
 
 	override public function drawTriangles(graphic:FlxGraphic, vertices:DrawData<Float>, indices:DrawData<Int>, uvtData:DrawData<Float>,
@@ -216,14 +312,12 @@ class PsychCamera extends FlxCamera
 			position = _rotPosition.set(0, 0);
 		}
 
-		if (FlxG.renderBlit || !needsBlendShader(blend, shader))
+		if (!needsBlendShader(blend))
 			return super.drawTriangles(graphic, vertices, indices, uvtData, colors, position, blend, repeat, smoothing, transform, shader);
 
-		var blendShader:CustomBlendShader = prepareBlendShader(blend, graphic.bitmap);
-		if (blendShader == null)
-			return super.drawTriangles(graphic, vertices, indices, uvtData, colors, position, blend, repeat, smoothing, transform, shader);
-
-		super.drawTriangles(graphic, vertices, indices, uvtData, colors, position, null, repeat, smoothing, transform, blendShader);
+		var scaled:DrawData<Float> = cameraScaledVertices(vertices, position);
+		if (!drawBlended(blend, smoothing, (camera) -> camera.drawTriangles(graphic, scaled, indices, uvtData, colors, null, null, repeat, smoothing, transform, shader)))
+			super.drawTriangles(graphic, vertices, indices, uvtData, colors, position, blend, repeat, smoothing, transform, shader);
 	}
 
 	function rotateVertices(vertices:DrawData<Float>, ?position:FlxPoint):DrawData<Float>
@@ -250,9 +344,13 @@ class PsychCamera extends FlxCamera
 	{
 		restoreMargins();
 		_rotPosition.put();
-		for (bmp in _blendCaptures) bmp.dispose();
-		_blendCaptures = [];
-		_blendShaders = [];
+		if (_blendRenderTexture != null) _blendRenderTexture.destroy();
+		if (_backgroundRenderTexture != null) _backgroundRenderTexture.destroy();
+		if (_cameraTexture != null) _cameraTexture.dispose();
+		_blendRenderTexture = null;
+		_backgroundRenderTexture = null;
+		_cameraTexture = null;
+		_blendShader = null;
 		super.destroy();
 	}
 

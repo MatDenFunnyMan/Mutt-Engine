@@ -17,6 +17,7 @@ typedef ResultsData = {
 	var difficulty:String;
 	var score:Int;
 	var accuracy:Float;
+	var clear:Float;
 	var misses:Int;
 	var sicks:Int;
 	var goods:Int;
@@ -84,7 +85,7 @@ class ResultsState extends MusicBeatState
 		this.data = data;
 		this.onContinue = onContinue;
 		this.character = RankData.resolveCharacter(data.playerCharacter);
-		this.rank = RankData.calculate(data.accuracy, data.misses, data.sicks, data.totalHits);
+		this.rank = RankData.calculate(data.clear, data.sicks, data.totalHits + data.misses);
 	}
 
 	override function create()
@@ -96,7 +97,7 @@ class ResultsState extends MusicBeatState
 		DiscordClient.changePresence('Results Screen', data.songName);
 		#end
 
-		clearPercentTarget = Math.floor(CoolUtil.floorDecimal(data.accuracy * 100, 2));
+		clearPercentTarget = Math.floor(CoolUtil.floorDecimal(data.clear * 100, 2));
 
 		setupCameras();
 		setupLayers();

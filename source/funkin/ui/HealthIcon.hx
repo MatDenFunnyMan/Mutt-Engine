@@ -2,6 +2,8 @@ package funkin.ui;
 
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
+import flixel.graphics.frames.FlxFrame;
+import flixel.math.FlxRect;
 import openfl.display.BitmapData;
 import openfl.geom.Matrix;
 
@@ -67,6 +69,9 @@ class HealthIcon extends FlxSprite
 
 		this.char = char;
 		iconKey = name;
+		artRect = null;
+		measureSource = null;
+		measureFactor = 1;
 		isAnimated = false;
 		isSmallIcon = false;
 		totalStates = 1;
@@ -107,8 +112,10 @@ class HealthIcon extends FlxSprite
 	function loadStaticIcon(name:String, ?allowGPU:Bool = true)
 	{
 		var graphic:FlxGraphic = Paths.image(name, allowGPU);
+		measureSource = graphic;
 		isSmallIcon = graphic.height <= ICON_SIZE / 2;
 		if(isSmallIcon) graphic = upscaleIcon(graphic, allowGPU);
+		measureFactor = Std.int(Math.max(1, Math.round(graphic.height / measureSource.height)));
 		var iSize:Float = Math.round(graphic.width / graphic.height);
 		loadGraphic(graphic, true, Math.floor(graphic.width / iSize), Math.floor(graphic.height));
 		iconOffsets[0] = (width - 150) / iSize;
@@ -342,5 +349,97 @@ class HealthIcon extends FlxSprite
 
 	public function getCharacter():String {
 		return char;
+	}
+
+	var artRect:FlxRect = null;
+	var artFrameWidth:Float = 150;
+	var measureSource:FlxGraphic = null;
+	var measureFactor:Int = 1;
+
+	public function artBounds():FlxRect
+	{
+		if(artRect == null) artRect = measureRestFrame();
+		var rect:FlxRect = FlxRect.get(artRect.x, artRect.y, artRect.width, artRect.height);
+		if(isPlayer != flipX) rect.x = artFrameWidth - artRect.right;
+		return rect;
+	}
+
+	function restOffset(axis:Int):Float
+	{
+		if(!autoAdjustOffset) return (axis == 0) ? offset.x : offset.y;
+		var extra:Array<Float> = stateOffsets[STATE_NEUTRAL];
+		return iconOffsets[axis] + ((extra != null) ? extra[axis] : 0);
+	}
+
+	public function artScreenBounds():FlxRect
+	{
+		var rect:FlxRect = artBounds();
+		var baseX:Float = x - restOffset(0) + origin.x;
+		var baseY:Float = y - restOffset(1) + origin.y;
+		var x1:Float = baseX + (rect.x - origin.x) * scale.x;
+		var x2:Float = baseX + (rect.right - origin.x) * scale.x;
+		var y1:Float = baseY + (rect.y - origin.y) * scale.y;
+		var y2:Float = baseY + (rect.bottom - origin.y) * scale.y;
+		rect.set(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+		return rect;
+	}
+
+	public function artCenterY(atScale:Float):Float
+	{
+		var rect:FlxRect = artBounds();
+		var center:Float = y - restOffset(1) + origin.y + (rect.y + rect.height / 2 - origin.y) * atScale;
+		rect.put();
+		return center;
+	}
+
+	public function placeArtCenter(centerX:Float, centerY:Float)
+	{
+		var rect:FlxRect = artBounds();
+		x = centerX + restOffset(0) - origin.x - (rect.x + rect.width / 2 - origin.x) * scale.x;
+		y = centerY + restOffset(1) - origin.y - (rect.y + rect.height / 2 - origin.y) * scale.y;
+		rect.put();
+	}
+
+	function restFrame():FlxFrame
+	{
+		if(frames == null || frames.frames.length < 1) return null;
+		if(!isAnimated) return frames.frames[0];
+		var anim = animation.getByName(stateAnims[STATE_NEUTRAL]);
+		return (anim != null && anim.frames.length > 0) ? frames.frames[anim.frames[0]] : frames.frames[0];
+	}
+
+	function measureRestFrame():FlxRect
+	{
+		var frame:FlxFrame = restFrame();
+		if(frame == null)
+		{
+			artFrameWidth = frameWidth;
+			return FlxRect.get(0, 0, frameWidth, frameHeight);
+		}
+
+		artFrameWidth = frame.sourceSize.x;
+		var full:FlxRect = FlxRect.get(0, 0, frame.sourceSize.x, frame.sourceSize.y);
+		var pixels:BitmapData = Paths.readablePixels(measureSource != null ? measureSource : frame.parent);
+		if(pixels == null || frame.angle != FlxFrameAngle.ANGLE_0) return full;
+
+		var factor:Int = measureFactor;
+		var startX:Int = Std.int(frame.frame.x / factor);
+		var startY:Int = Std.int(frame.frame.y / factor);
+		var w:Int = Std.int(Math.min(frame.frame.width / factor, pixels.width - startX));
+		var h:Int = Std.int(Math.min(frame.frame.height / factor, pixels.height - startY));
+		var minX:Int = w, minY:Int = h, maxX:Int = -1, maxY:Int = -1;
+		for (py in 0...h)
+			for (px in 0...w)
+				if((pixels.getPixel32(startX + px, startY + py) >>> 24) > 24)
+				{
+					if(px < minX) minX = px;
+					if(px > maxX) maxX = px;
+					if(py < minY) minY = py;
+					if(py > maxY) maxY = py;
+				}
+		if(maxX < 0) return full;
+
+		full.set(frame.offset.x + minX * factor, frame.offset.y + minY * factor, (maxX - minX + 1) * factor, (maxY - minY + 1) * factor);
+		return full;
 	}
 }

@@ -21,7 +21,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 
 		#if !html5 //Apparently other framerates isn't correctly supported on Browser? Probably it has some V-Sync shit enabled by default, idk
 		var option:Option = new Option('Framerate',
-			"Pretty self explanatory, isn't it?",
+			"You already know this shit, buh...",
 			'framerate',
 			INT);
 		addOption(option);
@@ -36,7 +36,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 
 		#if (cpp && windows)
 		var option:Option = new Option('V-Sync',
-			"If checked, the framerate is synced with your monitor's refresh rate,\nremoving screen tearing.",
+			"If checked, FPS match monitor's refresh rate, prevents screen tearing.",
 			'vsync',
 			BOOL);
 		option.onChange = onChangeVSync;
@@ -45,14 +45,14 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 
 		#if !html5
 		var option:Option = new Option('Unlocked Framerate',
-			"If checked, the game runs as fast as it can,\nignoring the Framerate option.",
+			"Unlocks framerate to enhance your pro gamer skills!!!\nYou're a psychopath.",
 			'unlockedFramerate',
 			BOOL);
 		option.onChange = onChangeFramerate;
 		addOption(option);
 
 		var option:Option = new Option('Resolution',
-			"Fullscreen = the game takes the whole screen.\nBorderless = a window without borders as big as the screen.\nWindowed = a normal window.",
+			"Adjust game's resolution.\nOptions: Fullscreen, Borderless, Windowed\n'Borderless' is recommended for recording,\nunless mods interact with the game window!",
 			'resolution',
 			STRING,
 			DisplaySettings.RESOLUTIONS);
@@ -63,13 +63,13 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 
 		//I'd suggest using "Low Quality" as an example for making your own option since it is the simplest here
 		var option:Option = new Option('Low Quality', //Name
-			'If checked, disables some background details,\ndecreases loading times and improves performance.', //Description
+			"If checked, disables some background details,\ndecreases loading times and improves performance.\n'What changes?' For example, nothing.", //Description
 			'lowQuality', //Save data variable name
 			BOOL); //Variable type
 		addOption(option);
 
 		var option:Option = new Option('Anti-aliasing',
-			'If unchecked, disables anti-aliasing, increases performance\nat the cost of sharper visuals.',
+			"If unchecked, disables anti-aliasing,\nincreases performance but sprites look worse.\nWhy would you disable this...? Is your PC that ass???",
 			'antialiasing',
 			BOOL);
 		option.onChange = onChangeAntiAliasing; //Changing onChange is only needed if you want to make a special interaction after it changes the value
@@ -77,13 +77,13 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		antialiasingOption = optionsArray.length-1;
 
 		var option:Option = new Option('Shaders', //Name
-			"If unchecked, disables shaders.\nIt's used for some visual effects, and also CPU intensive for weaker PCs.", //Description
+			"If unchecked, disables shaders.\nDisable them if you have a crappy PC.", //Description
 			'shaders',
 			BOOL);
 		addOption(option);
 
 		var option:Option = new Option('GPU Caching',
-			"If checked, images are stored in video memory instead of RAM,\nlowering memory usage. Applies to newly loaded images.",
+			"If checked, images & sprites are stored on GPU instead of RAM,\nlowers memory usage.\nRecommended ONLY if you have a dedicated GPU!",
 			'cacheOnGPU',
 			BOOL);
 		addOption(option);

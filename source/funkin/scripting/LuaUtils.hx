@@ -251,9 +251,34 @@ class LuaUtils
 
 			default:
 				var obj:Dynamic = MusicBeatState.getVariables().get(objectName);
+				if(obj == null) obj = extraCharacterObject(objectName);
 				if(obj == null) obj = getVarInArray(MusicBeatState.getState(), objectName, allowMaps);
 				return obj;
 		}
+	}
+
+	public static function extraCharacterObject(objectName:String):Dynamic
+	{
+		var game:PlayState = PlayState.instance;
+		if(game == null || objectName == null || !objectName.startsWith('character')) return null;
+
+		var rest:String = objectName.substr('character'.length);
+		var suffix:String = '';
+		for (ending in ['Group', 'Strums'])
+		{
+			if(rest.endsWith(ending))
+			{
+				suffix = ending;
+				rest = rest.substr(0, rest.length - ending.length);
+				break;
+			}
+		}
+
+		var slot:Null<Int> = Std.parseInt(rest);
+		if(slot == null || Std.string(slot) != rest || slot < funkin.data.Song.FIRST_EXTRA_SLOT) return null;
+		if(suffix == 'Group') return game.characterGroupFromName(rest);
+		if(suffix == 'Strums') return game.getExtraStrums(slot);
+		return game.getExtraCharacter(slot);
 	}
 	
 	public static function isOfTypes(value:Any, types:Array<Dynamic>)
@@ -359,7 +384,7 @@ class LuaUtils
 
 	public static function destroyObject(tag:String) {
 		var variables = MusicBeatState.getVariables();
-		var obj:FlxSprite = variables.get(tag);
+		var obj:flixel.FlxBasic = variables.get(tag);
 		if(obj == null || obj.destroy == null)
 			return;
 
@@ -496,6 +521,14 @@ class LuaUtils
 			case 'screen': return SCREEN;
 			case 'shader': return SHADER;
 			case 'subtract': return SUBTRACT;
+			case 'colordodge': return COLORDODGE;
+			case 'colorburn': return COLORBURN;
+			case 'softlight': return SOFTLIGHT;
+			case 'exclusion': return EXCLUSION;
+			case 'hue': return HUE;
+			case 'saturation': return SATURATION;
+			case 'color': return COLOR;
+			case 'luminosity': return LUMINOSITY;
 		}
 		return NORMAL;
 	}
@@ -512,6 +545,76 @@ class LuaUtils
 		if (type <= Lua.LUA_TNIL) return "nil";
 		#end
 		return "unknown";
+	}
+
+	static var warnedDeprecated:Map<String, Bool> = new Map<String, Bool>();
+	public static function warnDeprecated(name:String, replacement:String)
+	{
+		#if LUA_ALLOWED
+		var script:FunkinLua = FunkinLua.lastCalledScript;
+		var inGame:Bool = script != null && PlayState.instance != null;
+		var key:String = (inGame ? script.scriptName : '') + ':' + name;
+		if(warnedDeprecated.exists(key)) return;
+		warnedDeprecated.set(key, true);
+		var message:String = '$name is deprecated! Use $replacement instead';
+		if(inGame) FunkinLua.luaTrace(message, false, true);
+		else trace(message);
+		#end
+	}
+
+	public static function colorFromLua(color:String):Null<FlxColor>
+	{
+		if(color == null) return null;
+		color = color.trim();
+		var hex:String = color.startsWith('#') ? color.substr(1) : (color.toLowerCase().startsWith('0x') ? color.substr(2) : color);
+		if((hex.length == 6 || hex.length == 8) && isHex(hex))
+		{
+			var parts:Array<Int> = [for (i in 0...Std.int(hex.length / 2)) Std.parseInt('0x' + hex.substr(i * 2, 2))];
+			if(hex.length == 6) return FlxColor.fromRGB(parts[0], parts[1], parts[2]);
+			return FlxColor.fromRGB(parts[1], parts[2], parts[3], parts[0]);
+		}
+		var result:Null<FlxColor> = FlxColor.fromString(color);
+		if(result == null && !color.startsWith('#')) result = FlxColor.fromString('#' + color);
+		return result;
+	}
+
+	static function isHex(text:String):Bool
+	{
+		for (i in 0...text.length)
+		{
+			var code:Int = StringTools.fastCodeAt(text, i);
+			if(!((code >= 48 && code <= 57) || (code >= 65 && code <= 70) || (code >= 97 && code <= 102))) return false;
+		}
+		return true;
+	}
+
+	public static function hasAtlas(image:String):Bool
+	{
+		for (ext in ['xml', 'json', 'txt'])
+		{
+			var path:String = Paths.getPath('images/$image.$ext', TEXT, null, true);
+			if(openfl.utils.Assets.exists(path)) return true;
+			#if MODS_ALLOWED
+			if(FileSystem.exists(path)) return true;
+			#end
+		}
+		return false;
+	}
+
+	public static function option(options:Dynamic, name:String):Dynamic
+	{
+		if(options == null || !Reflect.hasField(options, name)) return null;
+		return Reflect.field(options, name);
+	}
+
+	public static function splitEase(ease:String):Array<String>
+	{
+		if(ease == null || ease.trim().length < 1) return ['', ''];
+		ease = ease.trim();
+		for (dir in ['InOut', 'In', 'Out'])
+			if(ease.length > dir.length && ease.endsWith(dir))
+				return [ease.substr(0, ease.length - dir.length), dir];
+		return [ease, 'InOut'];
 	}
 
 	public static function cameraFromString(cam:String):FlxCamera {

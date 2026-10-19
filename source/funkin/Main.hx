@@ -72,7 +72,6 @@ class Main extends Sprite
 	public static var audioDisconnected:Bool = false;
 	public static var changeID:Int = 0;
 	public static var focusVolume:Null<Float> = null;
-	static inline final LOST_FOCUS_VOLUME:Float = 0.35;
 
 	var flashSprite:Sprite;
 	var flashBitmap:openfl.display.Bitmap;
@@ -283,6 +282,7 @@ class Main extends Sprite
 		
 		#if CRASH_HANDLER
 		funkin.util.CrashHandler.init();
+		funkin.util.NativeCrashHandler.init();
 		#end
 
 		FlxG.signals.gameResized.add(function (w, h) {
@@ -306,9 +306,9 @@ class Main extends Sprite
 
 	static function onWindowFocusLost():Void
 	{
-		if(FlxG.autoPause || focusVolume != null || FlxG.sound.muted || FlxG.sound.volume == 0) return;
+		if(FlxG.autoPause || focusVolume != null || FlxG.sound.muted || FlxG.sound.volume == 0 || ClientPrefs.data.unfocusedVolume >= 1) return;
 		focusVolume = FlxG.sound.volume;
-		FlxG.sound.volume *= LOST_FOCUS_VOLUME;
+		FlxG.sound.volume *= Math.max(0, ClientPrefs.data.unfocusedVolume);
 	}
 
 	static function onWindowFocusGained():Void
@@ -341,6 +341,16 @@ class Main extends Sprite
 			for (key in consoleKeys) {
 				if (event.keyCode == key) {
 					CMD.openCMD();
+					break;
+				}
+			}
+		}
+
+		var displayKeys = ClientPrefs.keyBinds.get('debug_display');
+		if (displayKeys != null) {
+			for (key in displayKeys) {
+				if (event.keyCode == key) {
+					ClientPrefs.cycleDebugDisplay();
 					break;
 				}
 			}

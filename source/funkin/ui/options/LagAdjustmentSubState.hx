@@ -568,6 +568,27 @@ class LagAdjustmentSubState extends MusicBeatSubstate
 			calibrationHit(pressQueue.shift().time);
 	}
 
+	static final MAD_MESSAGES:Array<String> = [
+		'Try to be a little more consistent with your timing!',
+		'Bruh are you serious? You need to hit the note when it reaches the gray note!',
+		'Are you doing this on purpose?',
+		'Stop it.',
+		"You're a loser.",
+		'Your parents neglected your birth.',
+		'Moron.',
+		"Go play Roblox Steal a Brainrot while you're at it.",
+		'Your IQ is lower than 5',
+		'...'
+	];
+	var madCount:Int = 0;
+
+	function madMessage():String
+	{
+		var index:Int = Std.int(Math.min(madCount, MAD_MESSAGES.length - 1));
+		var key:String = (index == 0) ? 'lag_consistent' : 'lag_consistent_${index + 1}';
+		return Language.getPhrase(key, MAD_MESSAGES[index]);
+	}
+
 	function calibrationHit(time:Float)
 	{
 		var beat:Float = time / MS_PER_BEAT;
@@ -578,7 +599,8 @@ class LagAdjustmentSubState extends MusicBeatSubstate
 
 		if(getConsistency() > MAX_INCONSISTENCY && differences.length > ARROW_HITS)
 		{
-			jumpInText.text = Language.getPhrase('lag_consistent', 'Try to be a little more consistent with your timing!');
+			jumpInText.text = madMessage();
+			madCount++;
 			differences = [];
 			tempOffset = 0;
 			appliedOffsetLerp = 0;
@@ -591,6 +613,7 @@ class LagAdjustmentSubState extends MusicBeatSubstate
 		if(differences.length >= CALIBRATION_HITS)
 		{
 			jumpInText.text = Language.getPhrase('lag_complete', 'Calibration complete!');
+			madCount = 0;
 			setGlobalOffset(tempOffset);
 			exitCalibration(false);
 			return;

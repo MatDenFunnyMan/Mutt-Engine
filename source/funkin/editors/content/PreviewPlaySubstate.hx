@@ -231,36 +231,14 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 		startCharacterPos(boyfriend);
 		boyfriendGroup.add(boyfriend);
 
-		// Extra strumlines characters
-		if (song.extraStrumlines != null)
-		{
-			for (strumData in song.extraStrumlines)
-			{
-				var isPlayer:Bool = (strumData.type == 'PLAYER');
-				var extraChar:Character = new Character(0, 0, strumData.character, isPlayer);
-
-				var baseX:Float = DAD_X;
-				var baseY:Float = DAD_Y;
-				switch (strumData.stagePosition)
-				{
-					case 'BF': baseX = BF_X; baseY = BF_Y;
-					case 'GF': baseX = GF_X; baseY = GF_Y;
-				}
-
-				var extraGroup = new FlxSpriteGroup(baseX, baseY);
-				extraGroup.add(extraChar);
-				startCharacterPos(extraChar);
-				extraCharacters.push(extraChar);
-				extraCharacterGroups.push(extraGroup);
-			}
-		}
+		createExtraCharacters(song, stageData);
 
 		// --- Stage JSON objects ---
 		if (stageData.objects != null && stageData.objects.length > 0)
 		{
 			var list = StageData.addObjectsToState(stageData.objects,
 				!stageData.hide_girlfriend ? gfGroup : null,
-				dadGroup, boyfriendGroup, this);
+				dadGroup, boyfriendGroup, this, false, [for (group in extraCharacterGroups) (group:FlxSprite)]);
 			for (key => spr in list)
 				if (!StageData.reservedNames.contains(key))
 					variables.set(key, spr);
@@ -268,30 +246,10 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 		else
 		{
 			add(gfGroup);
-
-			var dadExtras:Array<FlxSpriteGroup>  = [];
-			var bfExtras:Array<FlxSpriteGroup>   = [];
-			var gfExtras:Array<FlxSpriteGroup>   = [];
-
-			if (song.extraStrumlines != null)
-			{
-				for (i in 0...extraCharacterGroups.length)
-				{
-					switch (song.extraStrumlines[i].stagePosition)
-					{
-						case 'BF': bfExtras.push(extraCharacterGroups[i]);
-						case 'GF': gfExtras.push(extraCharacterGroups[i]);
-						default:   dadExtras.push(extraCharacterGroups[i]);
-					}
-				}
-			}
-
-			for (g in gfExtras)  add(g);
-			for (g in dadExtras) add(g);
 			if (dad != null)     add(dadGroup);
-			for (g in bfExtras)  add(g);
 			add(boyfriendGroup);
 		}
+		placeExtraCharacters(song, stageData);
 
 		// --- Lua/HScript stage + character scripts ---
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
@@ -301,6 +259,8 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 		if (gf != null)       startCharacterScripts(gf.curCharacter);
 		if (dad != null)      startCharacterScripts(dad.curCharacter);
 		startCharacterScripts(boyfriend.curCharacter);
+		for (extraChar in extraCharacters)
+			if (extraChar != null) startCharacterScripts(extraChar.curCharacter);
 		#end
 
 		// --- camFollow ---
@@ -593,6 +553,73 @@ class PreviewPlaySubstate extends MusicBeatSubstate
 	}
 
 	// ─── Character helpers ───────────────────────────────────────────────────
+
+	function createExtraCharacters(song:SwagSong, stageData:StageFile)
+	{
+		if (song.extraCharacters == null) return;
+
+		var spots:Array<StageCharacterSlot> = stageData.extra_characters;
+		for (data in song.extraCharacters)
+		{
+			if (data == null || data.character == null || data.character.length < 1) continue;
+
+			var index:Int = data.slot - Song.FIRST_EXTRA_SLOT;
+			var spot:StageCharacterSlot = (spots != null && index < spots.length) ? spots[index] : null;
+			var anchor:String = (data.anchor != null) ? data.anchor : data.parent;
+			var position:Array<Float> = switch (anchor)
+			{
+				case 'bf': [BF_X, BF_Y];
+				case 'gf': [GF_X, GF_Y];
+				default: [DAD_X, DAD_Y];
+			}
+			if (spot != null && spot.position != null && spot.position.length > 1)
+				position = [spot.position[0], spot.position[1]];
+
+			var group = new FlxSpriteGroup(position[0], position[1]);
+			var extraChar:Character = new Character(0, 0, data.character, data.parent == 'bf');
+			startCharacterPos(extraChar);
+			group.add(extraChar);
+
+			while (extraCharacters.length <= index)
+			{
+				extraCharacters.push(null);
+				extraCharacterGroups.push(null);
+			}
+			extraCharacters[index] = extraChar;
+			extraCharacterGroups[index] = group;
+		}
+	}
+
+	function placeExtraCharacters(song:SwagSong, stageData:StageFile)
+	{
+		var spots:Array<StageCharacterSlot> = stageData.extra_characters;
+		for (index => group in extraCharacterGroups)
+		{
+			if (group == null || members.contains(group)) continue;
+
+			var data:ExtraCharacterData = Song.getExtraCharacter(song, Song.FIRST_EXTRA_SLOT + index);
+			var hasSpot:Bool = (spots != null && index < spots.length && spots[index] != null);
+			var parentGroup:FlxSpriteGroup = null;
+			if (data != null)
+			{
+				parentGroup = switch (data.parent)
+				{
+					case 'bf': boyfriendGroup;
+					case 'gf': gfGroup;
+					default: dadGroup;
+				}
+			}
+			if (!hasSpot && parentGroup != null && members.contains(parentGroup))
+				insert(members.indexOf(parentGroup), group);
+			else
+			{
+				var highest:Int = -1;
+				for (other in [gfGroup, dadGroup, boyfriendGroup].concat(extraCharacterGroups))
+					if (other != null && members.indexOf(other) > highest) highest = members.indexOf(other);
+				insert(highest + 1, group);
+			}
+		}
+	}
 
 	function startCharacterPos(char:Character, ?gfCheck:Bool = false)
 	{

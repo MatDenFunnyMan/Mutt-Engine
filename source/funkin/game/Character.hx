@@ -4,6 +4,7 @@ import funkin.graphics.PsychAnimateController;
 
 import flixel.util.FlxSort;
 import flixel.util.FlxDestroyUtil;
+import flixel.math.FlxMatrix;
 
 import openfl.utils.AssetType;
 import openfl.utils.Assets;
@@ -47,6 +48,8 @@ class Character extends animate.FlxAnimate
 	 * In case a character is missing, it will use this on its place
 	**/
 	public static final DEFAULT_CHARACTER:String = 'bf';
+	public static var onSingAnim:Character->Void = null;
+	public static var onSingPlayed:Character->String->Void = null;
 
 	public var animOffsets:Map<String, Array<Dynamic>>;
 	public var debugMode:Bool = false;
@@ -56,6 +59,7 @@ class Character extends animate.FlxAnimate
 	public var curCharacter:String = DEFAULT_CHARACTER;
 
 	public var holdTimer:Float = 0;
+	public var forceRenderTexture:Bool = false;
 	public var heyTimer:Float = 0;
 	public var specialAnim:Bool = false;
 	public var animationNotes:Array<Dynamic> = [];
@@ -460,6 +464,7 @@ class Character extends animate.FlxAnimate
 		}
 		if(animSuffix.length > 0 && hasAnimation(AnimName + animSuffix)) AnimName += animSuffix;
 		if(!hasAnimation(AnimName) && AnimName.lastIndexOf('-') > 0 && hasAnimation(AnimName.substr(0, AnimName.lastIndexOf('-')))) AnimName = AnimName.substr(0, AnimName.lastIndexOf('-'));
+		if(onSingAnim != null && !debugMode && AnimName.startsWith('sing')) onSingAnim(this);
 
 		specialAnim = false;
 		if(loopAnim != null && AnimName != loopAnim) loopAnim = null;
@@ -473,6 +478,7 @@ class Character extends animate.FlxAnimate
 			atlas.update(0);
 		}
 		_lastPlayedAnimation = AnimName;
+		if(onSingPlayed != null && !debugMode && AnimName.startsWith('sing')) onSingPlayed(this, AnimName);
 
 		if (hasAnimation(AnimName))
 		{
@@ -557,6 +563,9 @@ class Character extends animate.FlxAnimate
 	public var isAnimateAtlas(default, null):Bool = false;
 	#if flxanimate
 	public var atlas:FlxAnimate;
+	override function checkRenderTexture():Bool
+		return super.checkRenderTexture() || (forceRenderTexture && isAnimate && useRenderTexture);
+
 	public override function draw()
 	{
 		var lastAlpha:Float = alpha;
@@ -572,7 +581,12 @@ class Character extends animate.FlxAnimate
 			if(atlas.anim.curInstance != null)
 			{
 				copyAtlasValues();
-				atlas.draw();
+				if(((blend != null && blend != NORMAL) || shader != null) && !FlxG.renderBlit)
+				{
+					updateShaderFrame(true);
+					drawAtlasBlended();
+				}
+				else atlas.draw();
 				alpha = lastAlpha;
 				color = lastColor;
 				if(missingCharacter && visible)
@@ -584,6 +598,7 @@ class Character extends animate.FlxAnimate
 			}
 			return;
 		}
+		updateShaderFrame(isAnimate);
 		super.draw();
 		if(missingCharacter && visible)
 		{
@@ -592,6 +607,86 @@ class Character extends animate.FlxAnimate
 			missingText.x = getMidpoint().x - 150;
 			missingText.y = getMidpoint().y - 10;
 			missingText.draw();
+		}
+	}
+
+	var _atlasTexture:animate.internal.RenderTexture;
+	var _atlasMatrix:FlxMatrix;
+
+	function drawAtlasBlended()
+	{
+		var lastX:Float = atlas.x;
+		var lastY:Float = atlas.y;
+		var lastCameras:Array<FlxCamera> = atlas.cameras;
+		var lastShader:flixel.system.FlxAssets.FlxShader = atlas.shader;
+		if(_atlasMatrix == null) _atlasMatrix = new FlxMatrix();
+		atlas.shader = null;
+
+		for (camera in cameras)
+		{
+			if(camera == null || !camera.visible || !camera.exists) continue;
+
+			var w:Int = Std.int(Math.max(1, Math.ceil(camera.viewWidth)));
+			var h:Int = Std.int(Math.max(1, Math.ceil(camera.viewHeight)));
+			if(_atlasTexture == null) _atlasTexture = new animate.internal.RenderTexture(w, h);
+			_atlasTexture.init(w, h);
+			_atlasTexture.antialiasing = antialiasing;
+			_atlasTexture.drawToCamera((textureCamera, _) ->
+			{
+				textureCamera.scroll.copyFrom(camera.scroll);
+				atlas.cameras = [textureCamera];
+				atlas.x = lastX - camera.viewMarginLeft;
+				atlas.y = lastY - camera.viewMarginTop;
+				atlas.draw();
+			});
+			_atlasTexture.render();
+
+			_atlasMatrix.identity();
+			_atlasMatrix.translate(camera.viewMarginLeft, camera.viewMarginTop);
+			camera.drawPixels(_atlasTexture.graphic.imageFrame.frame, null, _atlasMatrix, null, blend, antialiasing, shader);
+		}
+
+		atlas.x = lastX;
+		atlas.y = lastY;
+		atlas.cameras = lastCameras;
+		atlas.shader = lastShader;
+	}
+
+	var _frameShader:flixel.system.FlxAssets.FlxShader;
+	var _frameBounds:openfl.display.ShaderParameter<Float>;
+	var _frameFlip:openfl.display.ShaderParameter<Float>;
+	final _frameBoundsValue:Array<Float> = [0, 0, 0, 0];
+	final _frameFlipValue:Array<Float> = [1, 1];
+
+	function updateShaderFrame(wholeTexture:Bool)
+	{
+		if(shader == null) return;
+		if(shader != _frameShader)
+		{
+			_frameShader = shader;
+			_frameBounds = Reflect.field(shader.data, 'frameBounds');
+			_frameFlip = Reflect.field(shader.data, 'frameFlip');
+		}
+
+		if(_frameBounds != null)
+		{
+			var uv:flixel.math.FlxRect = (!wholeTexture && frame != null) ? frame.uv : null;
+			_frameBoundsValue[0] = (uv != null) ? uv.x : 0;
+			_frameBoundsValue[1] = (uv != null) ? uv.y : 0;
+			_frameBoundsValue[2] = (uv != null) ? uv.width : 0;
+			_frameBoundsValue[3] = (uv != null) ? uv.height : 0;
+			_frameBounds.value = _frameBoundsValue;
+		}
+
+		if(_frameFlip != null)
+		{
+			var flippedX:Bool = (!isAnimateAtlas && _frame != null) ? checkFlipX() : false;
+			var flippedY:Bool = (!isAnimateAtlas && _frame != null) ? checkFlipY() : false;
+			if(!isAnimateAtlas && scale.x < 0) flippedX = !flippedX;
+			if(!isAnimateAtlas && scale.y < 0) flippedY = !flippedY;
+			_frameFlipValue[0] = flippedX ? -1 : 1;
+			_frameFlipValue[1] = flippedY ? -1 : 1;
+			_frameFlip.value = _frameFlipValue;
 		}
 	}
 
@@ -621,6 +716,8 @@ class Character extends animate.FlxAnimate
 	public override function destroy()
 	{
 		atlas = FlxDestroyUtil.destroy(atlas);
+		if(_atlasTexture != null) _atlasTexture.destroy();
+		_atlasTexture = null;
 		super.destroy();
 	}
 	#end

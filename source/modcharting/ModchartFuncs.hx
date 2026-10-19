@@ -151,6 +151,8 @@ class ModchartFuncs
                 modType = ModifierType.OPPONENTONLY;
             case 'lane' | 'lanespecific':
                 modType = ModifierType.LANESPECIFIC;
+            case 'character' | 'char':
+                modType = ModifierType.CHARACTERSPECIFIC;
         }
         return modType;
     }

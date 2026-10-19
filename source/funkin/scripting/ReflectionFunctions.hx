@@ -76,11 +76,11 @@ class ReflectionFunctions
 				realObject = LuaUtils.getPropertyLoop(split, false, allowMaps);
 			else
 				realObject = Reflect.getProperty(LuaUtils.getTargetInstance(), group);
+			if(realObject == null && split.length == 1) realObject = LuaUtils.getObjectDirectly(group);
 
-			var groupOrArray:Dynamic = Reflect.getProperty(LuaUtils.getTargetInstance(), group);
-			if(groupOrArray != null)
+			if(realObject != null)
 			{
-				switch(Type.typeof(groupOrArray))
+				switch(Type.typeof(realObject))
 				{
 					case TClass(Array): //Is Array
 						var leArray:Dynamic = realObject[index];
@@ -109,6 +109,7 @@ class ReflectionFunctions
 				realObject = LuaUtils.getPropertyLoop(split, false, allowMaps);
 			else
 				realObject = Reflect.getProperty(LuaUtils.getTargetInstance(), group);
+			if(realObject == null && split.length == 1) realObject = LuaUtils.getObjectDirectly(group);
 
 			if(realObject != null)
 			{
@@ -201,6 +202,7 @@ class ReflectionFunctions
 			var parent:Dynamic = PlayState.instance;
 			var split:Array<String> = funcToRun.split('.');
 			var varParent:Dynamic = MusicBeatState.getVariables().get(split[0].trim());
+			if (varParent == null) varParent = LuaUtils.extraCharacterObject(split[0].trim());
 			if (varParent != null) {
 				split.shift();
 				funcToRun = split.join('.').trim();

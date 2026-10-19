@@ -1,5 +1,6 @@
 package funkin.editors;
 
+import funkin.data.Song;
 import funkin.data.StageData;
 import funkin.game.PsychCamera;
 import funkin.game.Character;
@@ -38,6 +39,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	var gf:Character;
 	var dad:Character;
 	var boyfriend:Character;
+	var extraCharacters:Array<Character> = [];
 	var stageJson:StageFile;
 
 	var camGame:FlxCamera;
@@ -165,7 +167,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			"Delete - Remove selected Sprite",
 			"Ctrl + Z - Undo, Ctrl + Shift + Z - Redo",
 			"Ctrl + C - Copy, Ctrl + V - Paste, Ctrl + X - Cut",
-			"Ctrl + S - Save Stage JSON",
+			"Ctrl+S - Save Stage",
 			"P - Reload Stage",
 			"",
 			'$btn - Toggle HUD',
@@ -204,6 +206,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 	function updateSpriteList()
 	{
+		syncExtraCharacters();
 		for (spr in stageSprites)
 			if(spr != null && !StageData.reservedNames.contains(spr.type))
 				spr.sprite = FlxDestroyUtil.destroy(spr.sprite);
@@ -213,7 +216,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		var list:Map<String, FlxSprite> = [];
 		if(stageJson.objects != null && stageJson.objects.length > 0)
 		{
-			list = StageData.addObjectsToState(stageJson.objects, gf, dad, boyfriend, null, true);
+			list = StageData.addObjectsToState(stageJson.objects, gf, dad, boyfriend, null, true, [for (char in extraCharacters) (char:FlxSprite)]);
 			var byID:Array<StageEditorMetaSprite> = [];
 			for (key => spr in list)
 				byID[spr.ID] = new StageEditorMetaSprite(stageJson.objects[spr.ID], spr);
@@ -242,6 +245,13 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				for (i in 0...characterIndices.length)
 					characterIndices[i]++;
 			}
+		}
+
+		for (index => char in extraCharacters)
+		{
+			var type:String = StageData.extraCharacterType(Song.FIRST_EXTRA_SLOT + index);
+			if(!list.exists(type))
+				stageSprites.insert(highestCharacterIndex() + 1, new StageEditorMetaSprite({type: type}, char));
 		}
 
 		loadLuaStageIfExists(lastLoadedStage);
@@ -294,6 +304,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		focusRadioGroup = new PsychUIRadioGroup(targetTxt.x, FlxG.height - 24, ['dad', 'boyfriend', 'gf'], 10, 0, true);
 		focusRadioGroup.onClick = function() {
 			//trace('Changed focus to $target');
+			extraFocus = -1;
 			var point = focusOnTarget(focusRadioGroup.labels[focusRadioGroup.checked]);
 			camFollow.setPosition(point.x, point.y);
 			FlxG.camera.target = camFollow;
@@ -622,6 +633,8 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 					nameList.push('- Boyfriend -');
 				case 'dad':
 					nameList.push('- Opponent -');
+				case type if(StageData.extraSlotFromType(type) > 0):
+					nameList.push('- Char ${StageData.extraSlotFromType(type)} -');
 				default:
 					nameList.push(spr.name);
 			}
@@ -642,9 +655,11 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		spriteList_box.resize(250, Std.int(Math.min(maxNum, spriteListRadioGroup.labels.length) * 25 + 35));
 	}
 
+	static inline final UI_BOX_WIDTH:Int = 250;
+
 	function editorUI()
 	{
-		UI_box = new PsychUIBox(FlxG.width - 225, 10, 200, 500, ['Meta', 'Data', 'Object']);
+		UI_box = new PsychUIBox(FlxG.width - UI_BOX_WIDTH - 25, 10, UI_BOX_WIDTH, 500, ['Meta', 'Data', 'Object', 'Extras']);
 		UI_box.cameras = [camHUD];
 		UI_box.scrollFactor.set();
 		add(UI_box);
@@ -659,6 +674,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		addDataTab();
 		addObjectTab();
 		addMetaTab();
+		addCharactersTab();
 		addStageTab();
 	}
 
@@ -955,6 +971,11 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var point = focusOnTarget(focusRadioGroup.labels[focusRadioGroup.checked]);
 			camFollow.setPosition(point.x, point.y);
 		}
+		else if(extraFocus > 0)
+		{
+			var point = focusOnTarget(StageData.extraCharacterType(extraFocus));
+			camFollow.setPosition(point.x, point.y);
+		}
 	}
 
 	var colorInputText:PsychUIInputText;
@@ -1002,25 +1023,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	{
 		if(meta == null || meta.sprite == null) return;
 		
-		var blendMode:BlendMode = BlendMode.NORMAL;
-		switch(meta.blend)
-		{
-			case 'add': blendMode = BlendMode.ADD;
-			case 'alpha': blendMode = BlendMode.ALPHA;
-			case 'darken': blendMode = BlendMode.DARKEN;
-			case 'difference': blendMode = BlendMode.DIFFERENCE;
-			case 'erase': blendMode = BlendMode.ERASE;
-			case 'hardlight': blendMode = BlendMode.HARDLIGHT;
-			case 'invert': blendMode = BlendMode.INVERT;
-			case 'layer': blendMode = BlendMode.LAYER;
-			case 'lighten': blendMode = BlendMode.LIGHTEN;
-			case 'multiply': blendMode = BlendMode.MULTIPLY;
-			case 'overlay': blendMode = BlendMode.OVERLAY;
-			case 'screen': blendMode = BlendMode.SCREEN;
-			case 'shader': blendMode = BlendMode.SHADER;
-			case 'subtract': blendMode = BlendMode.SUBTRACT;
-			default: blendMode = BlendMode.NORMAL;
-		}
+		var blendMode:BlendMode = (meta.blend != null && meta.blend.length > 0) ? LuaUtils.blendModeFromString(meta.blend) : BlendMode.NORMAL;
 		meta.sprite.blend = blendMode;
 	}
 
@@ -1062,6 +1065,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				}
 
 				pushPropertyAction('name');
+				renameShaderTarget(selected.name, changedName);
 				selected.name = changedName;
 				spriteListRadioGroup.checkedRadio.label = selected.name;
 				outputTime = 0;
@@ -1229,7 +1233,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		tab_group.add(lowQualityCheckbox);
 		tab_group.add(highQualityCheckbox);
 
-		var blendModes:Array<String> = ['', 'add', 'alpha', 'darken', 'difference', 'erase', 'hardlight', 'invert', 'layer', 'lighten', 'multiply', 'overlay', 'screen', 'shader', 'subtract'];
+		var blendModes:Array<String> = ['', 'add', 'alpha', 'color', 'colorburn', 'colordodge', 'darken', 'difference', 'erase', 'exclusion', 'hardlight', 'hue', 'invert', 'layer', 'lighten', 'luminosity', 'multiply', 'overlay', 'saturation', 'screen', 'shader', 'softlight', 'subtract'];
 		blendDropdown = new PsychUIDropDownMenu(objX + 100, colorInputText.y, blendModes, function(id:Int, name:String) {
 			var selected = getSelected();
 			if(selected != null){
@@ -1243,6 +1247,13 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		var blendText = new FlxText(blendDropdown.x, blendDropdown.y - 18, 100, 'Blend Mode:');
 		tab_group.add(blendText);
 		tab_group.add(blendDropdown);
+	}
+
+	function renameShaderTarget(oldName:String, newName:String)
+	{
+		if(stageJson.shaders == null) return;
+		for (entry in stageJson.shaders)
+			if(entry != null && entry.target == oldName) entry.target = newName;
 	}
 
 	var oppDropdown:PsychUIDropDownMenu;
@@ -1264,6 +1275,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				}
 
 		if(characterList.length < 1) characterList.push(''); //Prevents crash
+		previewCharacterList = characterList;
 		
 		var objX = 10;
 		var objY = 20;
@@ -1356,6 +1368,349 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		tab_group.add(gfDropdown);
 		tab_group.add(new FlxText(oppDropdown.x, oppDropdown.y - 18, 100, 'Opponent:'));
 		tab_group.add(oppDropdown);
+	}
+
+	static inline final MAX_EXTRA_SLOTS:Int = Song.MAX_CHARACTERS - 2;
+	static final FOLLOW_TARGETS:Array<String> = ['boyfriend', 'dad', 'gf'];
+	static final FOLLOW_LABELS:Array<String> = ['Personal', 'Boyfriend', 'Opponent', 'Girlfriend'];
+	static final SIDE_VALUES:Array<String> = ['dad', 'bf', 'gf'];
+	static final SIDE_LABELS:Array<String> = ['Opponent', 'Player', 'Girlfriend'];
+
+	var previewCharacterList:Array<String> = [];
+	var extraFocus:Int = -1;
+	var extraCountText:FlxText;
+	var extraCameraText:FlxText;
+	var extraSlotDropdown:PsychUIDropDownMenu;
+	var extraCharDropdown:PsychUIDropDownMenu;
+	var extraSideDropdown:PsychUIDropDownMenu;
+	var extraFollowDropdown:PsychUIDropDownMenu;
+	var extraCamStepperX:PsychUINumericStepper;
+	var extraCamStepperY:PsychUINumericStepper;
+
+	function addCharactersTab()
+	{
+		var tab_group = UI_box.getTab('Extras').menu;
+
+		var objX = 10;
+		var objY = 20;
+
+		extraCountText = new FlxText(objX, objY - 18, 180, '');
+		extraSlotDropdown = new PsychUIDropDownMenu(objX, objY, ['None'], function(sel:Int, selected:String) refreshCharactersUI());
+		extraSlotDropdown.autoSort = false;
+
+		objY += 30;
+		var addButton:PsychUIButton = new PsychUIButton(objX, objY, 'Add', addExtraSlot);
+		addButton.normalStyle.bgColor = FlxColor.GREEN;
+		addButton.normalStyle.textColor = FlxColor.WHITE;
+
+		var removeButton:PsychUIButton = new PsychUIButton(objX + 90, objY, 'Remove Last', askRemoveExtraSlot);
+		removeButton.normalStyle.bgColor = FlxColor.RED;
+		removeButton.normalStyle.textColor = FlxColor.WHITE;
+
+		objY += 60;
+		var charText:FlxText = new FlxText(objX, objY - 18, 180, 'Preview Character:');
+		extraCharDropdown = new PsychUIDropDownMenu(objX, objY, previewCharacterList, function(sel:Int, selected:String)
+		{
+			var index:Int = selectedExtraIndex();
+			if(index < 0 || selected == null || selected.length < 1) return;
+			extraPreview(index).character = selected;
+			syncExtraCharacters();
+			_updateCamera();
+		});
+
+		objY += 50;
+		var sideText:FlxText = new FlxText(objX, objY - 18, 180, 'Preview As:');
+		extraSideDropdown = new PsychUIDropDownMenu(objX, objY, SIDE_LABELS, function(sel:Int, selected:String)
+		{
+			var index:Int = selectedExtraIndex();
+			var side:Int = SIDE_LABELS.indexOf(selected);
+			if(index < 0 || side < 0) return;
+			extraPreview(index).side = SIDE_VALUES[side];
+			syncExtraCharacters();
+			_updateCamera();
+		});
+		extraSideDropdown.autoSort = false;
+
+		objY += 50;
+		extraCameraText = new FlxText(objX, objY - 18, 180, 'Camera Offset:');
+		extraCamStepperX = new PsychUINumericStepper(objX, objY, 50, 0, -10000, 10000, 0);
+		extraCamStepperY = new PsychUINumericStepper(objX + 80, objY, 50, 0, -10000, 10000, 0);
+		extraCamStepperX.onValueChange = extraCamStepperY.onValueChange = function()
+		{
+			var data:StageCharacterSlot = selectedExtraSlot();
+			if(data == null) return;
+			data.camera[0] = extraCamStepperX.value;
+			data.camera[1] = extraCamStepperY.value;
+			_updateCamera();
+		};
+
+		objY += 50;
+		var followText:FlxText = new FlxText(objX, objY - 18, 180, 'Camera Follows:');
+		extraFollowDropdown = new PsychUIDropDownMenu(objX, objY, FOLLOW_LABELS, function(sel:Int, selected:String)
+		{
+			var data:StageCharacterSlot = selectedExtraSlot();
+			var follow:Int = FOLLOW_LABELS.indexOf(selected);
+			if(data == null || follow < 0) return;
+			if(follow == 0) Reflect.deleteField(data, 'camera_follow');
+			else data.camera_follow = Song.PARENTS[follow - 1];
+			unsavedProgress = true;
+			refreshCharactersUI();
+			_updateCamera();
+		});
+		extraFollowDropdown.autoSort = false;
+
+		objY += 40;
+		var focusButton:PsychUIButton = new PsychUIButton(objX, objY, 'Focus Camera', function()
+		{
+			var index:Int = selectedExtraIndex();
+			if(index < 0) return;
+			focusRadioGroup.checked = -1;
+			extraFocus = Song.FIRST_EXTRA_SLOT + index;
+			var point = focusOnTarget(StageData.extraCharacterType(extraFocus));
+			camFollow.setPosition(point.x, point.y);
+			FlxG.camera.target = camFollow;
+		});
+
+		objY += 40;
+		var infoText:FlxText = new FlxText(objX, objY, UI_BOX_WIDTH - 20, 'Stages can have up to $MAX_EXTRA_SLOTS extra characters. On creation, they\'ll appear in the Sprite List\n\nStage Editor only allows for character positioning and initialization.\n\nChart Editor finalizes extra char\'s data.');
+
+		tab_group.add(extraCountText);
+		tab_group.add(addButton);
+		tab_group.add(removeButton);
+		tab_group.add(charText);
+		tab_group.add(sideText);
+		tab_group.add(extraCameraText);
+		tab_group.add(extraCamStepperX);
+		tab_group.add(extraCamStepperY);
+		tab_group.add(followText);
+		tab_group.add(focusButton);
+		tab_group.add(infoText);
+		tab_group.add(extraFollowDropdown);
+		tab_group.add(extraSideDropdown);
+		tab_group.add(extraCharDropdown);
+		tab_group.add(extraSlotDropdown);
+		refreshCharactersUI();
+	}
+
+	function extraSlotCount():Int
+		return (stageJson.extra_characters != null) ? stageJson.extra_characters.length : 0;
+
+	function selectedExtraIndex():Int
+	{
+		var index:Int = (extraSlotDropdown != null) ? extraSlotDropdown.selectedIndex : -1;
+		return (index >= 0 && index < extraSlotCount()) ? index : -1;
+	}
+
+	function selectedExtraSlot():StageCharacterSlot
+	{
+		var index:Int = selectedExtraIndex();
+		return (index >= 0) ? stageJson.extra_characters[index] : null;
+	}
+
+	function refreshCharactersUI()
+	{
+		if(extraSlotDropdown == null) return;
+
+		var count:Int = extraSlotCount();
+		extraCountText.text = 'Extra Characters: $count/$MAX_EXTRA_SLOTS';
+
+		var previous:Int = extraSlotDropdown.selectedIndex;
+		extraSlotDropdown.list = (count > 0) ? [for (i in 0...count) 'Char ${Song.FIRST_EXTRA_SLOT + i}'] : ['None'];
+		extraSlotDropdown.selectedIndex = (count > 0) ? Std.int(FlxMath.bound(previous, 0, count - 1)) : 0;
+
+		var index:Int = selectedExtraIndex();
+		if(index < 0)
+		{
+			extraCharDropdown.selectedIndex = -1;
+			extraSideDropdown.selectedIndex = -1;
+			extraFollowDropdown.selectedIndex = -1;
+			extraCamStepperX.value = extraCamStepperY.value = 0;
+			extraCameraText.text = 'Camera Offset:';
+			return;
+		}
+
+		var preview:Dynamic = extraPreview(index);
+		var data:StageCharacterSlot = stageJson.extra_characters[index];
+		extraCharDropdown.selectedLabel = preview.character;
+		extraSideDropdown.selectedIndex = SIDE_VALUES.indexOf(preview.side);
+		extraCamStepperX.value = data.camera[0];
+		extraCamStepperY.value = data.camera[1];
+		extraFollowDropdown.selectedIndex = (data.camera_follow != null) ? Song.PARENTS.indexOf(data.camera_follow) + 1 : 0;
+		extraCameraText.text = (data.camera_follow != null) ? 'Camera Offset (not used):' : 'Camera Offset:';
+	}
+
+	function extraPreview(index:Int):Dynamic
+	{
+		if(stageJson._editorMeta == null) stageJson._editorMeta = {dad: dad.curCharacter, gf: gf.curCharacter, boyfriend: boyfriend.curCharacter};
+
+		var previews:Array<Dynamic> = stageJson._editorMeta.extras;
+		if(previews == null)
+		{
+			previews = [];
+			stageJson._editorMeta.extras = previews;
+		}
+		while(previews.length <= index)
+			previews.push({character: dad.curCharacter, side: 'dad'});
+
+		var preview:Dynamic = previews[index];
+		if(preview.character == null || Std.string(preview.character).length < 1) preview.character = dad.curCharacter;
+		if(!SIDE_VALUES.contains(preview.side)) preview.side = 'dad';
+		return preview;
+	}
+
+	function copyExtraSlot(data:StageCharacterSlot):StageCharacterSlot
+	{
+		var copy:StageCharacterSlot = {position: [data.position[0], data.position[1]], camera: [data.camera[0], data.camera[1]]};
+		if(data.camera_follow != null) copy.camera_follow = data.camera_follow;
+		return copy;
+	}
+
+	function sanitizeExtraSlots()
+	{
+		var slots:Array<StageCharacterSlot> = stageJson.extra_characters;
+		if(slots == null) return;
+
+		var clean:Array<StageCharacterSlot> = [];
+		for (data in slots)
+		{
+			if(clean.length >= MAX_EXTRA_SLOTS) break;
+			if(data == null) data = {position: [stageJson.opponent[0], stageJson.opponent[1]], camera: [0, 0]};
+			if(data.position == null || data.position.length < 2) data.position = [stageJson.opponent[0], stageJson.opponent[1]];
+			if(data.camera == null || data.camera.length < 2) data.camera = [0, 0];
+			if(data.camera_follow != null && !Song.PARENTS.contains(data.camera_follow)) Reflect.deleteField(data, 'camera_follow');
+			clean.push(data);
+		}
+		stageJson.extra_characters = clean;
+	}
+
+	function syncExtraCharacters()
+	{
+		sanitizeExtraSlots();
+		var count:Int = extraSlotCount();
+		while(extraCharacters.length > count)
+			FlxDestroyUtil.destroy(extraCharacters.pop());
+
+		for (index in 0...count)
+		{
+			var preview:Dynamic = extraPreview(index);
+			var isPlayer:Bool = (preview.side == 'bf');
+			var char:Character = extraCharacters[index];
+			if(char == null)
+			{
+				char = new Character(0, 0, preview.character, isPlayer);
+				extraCharacters[index] = char;
+			}
+			else if(char.curCharacter != preview.character || char.isPlayer != isPlayer)
+			{
+				char.isPlayer = isPlayer;
+				char.changeCharacter(preview.character);
+			}
+			repositionExtra(index);
+		}
+	}
+
+	function repositionExtra(index:Int)
+	{
+		var char:Character = extraCharacters[index];
+		var position:Array<Float> = stageJson.extra_characters[index].position;
+		char.setPosition(position[0], position[1]);
+		char.x += char.positionArray[0];
+		char.y += char.positionArray[1];
+	}
+
+	function addExtraSlot()
+	{
+		if(stageJson.extra_characters == null) stageJson.extra_characters = [];
+		var slots:Array<StageCharacterSlot> = stageJson.extra_characters;
+		if(slots.length >= MAX_EXTRA_SLOTS)
+		{
+			showOutput('Stage cannot contain more than $MAX_EXTRA_SLOTS extra characters!', true);
+			return;
+		}
+
+		pushAction();
+		var index:Int = slots.length;
+		slots.push({position: [0, 0], camera: [0, 0]});
+		syncExtraCharacters();
+
+		var char:Character = extraCharacters[index];
+		var centerX:Float = FlxG.camera.scroll.x + FlxG.camera.width / 2;
+		var centerY:Float = FlxG.camera.scroll.y + FlxG.camera.height / 2;
+		slots[index].position = [Math.round(centerX - char.width / 2 - char.positionArray[0]), Math.round(centerY - char.height / 2 - char.positionArray[1])];
+		repositionExtra(index);
+
+		var num:Int = highestCharacterIndex() + 1;
+		stageSprites.insert(num, new StageEditorMetaSprite({type: StageData.extraCharacterType(Song.FIRST_EXTRA_SLOT + index)}, char));
+		updateSpriteListRadio();
+		spriteListRadioGroup.checked = spriteListRadioGroup.labels.length - num - 1;
+		refreshCharactersUI();
+		updateSelectedUI();
+		checkUIOnObject();
+		unsavedProgress = true;
+		showOutput('Added Character ${Song.FIRST_EXTRA_SLOT + index}.');
+	}
+
+	function askRemoveExtraSlot()
+	{
+		var count:Int = extraSlotCount();
+		if(count < 1) return;
+
+		var slot:Int = Song.FIRST_EXTRA_SLOT + count - 1;
+		openSubState(new BasePrompt(560, 200, 'Remove Character $slot?\nCharacter data will be permanently deleted!', function(state:BasePrompt)
+		{
+			state.titleText.fieldWidth = 520;
+			state.titleText.screenCenter(X);
+
+			var btnY:Int = 390;
+			var yesBtn:PsychUIButton = new PsychUIButton(0, btnY, 'Yes', function() {
+				state.close();
+				removeLastExtraSlot();
+			});
+			yesBtn.normalStyle.bgColor = FlxColor.RED;
+			yesBtn.normalStyle.textColor = FlxColor.WHITE;
+			yesBtn.screenCenter(X);
+			yesBtn.x -= 100;
+			yesBtn.cameras = state.cameras;
+			state.add(yesBtn);
+
+			var noBtn:PsychUIButton = new PsychUIButton(0, btnY, 'No', state.close);
+			noBtn.screenCenter(X);
+			noBtn.x += 100;
+			noBtn.cameras = state.cameras;
+			state.add(noBtn);
+		}));
+	}
+
+	function removeLastExtraSlot()
+	{
+		var count:Int = extraSlotCount();
+		if(count < 1) return;
+
+		pushAction();
+		var slot:Int = Song.FIRST_EXTRA_SLOT + count - 1;
+		var type:String = StageData.extraCharacterType(slot);
+		var meta:StageEditorMetaSprite = null;
+		for (spr in stageSprites)
+		{
+			if(spr != null && spr.type == type)
+			{
+				meta = spr;
+				break;
+			}
+		}
+		if(meta != null) stageSprites.remove(meta);
+
+		stageJson.extra_characters.pop();
+		if(extraFocus == slot) extraFocus = -1;
+		syncExtraCharacters();
+
+		spriteListRadioGroup.checked = -1;
+		updateSpriteListRadio();
+		checkUIOnObject();
+		updateSelectedUI();
+		refreshCharactersUI();
+		unsavedProgress = true;
+		FlxG.sound.play(Paths.sound('chartingSounds/noteErase'));
 	}
 
 	var stageDropDown:PsychUIDropDownMenu;
@@ -1471,6 +1826,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			var point = focusOnTarget(focusRadioGroup.labels[focusRadioGroup.checked]);
 			camFollow.setPosition(point.x, point.y);
 		}
+		refreshCharactersUI();
 		loadJsonAssetDirectory();
 	}
 
@@ -1492,6 +1848,13 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 		posTxt.text = 'X: $displayX\nY: $displayY';
 		posTxt.visible = true;
+
+		var slot:Int = StageData.extraSlotFromType(selected.type);
+		if(slot > 0)
+		{
+			extraSlotDropdown.selectedIndex = slot - Song.FIRST_EXTRA_SLOT;
+			refreshCharactersUI();
+		}
 
 		var selected = getSelected();
 		if(selected == null) return;
@@ -1554,6 +1917,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		repositionBoyfriend();
 
 		focusRadioGroup.checked = -1;
+		extraFocus = -1;
 		FlxG.camera.target = null;
 		var point = focusOnTarget('boyfriend');
 		FlxG.camera.scroll.set(point.x - FlxG.width/2, point.y - FlxG.height/2);
@@ -1708,11 +2072,17 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			objs.push(spr.formatToJson(index > charIndex));
 		}
 
+		var extras:Array<StageCharacterSlot> = [];
+		if(stageJson.extra_characters != null)
+			for (data in stageJson.extra_characters)
+				extras.push(copyExtraSlot(data));
+
 		return {
 			objects: objs,
 			boyfriend: stageJson.boyfriend.copy(),
 			girlfriend: stageJson.girlfriend.copy(),
-			opponent: stageJson.opponent.copy()
+			opponent: stageJson.opponent.copy(),
+			extras: extras
 		};
 	}
 
@@ -1732,7 +2102,19 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		stageJson.girlfriend = snap.girlfriend;
 		stageJson.opponent = snap.opponent;
 
+		var current:Array<StageCharacterSlot> = (stageJson.extra_characters != null) ? stageJson.extra_characters : [];
+		var restored:Array<StageCharacterSlot> = [];
+		var saved:Array<StageCharacterSlot> = snap.extras;
+		for (index => data in saved)
+		{
+			var entry:StageCharacterSlot = (index < current.length) ? current[index] : copyExtraSlot(data);
+			entry.position = data.position.copy();
+			restored.push(entry);
+		}
+		stageJson.extra_characters = restored;
+
 		updateSpriteList();
+		refreshCharactersUI();
 		repositionGirlfriend();
 		repositionDad();
 		repositionBoyfriend();
@@ -1987,6 +2369,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			FlxG.camera.scroll.y += camY;
 			if(FlxG.camera.target != null) FlxG.camera.target = null;
 			if(focusRadioGroup.checked > -1) focusRadioGroup.checked = -1;
+			extraFocus = -1;
 		}
 
 		var lastZoom = FlxG.camera.zoom;
@@ -2054,6 +2437,10 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 					case 'dad':
 						stageJson.opponent[0] = displayX = spr.x - char.positionArray[0];
 						stageJson.opponent[1] = displayY = spr.y - char.positionArray[1];
+					case type if(StageData.extraSlotFromType(type) > 0):
+						var position:Array<Float> = stageJson.extra_characters[StageData.extraSlotFromType(type) - Song.FIRST_EXTRA_SLOT].position;
+						position[0] = displayX = spr.x - char.positionArray[0];
+						position[1] = displayY = spr.y - char.positionArray[1];
 				}
 				posTxt.text = 'X: $displayX\nY: $displayY';
 			}
@@ -2119,6 +2506,28 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 					focusPoint.x += stageJson.camera_girlfriend[0];
 					focusPoint.y += stageJson.camera_girlfriend[1];
 				}
+			case extraTarget if(StageData.extraSlotFromType(extraTarget) > 0):
+				var index:Int = StageData.extraSlotFromType(extraTarget) - Song.FIRST_EXTRA_SLOT;
+				var data:StageCharacterSlot = (stageJson.extra_characters != null) ? stageJson.extra_characters[index] : null;
+				var char:Character = extraCharacters[index];
+				if(data == null || char == null) return focusPoint;
+				if(data.camera_follow != null) return focusOnTarget(FOLLOW_TARGETS[Song.PARENTS.indexOf(data.camera_follow)]);
+
+				char.getMidpoint(midPoint);
+				switch(extraPreview(index).side)
+				{
+					case 'bf':
+						focusPoint.x += midPoint.x - char.cameraPosition[0] - 100;
+						focusPoint.y += midPoint.y + char.cameraPosition[1] - 100;
+					case 'gf':
+						focusPoint.x += midPoint.x + char.cameraPosition[0];
+						focusPoint.y += midPoint.y + char.cameraPosition[1];
+					default:
+						focusPoint.x += midPoint.x + char.cameraPosition[0] + 150;
+						focusPoint.y += midPoint.y + char.cameraPosition[1] - 100;
+				}
+				focusPoint.x += data.camera[0];
+				focusPoint.y += data.camera[1];
 		}
 		return focusPoint;
 	}
@@ -2186,7 +2595,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		{
 			var spr = stageSprites[i];
 			if(spr == null) continue;
-			if(spr.type == 'gf' || spr.type == 'dad' || spr.type == 'boyfriend') found = i;
+			if(StageData.isCharacterType(spr.type)) found = i;
 		}
 		return found;
 	}
@@ -2232,10 +2641,21 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		if(stageJson.preload != null)
 			cleanJson.preload = stageJson.preload;
 
+		if(stageJson.extra_characters != null && stageJson.extra_characters.length > 0)
+			cleanJson.extra_characters = stageJson.extra_characters;
+
 		cleanJson.objects = objectsArray;
+		if(stageJson.shaders != null && stageJson.shaders.length > 0)
+			cleanJson.shaders = stageJson.shaders;
 
 		if(stageJson._editorMeta != null)
+		{
+			var previews:Array<Dynamic> = stageJson._editorMeta.extras;
+			var count:Int = (stageJson.extra_characters != null) ? stageJson.extra_characters.length : 0;
+			if(previews != null && previews.length > count) previews.splice(count, previews.length - count);
+			if(previews != null && previews.length < 1) Reflect.deleteField(stageJson._editorMeta, 'extras');
 			cleanJson._editorMeta = stageJson._editorMeta;
+		}
 
 		stageJson = cleanJson;
 	}
@@ -2313,11 +2733,11 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		{
 			File.saveContent(quickSavePath, haxe.format.JsonPrinter.print(stageJson, null, '\t'));
 			unsavedProgress = false;
-			showOutput('Stage saved successfully to: $quickSavePath');
+			showOutput('Stage saved to: $quickSavePath');
 		}
 		catch(e:haxe.Exception)
 		{
-			showOutput('Error on saving stage!', true);
+			showOutput('ERROR! Stage not saved.', true);
 		}
 	}
 
@@ -3102,9 +3522,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		var highestCharIndex:Int = -1;
 		for (i in 0...stageSprites.length)
 		{
-			if (stageSprites[i].type == 'gf') highestCharIndex = Math.floor(Math.max(highestCharIndex, i));
-			else if (stageSprites[i].type == 'dad') highestCharIndex = Math.floor(Math.max(highestCharIndex, i));
-			else if (stageSprites[i].type == 'boyfriend') highestCharIndex = Math.floor(Math.max(highestCharIndex, i));
+			if (StageData.isCharacterType(stageSprites[i].type)) highestCharIndex = i;
 		}
 		if (highestCharIndex == -1) highestCharIndex = stageSprites.length - 1;
 		
@@ -3366,27 +3784,7 @@ class StageEditorMetaSprite
 	public function applyOwnBlendMode()
 	{
 		if(sprite == null) return;
-		
-		var blendMode:BlendMode = BlendMode.NORMAL;
-		switch(blend)
-		{
-			case 'add': blendMode = BlendMode.ADD;
-			case 'alpha': blendMode = BlendMode.ALPHA;
-			case 'darken': blendMode = BlendMode.DARKEN;
-			case 'difference': blendMode = BlendMode.DIFFERENCE;
-			case 'erase': blendMode = BlendMode.ERASE;
-			case 'hardlight': blendMode = BlendMode.HARDLIGHT;
-			case 'invert': blendMode = BlendMode.INVERT;
-			case 'layer': blendMode = BlendMode.LAYER;
-			case 'lighten': blendMode = BlendMode.LIGHTEN;
-			case 'multiply': blendMode = BlendMode.MULTIPLY;
-			case 'overlay': blendMode = BlendMode.OVERLAY;
-			case 'screen': blendMode = BlendMode.SCREEN;
-			case 'shader': blendMode = BlendMode.SHADER;
-			case 'subtract': blendMode = BlendMode.SUBTRACT;
-			default: blendMode = BlendMode.NORMAL;
-		}
-		sprite.blend = blendMode;
+		sprite.blend = (blend != null && blend.length > 0) ? LuaUtils.blendModeFromString(blend) : BlendMode.NORMAL;
 	}
 
 	public function autoDetectAndPlayAnimation()

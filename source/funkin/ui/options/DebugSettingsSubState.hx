@@ -8,22 +8,22 @@ class DebugSettingsSubState extends BaseOptionsMenu
 		rpcTitle = 'Debug Settings Menu';
 
 		var option:Option = new Option('Developer Mode',
-			'If checked, enables developer shortcuts:\nPress 7 to open the Editor Picker,\naccess Chart Editor and Character Editor from PlayState.',
+			"If checked, enables developer features and shortcuts.\nGrants access to Editor Menu (6 on Main Menu)\n& PlayState Debug Mode (Ctrl+Shift+Enter)",
 			'developerMode',
 			BOOL);
 		addOption(option);
 
 		#if !mobile
 		var option:Option = new Option('Debug Display',
-			'Select Debug Display mode.\nOff = Hidden, Simple = Basic info, Simplier = FPS + Memory only, Advanced = Detailed graphs.',
+			"Select Debug Display mode, or press F6 anywhere to switch.\nOptions: Off, Simple, Simpler, Advanced",
 			'fpsMode',
 			STRING,
-			['Off', 'Simple', 'Advanced', 'Simplier']);
+			['Off', 'Simple', 'Simpler', 'Advanced']);
 		option.onChange = onChangeDebugDisplay;
 		addOption(option);
 
 		var option:Option = new Option('Debug Display BG',
-			'Adjusts Debug Display background opacity.\n100% = Fully visible, 10% = Nearly invisible, 0% = Completely hidden.',
+			"Adjusts Debug Display background opacity.",
 			'debugBgOpacity',
 			PERCENT);
 		option.scrollSpeed = 1.6;
@@ -36,7 +36,7 @@ class DebugSettingsSubState extends BaseOptionsMenu
 		#end
 
 		var option:Option = new Option('Allow Screenshots',
-			"If unchecked, the screenshot key won't do anything.",
+			"If unchecked, screenshots are disabled, including hotkey",
 			'allowScreenshots',
 			BOOL);
 		addOption(option);
