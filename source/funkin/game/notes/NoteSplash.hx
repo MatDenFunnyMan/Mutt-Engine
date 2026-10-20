@@ -315,6 +315,14 @@ class NoteSplash extends FlxSprite
 		return true;
 	}
 
+	function usePackSplash(part:NotePackPart)
+	{
+		config = null;
+		maxAnims = 0;
+		loadedPack = null;
+		if (!loadPackSplash(part)) loadSplash();
+	}
+
 	function applyPackColors(tempShader:RGBPalette, part:NotePackPart)
 	{
 		var colors:Array<FlxColor> = NotePackData.packColors(part, noteData);
@@ -340,11 +348,22 @@ class NoteSplash extends FlxSprite
 			var noteTexture:String = (note != null) ? note.noteSplashData.texture : null;
 			if (noteTexture == chartSplash) noteTexture = null;
 			var packPart:NotePackPart = (noteTexture == null) ? NotePack.partFor('splashes', false) : null;
+			var typePack:NotePack = (note != null) ? note.typePack : null;
+			if (typePack != null)
+			{
+				var typeSplash:NotePackPart = typePack.typePart('splashes', false, PlayState.isPixelStage, packPart);
+				if (typeSplash != null) packPart = typeSplash;
+			}
 			colorPart = packPart;
+			if (typePack != null)
+			{
+				var raw:NotePackPart = typePack.rawPart('splashes', false, PlayState.isPixelStage);
+				if (raw != null && raw.colors != null) colorPart = raw;
+			}
 
 			if (packPart != null && packPart.animations != null)
 			{
-				if (loadedPack != packPart) loadSplash();
+				if (loadedPack != packPart) usePackSplash(packPart);
 				loadedTexture = texture;
 			}
 			else if (packPart != null)
@@ -366,6 +385,12 @@ class NoteSplash extends FlxSprite
 					loadedTexture = personalSplash;
 				else
 					loadedTexture = defaultNoteSplash;
+			}
+
+			if (loadedPack != null && (packPart == null || packPart.animations == null))
+			{
+				loadedPack = null;
+				texture = null;
 			}
 
 			if (loadedPack == null)

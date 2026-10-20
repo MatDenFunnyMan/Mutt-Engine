@@ -140,6 +140,23 @@ class NoteEditorState extends MusicBeatState
 {
 	static final TABS:Array<String> = ['Strumline', 'Notes', 'Splashes', 'Hold Notes'];
 	static final TAB_PARTS:Array<String> = ['strums', 'notes', 'splashes', 'holdCovers'];
+	static final TYPE_TABS:Array<String> = ['Notes', 'Splashes', 'Hold Notes', 'Gameplay'];
+	static final TYPE_PARTS:Array<String> = ['notes', 'splashes', 'holdCovers', 'gameplay'];
+	static final GAMEPLAY_FLAGS:Array<Array<String>> = [
+		['hitCausesMiss', 'Hit Causes Miss'],
+		['ignoreNote', 'Can Skip (No Miss)'],
+		['opponentIgnoreNote', 'Opponent Ignores Note'],
+		['noAnimation', 'No Animation'],
+		['noMissAnimation', 'No Miss Anim'],
+		['noSplash', 'No Splash'],
+		['lowPriority', 'Low Priority']
+	];
+	static final GAMEPLAY_VALUES:Array<Array<String>> = [
+		['hitHealth', 'Health Gain (def: 0.02):'],
+		['missHealth', 'Health Loss (def: 0.1):'],
+		['hitsound', 'Hitsound:'],
+		['animSuffix', 'Animation Suffix:']
+	];
 	static final DIRECTION_NAMES:Array<String> = ['Left', 'Down', 'Up', 'Right'];
 	static final BOX_X:Int = 740;
 	static final BOX_Y:Int = 48;
@@ -158,6 +175,14 @@ class NoteEditorState extends MusicBeatState
 
 	var file:NotePackFile = {};
 	var unsaved:Bool = false;
+	var tabNames:Array<String> = TABS;
+	var tabParts:Array<String> = TAB_PARTS;
+	var typeMode:Bool = false;
+	var typeName:String = '';
+	var gameplayTab:Bool = false;
+	var modeText:FlxText;
+	var gameplayBoxes:Map<String, PsychUICheckBox> = new Map();
+	var gameplayInputs:Map<String, PsychUIInputText> = new Map();
 	var opponent:Bool = false;
 	var pixel:Bool = false;
 	var direction:Int = 0;
@@ -263,7 +288,7 @@ class NoteEditorState extends MusicBeatState
 			testKeys.push((keys != null) ? [for (key in keys) if(key != FlxKey.NONE && !blocked.contains(key)) key] : []);
 		}
 
-		ghostCheckBox = new PsychUICheckBox(460, 8, 'Show Default Strumline (G)', 170, function() setGhost(ghostCheckBox.checked));
+		ghostCheckBox = new PsychUICheckBox(460, 8, 'Show Base Strumline (G)', 170, function() setGhost(ghostCheckBox.checked));
 		ghostCheckBox.checked = showGhost;
 		add(ghostCheckBox);
 		add(EditorHelper.createEditorMusicCheckBox(650, 8, 120));
@@ -276,17 +301,18 @@ class NoteEditorState extends MusicBeatState
 		offsetText.setFormat(null, 24, FlxColor.WHITE, LEFT, OUTLINE_FAST, FlxColor.BLACK);
 		add(offsetText);
 
-		messageText = new FlxText(PREVIEW_WIDTH, FlxG.height - 30, FlxG.width - PREVIEW_WIDTH - 15, '', 14);
-		messageText.setFormat(null, 14, FlxColor.WHITE, RIGHT, OUTLINE_FAST, FlxColor.BLACK);
+		messageText = new FlxText(PREVIEW_WIDTH, FlxG.height - 30, FlxG.width - PREVIEW_WIDTH - 15, '', 20);
+		messageText.setFormat(null, 20, FlxColor.WHITE, RIGHT, OUTLINE_FAST, FlxColor.BLACK);
 		messageText.alpha = 0;
 		add(messageText);
 
-		mainBox = new PsychUIBox(BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT, TABS);
-		mainBox.canMove = mainBox.canMinimize = false;
-		mainBox.scrollFactor.set();
-		add(mainBox);
-		for (index => name in TABS) buildTab(name, TAB_PARTS[index]);
-		mainBox.selectedName = TABS[0];
+		modeText = new FlxText(15, FlxG.height - 100, PREVIEW_WIDTH - 30, '', 20);
+		modeText.setFormat(null, 20, FlxColor.WHITE, LEFT, OUTLINE_FAST, FlxColor.BLACK);
+		modeText.alpha = 0.8;
+		add(modeText);
+		refreshMode();
+
+		createMainBox();
 
 		createUpperMenu();
 		add(fileDialog);
@@ -298,6 +324,188 @@ class NoteEditorState extends MusicBeatState
 			FlxG.sound.music.fadeOut(0.6, 0);
 		EditorHelper.scheduleEditorMusic(10);
 		super.create();
+	}
+
+	function createMainBox()
+	{
+		var position:Int = (mainBox != null) ? members.indexOf(mainBox) : -1;
+		if(mainBox != null)
+		{
+			remove(mainBox, true);
+			mainBox.destroy();
+		}
+		tabs.clear();
+		gameplayBoxes.clear();
+		gameplayInputs.clear();
+		mainBox = new PsychUIBox(BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT, tabNames);
+		mainBox.canMove = mainBox.canMinimize = false;
+		mainBox.scrollFactor.set();
+		if(position > -1) insert(position, mainBox);
+		else add(mainBox);
+		for (index => name in tabNames)
+		{
+			if(tabParts[index] == 'gameplay') buildGameplayTab(name);
+			else buildTab(name, tabParts[index]);
+		}
+		mainBox.selectedName = tabNames[0];
+	}
+
+	function setMode(type:Bool)
+	{
+		typeMode = type;
+		tabNames = type ? TYPE_TABS : TABS;
+		tabParts = type ? TYPE_PARTS : TAB_PARTS;
+		createMainBox();
+		part = tabParts[0];
+		lastTab = tabNames[0];
+		gameplayTab = false;
+		variant = 0;
+		refreshMode();
+	}
+
+	function refreshMode()
+		modeText.text = typeMode ? 'Notetype: ' + ((typeName.length > 0) ? typeName : '(NOT SAVED)') : 'Note Pack';
+
+	function buildGameplayTab(tabName:String)
+	{
+		var menu = mainBox.getTab(tabName).menu;
+		menu.add(new FlxText(24, 14, BOX_WIDTH - 48, 'Create custom notes for gimmicks/mechanics. Script file can be modified after creation.\nYou don\'t need to change skins using LUA or HX file!'));
+		for (index => entry in GAMEPLAY_FLAGS)
+		{
+			var field:String = entry[0];
+			var box:PsychUICheckBox = new PsychUICheckBox(24, 60 + index * 30, entry[1], 150);
+			box.onClick = function() setGameplay(field, box.checked ? true : null);
+			menu.add(box);
+			gameplayBoxes.set(field, box);
+		}
+		for (index => entry in GAMEPLAY_VALUES)
+		{
+			var field:String = entry[0];
+			var y:Float = 60 + index * 45;
+			menu.add(new FlxText(250, y, 0, entry[1]));
+			var input:PsychUIInputText = new PsychUIInputText(250, y + 16, 160, '', 8);
+			input.onChange = function(prev:String, next:String) setGameplayText(field, next);
+			menu.add(input);
+			gameplayInputs.set(field, input);
+		}
+		menu.add(new FlxText(24, 300, BOX_WIDTH - 48, 'Mechanics can be added to the script file after creation. Have fun!\nHitsounds path = \'sounds/\'\nAnimation suffix = \'-alt\' or a custom suffix for character.'));
+		menu.add(new PsychUIButton(92, 370, 'Create LUA', function() createScript('lua'), 120, 25));
+		menu.add(new PsychUIButton(268, 370, 'Create HScript', function() createScript('hx'), 120, 25));
+	}
+
+	function setGameplay(field:String, value:Dynamic)
+	{
+		var data:Dynamic = Reflect.field(file, 'gameplay');
+		if(data == null)
+		{
+			if(value == null) return;
+			data = {};
+			Reflect.setField(file, 'gameplay', data);
+		}
+		if(value == null) Reflect.deleteField(data, field);
+		else Reflect.setField(data, field, value);
+		if(Reflect.fields(data).length < 1) Reflect.deleteField(file, 'gameplay');
+		unsaved = true;
+	}
+
+	function setGameplayText(field:String, text:String)
+	{
+		var clean:String = text.trim();
+		if(clean.length < 1)
+		{
+			setGameplay(field, null);
+			return;
+		}
+		if(field == 'hitHealth' || field == 'missHealth')
+		{
+			var number:Float = Std.parseFloat(clean);
+			if(!Math.isNaN(number)) setGameplay(field, number);
+			return;
+		}
+		setGameplay(field, clean);
+	}
+
+	function refreshGameplay()
+	{
+		var data:Dynamic = Reflect.field(file, 'gameplay');
+		for (field => box in gameplayBoxes) box.checked = data != null && Reflect.field(data, field) == true;
+		for (field => input in gameplayInputs)
+		{
+			var value:Dynamic = (data != null) ? Reflect.field(data, field) : null;
+			input.text = (value != null) ? Std.string(value) : '';
+		}
+	}
+
+	function createScript(extension:String)
+	{
+		if(!fileDialog.completed) return;
+		if(typeName.length < 1)
+		{
+			showMessage('Create a notetype before scripts!', true);
+			return;
+		}
+		var name:String = typeName.replace("'", "\\'");
+		var lines:Array<String> = [];
+		for (callback in ['goodNoteHit', 'opponentNoteHit', 'noteMiss'])
+		{
+			if(extension == 'lua')
+			{
+				lines.push('function $callback(id, direction, noteType, isSustainNote)');
+				lines.push("\tif noteType == '" + name + "' then");
+				lines.push('\tend');
+				lines.push('end');
+			}
+			else
+			{
+				lines.push('function $callback(note:Note)');
+				lines.push('{');
+				lines.push("\tif(note.noteType != '" + name + "') return;");
+				lines.push('}');
+			}
+			lines.push('');
+		}
+		fileDialog.save('$typeName.$extension', lines.join('\n'), function() {
+			showMessage('Saved: ' + haxe.io.Path.withoutDirectory(fileDialog.path));
+		}, null, function() showMessage('ERROR: Script not saved.', true));
+	}
+
+	function newNoteType()
+	{
+		openSubState(new Prompt('Start a new notetype?\nUnsaved changes will be lost.', function() {
+			file = {};
+			typeName = '';
+			setMode(true);
+			unsaved = false;
+			rebuildPreview();
+			refreshTab();
+			refreshGameplay();
+			refreshShader();
+			showMessage('New notetype');
+		}, null, 'New'));
+	}
+
+	function loadNoteType()
+	{
+		if(!fileDialog.completed) return;
+		fileDialog.open('noteType.json', 'Open Notetype', null, function() {
+			try
+			{
+				file = NotePackData.parse(fileDialog.data);
+				typeName = haxe.io.Path.withoutExtension(haxe.io.Path.withoutDirectory(fileDialog.path));
+				setMode(true);
+				unsaved = false;
+				rebuildPreview();
+				refreshTab();
+				refreshGameplay();
+				refreshShader();
+				if(imagesFound()) showMessage('Opened ' + haxe.io.Path.withoutDirectory(fileDialog.path));
+				else showMessage('Image not found!', true);
+			}
+			catch(e:Dynamic)
+			{
+				showMessage('File not a valid notetype: $e', true);
+			}
+		});
 	}
 
 	function createUpperMenu()
@@ -314,6 +522,8 @@ class NoteEditorState extends MusicBeatState
 			['  Save (Ctrl+S)', saveFile],
 			['  Load from JSON', loadFile],
 			['  Load Template', loadTemplate],
+			['  New Notetype', newNoteType],
+			['  Load Notetype', loadNoteType],
 			['  Exit', exitEditor]
 		];
 		var menu = upperBox.getTab('File').menu;
@@ -328,7 +538,11 @@ class NoteEditorState extends MusicBeatState
 		}
 
 		var shaderEntries:Array<Array<Dynamic>> = [
-			['  Strumline Shader', function() openPopup(shaderPopup)],
+			['  Strumline Shader', function() {
+				if(typeMode) showMessage('ERROR: Strumline Shader not available for notetypes!', true);
+				else openPopup(shaderPopup);
+			}],
+			['  Notes RGB', function() openRGBPopup('notes')],
 			['  Splashes RGB', function() openRGBPopup('splashes')],
 			['  Hold RGB', function() openRGBPopup('holdCovers')]
 		];
@@ -371,7 +585,7 @@ class NoteEditorState extends MusicBeatState
 	function createShaderPopup()
 	{
 		shaderPopup = createPopup('Strumline Shader');
-		shaderPopup.add(new FlxText(30, 44, POPUP_W - 60, 'Tints the arrows of the strumline (0 = no tint, 1 = full color). Changes are applied right away.\nIn scripts: setStrumTint, tweenStrumTint, resetStrumTint.'));
+		shaderPopup.add(new FlxText(30, 44, POPUP_W - 60, 'Changes strumline tint instantly. Use script to tween or change properties.\n\'Alpha\' value must be DECIMAL and between 0-1.'));
 		shaderPopup.add(new FlxText(30, 84, 0, 'Side:'));
 		shaderPopup.add(new PsychUIButton(30, POPUP_H - 50, 'Remove', removeShader, 140, 25));
 
@@ -395,7 +609,7 @@ class NoteEditorState extends MusicBeatState
 		};
 		shaderPopup.add(shaderColorInput);
 
-		shaderPopup.add(new FlxText(columnX, 160, 0, 'Strength (0-1):'));
+		shaderPopup.add(new FlxText(columnX, 160, 0, 'Alpha:'));
 		shaderStrengthInput = new PsychUIInputText(columnX, 176, 60, '0', 8);
 		shaderStrengthInput.onChange = function(prev:String, next:String) applyShader();
 		shaderPopup.add(shaderStrengthInput);
@@ -417,7 +631,7 @@ class NoteEditorState extends MusicBeatState
 		rgbInfo = new FlxText(30, 44, POPUP_W - 60, '');
 		rgbPopup.add(rgbInfo);
 		rgbPopup.add(new FlxText(30, 84, 0, 'Note:'));
-		rgbPopup.add(new PsychUIButton(30, POPUP_H - 50, 'Use Note Colors', resetRGBColors, 140, 25));
+		rgbPopup.add(new PsychUIButton(30, POPUP_H - 50, 'Default Colors', resetRGBColors, 140, 25));
 
 		rgbPicker = new NoteEditorColorPicker(190, 100);
 		rgbPicker.onChange = function(color:FlxColor) setRGBColor(color);
@@ -460,15 +674,20 @@ class NoteEditorState extends MusicBeatState
 	function openRGBPopup(partName:String)
 	{
 		rgbPart = partName;
-		if(partName == 'splashes')
+		if(partName == 'notes')
+		{
+			rgbTitle.text = 'Notes RGB';
+			rgbInfo.text = 'Change note colors to your liking. RGB option must be active!';
+		}
+		else if(partName == 'splashes')
 		{
 			rgbTitle.text = 'Splashes RGB';
-			rgbInfo.text = 'Colors of the note splashes (RGB? must be on in Splashes). Changes are applied right away.';
+			rgbInfo.text = 'Change note splashes colors to your liking. Only applies to Player notes and custom notetypes.';
 		}
 		else
 		{
 			rgbTitle.text = 'Hold RGB';
-			rgbInfo.text = 'Colors of the hold covers and of their end splash (RGB? must be on in Hold Notes). Changes are applied right away.';
+			rgbInfo.text = 'Change hold cover and splash colors to your liking. End splashes only apply to player or custom notetypes.';
 		}
 		openPopup(rgbPopup);
 	}
@@ -479,7 +698,7 @@ class NoteEditorState extends MusicBeatState
 		popup.visible = popup.active = true;
 		if(popup == rgbPopup)
 		{
-			var tabName:String = TABS[TAB_PARTS.indexOf(rgbPart)];
+			var tabName:String = tabNames[tabParts.indexOf(rgbPart)];
 			mainBox.selectedName = tabName;
 			mainBox.forceCheckNext = true;
 			mainBox.update(0);
@@ -585,6 +804,23 @@ class NoteEditorState extends MusicBeatState
 		channelSwatches[rgbChannel].color = color;
 		if(updateInput) channelInputs[rgbChannel].text = hex;
 
+		if(rgbPart == 'notes')
+		{
+			NotePack.setPreview(file);
+			for (group in [notes, sustains])
+				for (note in group)
+				{
+					if(note.noteData != rgbNote || note.rgbShader == null) continue;
+					switch(rgbChannel)
+					{
+						case 0: note.rgbShader.r = color;
+						case 1: note.rgbShader.g = color;
+						default: note.rgbShader.b = color;
+					}
+				}
+			return;
+		}
+
 		if(rgbPart == 'splashes')
 		{
 			NotePack.setPreview(file);
@@ -623,7 +859,7 @@ class NoteEditorState extends MusicBeatState
 		if(raw != null) Reflect.deleteField(raw, 'colors');
 		changed();
 		refreshRGBColors();
-		showMessage('Using the Note Colors');
+		showMessage('Applied Default Colors');
 	}
 
 	function buildTab(tabName:String, partName:String)
@@ -693,8 +929,8 @@ class NoteEditorState extends MusicBeatState
 				tab.antialiasing = new PsychUICheckBox(250, 245, 'Antialiasing?', 85);
 				if(partName == 'splashes')
 				{
-					menu.add(new PsychUIButton(365, 196, 'Add Variant', addSplashVariant, 90));
-					menu.add(new PsychUIButton(365, 241, 'Remove Variant', removeSplashVariant, 90));
+					menu.add(new PsychUIButton(365, 196, 'Add', addSplashVariant, 90));
+					menu.add(new PsychUIButton(365, 241, 'Remove', removeSplashVariant, 90));
 				}
 		}
 		for (box in [tab.animated, tab.rgb, tab.antialiasing])
@@ -741,8 +977,7 @@ class NoteEditorState extends MusicBeatState
 		tab.fps = new PsychUINumericStepper(262, 421, 1, 24, 0, 120, 0);
 		menu.add(tab.fps);
 
-		menu.add(new PsychUIButton(92, 500, 'Apply', function() applyTab(), 104, 25));
-		menu.add(new PsychUIButton(284, 500, 'Reset', resetTab, 104, 25));
+		menu.add(new PsychUIButton((BOX_WIDTH - 104) / 2, 500, 'Reset', resetTab, 104, 25));
 
 		tab.anim = new PsychUIDropDownMenu(arrows ? 27 : 250, arrows ? 356 : 151, [''], function(id:Int, name:String) {
 			if(part == 'splashes') variant = id;
@@ -762,6 +997,23 @@ class NoteEditorState extends MusicBeatState
 		if(arrows) menu.add(tab.anim);
 		menu.add(tab.note);
 		if(!arrows) menu.add(tab.anim);
+
+		for (input in [tab.image, tab.holdImage])
+			if(input != null) input.onChange = function(prev:String, next:String) applyImage(next);
+		for (input in [tab.scale, tab.grid, tab.prefix, tab.indices])
+			if(input != null) input.onChange = function(prev:String, next:String) applyTab(true);
+		tab.fps.onValueChange = function() applyTab(true);
+	}
+
+	function applyImage(text:String)
+	{
+		var image:String = text.trim();
+		if(image.length < 1 || Paths.fileExists('images/$image.png', IMAGE)) applyTab(true);
+	}
+
+	function setInput(input:PsychUIInputText, value:String)
+	{
+		if(input != null && PsychUIInputText.focusOn != input) input.text = value;
 	}
 
 	function nudgeScale(amount:Int)
@@ -778,7 +1030,7 @@ class NoteEditorState extends MusicBeatState
 
 	function imagesFound():Bool
 	{
-		for (name in TAB_PARTS)
+		for (name in NotePackData.PARTS)
 		{
 			var display:NotePackPart = displayPart(name);
 			for (image in [display.image, display.holdImage])
@@ -788,7 +1040,7 @@ class NoteEditorState extends MusicBeatState
 	}
 
 	function currentTab():NoteEditorTab
-		return tabs.get(TABS[TAB_PARTS.indexOf(part)]);
+		return tabs.get(tabNames[tabParts.indexOf(part)]);
 
 	function displayPart(name:String):NotePackPart
 	{
@@ -870,16 +1122,16 @@ class NoteEditorState extends MusicBeatState
 		var display:NotePackPart = displayPart(part);
 		var gridded:Bool = NotePack.isGridded(display);
 
-		tab.image.text = (display.image != null) ? display.image : '';
+		setInput(tab.image, (display.image != null) ? display.image : '');
 		tab.pixel.checked = pixel;
 		tab.rgb.checked = display.rgb != false;
 		tab.antialiasing.checked = display.antialiasing != false;
-		tab.scale.text = Std.string((display.scale != null) ? display.scale : defaultScale(display));
-		tab.grid.text = (display.grid != null) ? display.grid.join(',') : '';
+		setInput(tab.scale, Std.string((display.scale != null) ? display.scale : defaultScale(display)));
+		setInput(tab.grid, (display.grid != null) ? display.grid.join(',') : '');
 		tab.grid.visible = tab.gridLabel.visible = pixel;
 		if(tab.holdImage != null)
 		{
-			tab.holdImage.text = (display.holdImage != null) ? display.holdImage : '';
+			setInput(tab.holdImage, (display.holdImage != null) ? display.holdImage : '');
 			tab.holdImage.visible = tab.holdImageLabel.visible = pixel || display.holdImage != null;
 		}
 		tab.note.list = DIRECTION_NAMES.copy();
@@ -897,16 +1149,16 @@ class NoteEditorState extends MusicBeatState
 		tab.prefixLabel.text = gridded ? 'Frames (numbers, commas)' : 'Animation Prefix';
 		if(anim != null)
 		{
-			tab.prefix.text = gridded ? ((anim.frames != null) ? anim.frames.join(',') : '') : ((anim.prefix != null) ? anim.prefix : '');
-			if(tab.indices != null) tab.indices.text = (anim.indices != null && anim.indices.length > 0) ? anim.indices.join(',') : '';
-			tab.fps.value = (anim.fps != null) ? anim.fps : 24;
+			setInput(tab.prefix, gridded ? ((anim.frames != null) ? anim.frames.join(',') : '') : ((anim.prefix != null) ? anim.prefix : ''));
+			setInput(tab.indices, (anim.indices != null && anim.indices.length > 0) ? anim.indices.join(',') : '');
+			if(PsychUIInputText.focusOn != tab.fps) tab.fps.value = (anim.fps != null) ? anim.fps : 24;
 			if(tab.loop != null) tab.loop.checked = anim.loop == true;
 		}
 		else
 		{
-			tab.prefix.text = '';
-			if(tab.indices != null) tab.indices.text = '';
-			tab.fps.value = 24;
+			setInput(tab.prefix, '');
+			setInput(tab.indices, '');
+			if(PsychUIInputText.focusOn != tab.fps) tab.fps.value = 24;
 		}
 		if(tab.indices != null) tab.indices.visible = tab.indicesLabel.visible = !gridded;
 
@@ -1076,22 +1328,44 @@ class NoteEditorState extends MusicBeatState
 
 		changed();
 		if(!imagesFound()) showMessage('Image not found!', true);
-		else if(!silent) showMessage('Applied ${TABS[TAB_PARTS.indexOf(part)]}${pixel ? ' (pixel)' : ''}');
+		else if(!silent) showMessage('Applied ${tabNames[tabParts.indexOf(part)]}${pixel ? ' (pixel)' : ''}');
 	}
 
 	function resetTab()
 	{
-		openSubState(new Prompt('Reset ${TABS[TAB_PARTS.indexOf(part)]} to default?', function() {
-			var root:Dynamic = pixel ? Reflect.field(file, 'pixel') : file;
-			if(root != null)
+		var label:String = '${DIRECTION_NAMES[direction]} (${currentAnimName()})';
+		openSubState(new Prompt('Reset $label to default?', function() {
+			var raw:Dynamic = rawSection(part, false);
+			var all:Dynamic = (raw != null) ? raw.animations : null;
+			var dirName:String = NotePackData.DIRECTIONS[direction];
+			var dir:Dynamic = (all != null) ? Reflect.field(all, dirName) : null;
+			if(dir != null)
 			{
-				var side:Dynamic = Reflect.field(root, (opponent && part != 'splashes') ? 'opponent' : 'player');
-				if(side != null) Reflect.deleteField(side, part);
+				if(part == 'splashes' && Std.isOfType(dir, Array))
+				{
+					var list:Array<Dynamic> = dir;
+					var base:Array<NotePackAnim> = NotePackData.splashAnims(defaultSplashPart(raw), direction);
+					if(variant < list.length) list[variant] = (base != null && variant < base.length) ? Json.parse(Json.stringify(base[variant])) : {};
+				}
+				else if(!Std.isOfType(dir, Array))
+				{
+					Reflect.deleteField(dir, animNames.get(part));
+					if(Reflect.fields(dir).length < 1) Reflect.deleteField(all, dirName);
+				}
+				if(Reflect.fields(all).length < 1) Reflect.deleteField(raw, 'animations');
 			}
-			variant = 0;
 			changed();
-			showMessage('Reset to default');
+			showMessage('Reset to Default');
 		}, null, 'Reset'));
+	}
+
+	function defaultSplashPart(raw:Dynamic):NotePackPart
+	{
+		var copy:Dynamic = Json.parse(Json.stringify(raw));
+		Reflect.deleteField(copy, 'animations');
+		var merged:NotePackPart = NotePackData.mergePart(NotePackData.defaultPart('splashes', pixel), copy, 'splashes');
+		if(merged.animations == null) merged.animations = legacySplashAnims(merged.image);
+		return merged;
 	}
 
 	function addSplashVariant()
@@ -1121,7 +1395,7 @@ class NoteEditorState extends MusicBeatState
 		var count:Int = splashVariantCount(display);
 		if(count < 2)
 		{
-			showMessage('A splash needs at least one variant', true);
+			showMessage('Splashes require at least ONE variant!', true);
 			return;
 		}
 		var raw:Dynamic = rawSection('splashes', true);
@@ -1642,12 +1916,14 @@ class NoteEditorState extends MusicBeatState
 		if(mainBox.selectedName != lastTab)
 		{
 			lastTab = mainBox.selectedName;
-			var index:Int = TABS.indexOf(lastTab);
+			var index:Int = tabNames.indexOf(lastTab);
 			if(index > -1)
 			{
-				part = TAB_PARTS[index];
+				gameplayTab = tabParts[index] == 'gameplay';
+				part = gameplayTab ? 'notes' : tabParts[index];
 				rebuildPreview();
-				refreshTab();
+				if(gameplayTab) refreshGameplay();
+				else refreshTab();
 			}
 		}
 
@@ -1745,6 +2021,7 @@ class NoteEditorState extends MusicBeatState
 
 	function updateOffsetKeys(elapsed:Float)
 	{
+		if(gameplayTab) return;
 		var multiplier:Int = FlxG.keys.pressed.SHIFT ? 10 : 1;
 		var pressed:Array<Bool> = [FlxG.keys.justPressed.LEFT, FlxG.keys.justPressed.RIGHT, FlxG.keys.justPressed.UP, FlxG.keys.justPressed.DOWN];
 		var held:Array<Bool> = [FlxG.keys.pressed.LEFT, FlxG.keys.pressed.RIGHT, FlxG.keys.pressed.UP, FlxG.keys.pressed.DOWN];
@@ -1865,7 +2142,7 @@ class NoteEditorState extends MusicBeatState
 	{
 		shaderStrengthInput.text = '0';
 		applyShader();
-		showMessage('Shader removed');
+		showMessage('Shader Removed');
 	}
 
 	function cleanValue(value:Dynamic):Dynamic
@@ -1897,10 +2174,16 @@ class NoteEditorState extends MusicBeatState
 		if(!fileDialog.completed) return;
 		var cleaned:Dynamic = cleanValue(file);
 		var content:String = Json.stringify((cleaned != null) ? cleaned : {}, '\t');
-		fileDialog.save('notes.json', content, function() {
+		var defaultName:String = typeMode ? ((typeName.length > 0) ? typeName : 'noteType') + '.json' : 'notes.json';
+		fileDialog.save(defaultName, content, function() {
 			unsaved = false;
+			if(typeMode)
+			{
+				typeName = haxe.io.Path.withoutExtension(haxe.io.Path.withoutDirectory(fileDialog.path));
+				refreshMode();
+			}
 			showMessage('Saved: ' + haxe.io.Path.withoutDirectory(fileDialog.path));
-		}, null, function() showMessage('ERROR! Note pack not saved.', true));
+		}, null, function() showMessage(typeMode ? 'ERROR: Notetype not saved.' : 'ERROR: Note pack not saved.', true));
 	}
 
 	function loadFile()
@@ -1910,6 +2193,11 @@ class NoteEditorState extends MusicBeatState
 			try
 			{
 				file = NotePackData.parse(fileDialog.data);
+				if(typeMode)
+				{
+					typeName = '';
+					setMode(false);
+				}
 				unsaved = false;
 				variant = 0;
 				rebuildPreview();
@@ -1920,19 +2208,24 @@ class NoteEditorState extends MusicBeatState
 			}
 			catch(e:Dynamic)
 			{
-				showMessage('File is not a valid note pack: $e', true);
+				showMessage('File not a valid note pack: $e', true);
 			}
 		});
 	}
 
 	function loadTemplate()
 	{
-		openSubState(new Prompt('Replace everything with the template?', function() {
+		openSubState(new Prompt('Replace everything with Template?', function() {
 			file = NotePackData.defaultFile();
+			if(typeMode)
+			{
+				typeName = '';
+				setMode(false);
+			}
 			variant = 0;
 			changed();
 			refreshShader();
-			showMessage('Template loaded');
+			showMessage('Template Loaded');
 		}, null, 'Replace'));
 	}
 
@@ -1984,23 +2277,19 @@ class NoteEditorHelpSubState extends MusicBeatSubstate
 		var lines:Array<String> = [
 			'NOTE EDITOR',
 			'',
-			'Click on an arrow - Select it (Splashes: play its splash)',
-			'G - Show / Hide the default strumline (position reference)',
-			'Your note keys (no arrow keys) - Press the arrows like in game',
-			'Space - Pause / Resume',
-			'Q / E - Previous / Next frame (Notes tab: move the notes by one frame)',
-			'Hold Notes (Notes tab) - Show long notes in the preview',
-			'Preview Notes (Notes tab) - Notes scrolling like in game (off: still notes to edit)',
-			'Arrow Keys - Move the animation offset (Hold SHIFT: 10x)',
-			'Ctrl + Arrow Keys - Move the base offset of the whole part',
-			'Ctrl + S - Save',
-			'ESC - Exit',
+			'Click on a Note to Select. Splashes play in "Splashes" tab if clicked.',
+			'Use your KEYBINDS to Test the Note Animations.',
 			'',
-			'Apply - Use the values of this tab',
-			'Reset - Back to the default values of this tab',
-			'Pixel? - Edit the pixel version (pixel stages)',
+			'CONTROLS',
 			'',
-			'Fields left untouched stay at the default values.'
+			'KEYBINDS - Test Notes',
+			'Arrows - Change Offsets',
+			'Ctrl+Arrows - Change base Offsets',
+			'Q/E - Previous/Next Frame',
+			'Ctrl+S - Save',
+			'ESC to Exit',
+			'',
+			'Untouched fields keep default values.'
 		];
 		var text:FlxText = new FlxText(0, 0, FlxG.width - 200, lines.join('\n'), 18);
 		text.setFormat(null, 18, FlxColor.WHITE, CENTER, OUTLINE_FAST, FlxColor.BLACK);

@@ -4,6 +4,8 @@ import funkin.save.Highscore;
 import funkin.data.StageData;
 import funkin.data.WeekData;
 import funkin.data.Song;
+import funkin.data.NotePackData;
+import funkin.data.NoteTypesConfig;
 import funkin.game.Rating;
 import funkin.game.InputSystem;
 import funkin.game.PlayDebugOverlay;
@@ -751,14 +753,14 @@ class PlayState extends MusicBeatState
 
 		#if LUA_ALLOWED
 		for (notetype in noteTypes)
-			startLuasNamed('custom_notetypes/' + notetype + '.lua');
+			startLuasNamed(noteTypeScript(notetype, '.lua'));
 		for (event in eventsPushed)
 			startLuasNamed('custom_events/' + event + '.lua');
 		#end
 
 		#if HSCRIPT_ALLOWED
 		for (notetype in noteTypes)
-			startHScriptsNamed('custom_notetypes/' + notetype + '.hx');
+			startHScriptsNamed(noteTypeScript(notetype, '.hx'));
 		for (event in eventsPushed)
 			startHScriptsNamed('custom_events/' + event + '.hx');
 		#end
@@ -1945,6 +1947,7 @@ class PlayState extends MusicBeatState
 				{
 					swagNote.strumline = extraLine;
 					swagNote.mustPress = isExtraStrumPlayer(extraLine) != opponentMode;
+					if(swagNote.typePack != null) swagNote.applyTypeGameplay();
 					swagNote.gfNote = false;
 					if (extraStrumPlayable(extraStrumData[extraLine])) swagNote.animSuffix = '';
 				}
@@ -2338,7 +2341,7 @@ class PlayState extends MusicBeatState
 
 		var strum:StrumNote = noteStrum(note);
 		if(strum == null || strum.holdCover == null || !strum.visible) return;
-		var cover:HoldCover = strum.holdCover;
+		var cover:HoldCover = coverForNote(strum.holdCover, note);
 		var isEnd:Bool = note.animation.curAnim != null && note.animation.curAnim.name.endsWith('end');
 		if(isEnd && isOpponent)
 		{
@@ -2366,7 +2369,48 @@ class PlayState extends MusicBeatState
 		}
 
 		var strum:StrumNote = noteStrum(note);
-		if(strum != null && strum.holdCover != null) strum.holdCover.hide();
+		if(strum != null && strum.holdCover != null) hideCoverWithTypes(strum.holdCover);
+	}
+
+	var typeHoldCovers:Map<HoldCover, Map<String, HoldCover>> = new Map();
+
+	function coverForNote(base:HoldCover, note:Note):HoldCover
+	{
+		var list:Map<String, HoldCover> = typeHoldCovers.get(base);
+		var part:NotePackPart = note.typeCoverPart();
+		if(part == null)
+		{
+			if(list != null) for (other in list) other.visible = false;
+			return base;
+		}
+		if(list == null)
+		{
+			list = new Map();
+			typeHoldCovers.set(base, list);
+		}
+		var cover:HoldCover = list.get(note.noteType);
+		if(cover == null)
+		{
+			cover = new HoldCover(base.noteData, base.isOpponent, isPixelStage, camHUD, note.packOpponent, part);
+			cover.cameras = base.cameras;
+			setupCoverRGB(cover, base.noteData);
+			list.set(note.noteType, cover);
+			grpHoldCovers.add(cover);
+			noteGroup.insert(noteGroup.members.indexOf(base) + 1, cover);
+		}
+		cover.disabled = base.disabled;
+		cover.invisible = base.invisible;
+		cover.forceHide = base.forceHide;
+		base.visible = false;
+		for (other in list) if(other != cover) other.visible = false;
+		return cover;
+	}
+
+	function hideCoverWithTypes(base:HoldCover)
+	{
+		base.hide();
+		var list:Map<String, HoldCover> = typeHoldCovers.get(base);
+		if(list != null) for (cover in list) cover.hide();
 	}
 
 	private function initializeHoldCovers():Void
@@ -2407,30 +2451,38 @@ class PlayState extends MusicBeatState
 			for (suffix in holdCoverSuffixes())
 			{
 				var coverName:String = 'hold' + colorName + suffix;
-				if(holdCovers.exists(coverName))
-				{
-					var cover:HoldCover = holdCovers.get(coverName);
-					cover.rgbShader = new RGBShaderReference(cover, Note.initializeGlobalRGBShader(i));
-					if(i <= arr.length)
-					{
-						@:bypassAccessor
-						{
-							cover.rgbShader.r = arr[0];
-							cover.rgbShader.g = arr[1];
-							cover.rgbShader.b = arr[2];
-						}
-					}
-					var packColors:Array<FlxColor> = cover.packColors();
-					if(packColors != null)
-					{
-						cover.rgbShader.r = packColors[0];
-						cover.rgbShader.g = packColors[1];
-						cover.rgbShader.b = packColors[2];
-					}
-					if((SONG != null && SONG.disableHoldRGB) || !cover.useRGB) cover.rgbShader.enabled = false;
-				}
+				if(holdCovers.exists(coverName)) setupCoverRGB(holdCovers.get(coverName), i);
 			}
 		}
+	}
+
+	function setupCoverRGB(cover:HoldCover, column:Int):Void
+	{
+		var arr:Array<FlxColor> = isPixelStage ? ClientPrefs.data.arrowRGBPixel[column] : ClientPrefs.data.arrowRGB[column];
+		cover.rgbShader = new RGBShaderReference(cover, Note.initializeGlobalRGBShader(column));
+		if(column <= arr.length)
+		{
+			@:bypassAccessor
+			{
+				cover.rgbShader.r = arr[0];
+				cover.rgbShader.g = arr[1];
+				cover.rgbShader.b = arr[2];
+			}
+		}
+		var packColors:Array<FlxColor> = cover.packColors();
+		if(packColors != null)
+		{
+			cover.rgbShader.r = packColors[0];
+			cover.rgbShader.g = packColors[1];
+			cover.rgbShader.b = packColors[2];
+		}
+		if((SONG != null && SONG.disableHoldRGB) || !cover.useRGB) cover.rgbShader.enabled = false;
+	}
+
+	function noteTypeScript(name:String, extension:String):String
+	{
+		var path:String = NoteTypesConfig.findFile(name, extension);
+		return (path != null) ? path : NoteTypesConfig.FOLDER + name + extension;
 	}
 
 	private function linkHoldCoversToStrums():Void
@@ -7688,7 +7740,7 @@ class PlayState extends MusicBeatState
 		
 		if(holdCovers.exists(coverName))
 		{
-			var cover:HoldCover = holdCovers.get(coverName);
+			var cover:HoldCover = coverForNote(holdCovers.get(coverName), note);
 			
 			var isEnd:Bool = note.animation.curAnim != null && note.animation.curAnim.name.endsWith('end');
 			
@@ -7729,10 +7781,7 @@ class PlayState extends MusicBeatState
 		var coverName:String = 'hold' + color + suffix;
 		
 		if(holdCovers.exists(coverName))
-		{
-			var cover:HoldCover = holdCovers.get(coverName);
-			cover.hide();
-		}
+			hideCoverWithTypes(holdCovers.get(coverName));
 	}
 
 	override function destroy() {

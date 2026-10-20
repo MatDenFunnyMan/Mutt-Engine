@@ -48,11 +48,26 @@ typedef NotePackTints = {
 	?opponent:NotePackTint
 }
 
+typedef NoteTypeGameplay = {
+	?hitCausesMiss:Null<Bool>,
+	?ignoreNote:Null<Bool>,
+	?opponentIgnoreNote:Null<Bool>,
+	?noAnimation:Null<Bool>,
+	?noMissAnimation:Null<Bool>,
+	?noSplash:Null<Bool>,
+	?lowPriority:Null<Bool>,
+	?hitHealth:Null<Float>,
+	?missHealth:Null<Float>,
+	?hitsound:String,
+	?animSuffix:String
+}
+
 typedef NotePackFile = {
 	?player:NotePackSide,
 	?opponent:NotePackSide,
 	?pixel:NotePackPixel,
-	?tint:NotePackTints
+	?tint:NotePackTints,
+	?gameplay:NoteTypeGameplay
 }
 
 class NotePackData

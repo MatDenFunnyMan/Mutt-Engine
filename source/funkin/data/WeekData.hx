@@ -18,6 +18,7 @@ typedef WeekFile =
 	var hideStoryMode:Bool;
 	var hideFreeplay:Bool;
 	var difficulties:String;
+	@:optional var weekColor:Array<Int>;
 }
 
 class WeekData {
@@ -37,8 +38,16 @@ class WeekData {
 	public var hideStoryMode:Bool;
 	public var hideFreeplay:Bool;
 	public var difficulties:String;
+	public var weekColor:Array<Int>;
 
 	public var fileName:String;
+
+	public static final DEFAULT_COLOR:FlxColor = 0xFFF9CF51;
+	public static function getWeekColor(colors:Array<Int>):FlxColor
+	{
+		if(colors == null || colors.length < 3) return DEFAULT_COLOR;
+		return FlxColor.fromRGB(colors[0], colors[1], colors[2]);
+	}
 
 	public static function createWeekFile():WeekFile {
 		var weekFile:WeekFile = {

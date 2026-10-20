@@ -152,7 +152,7 @@ class EventDefinitions
 		},
 		{
 			name: 'Change Notes',
-			description: "Changes the note skins.\n\nTo revert back to FNF skin, insert 'default' in Notes or Strums\nAllows paths (ex. 'myNote' or 'noteSkins/myNote' or 'notes/skins/custom_folder/myNote')",
+			description: "Changes the note skins.\n\nTo revert back to FNF skin, insert 'default' in Notes or Strums\nAllows paths (ex. 'myNote' or 'noteSkins/myNote' or 'notes/skins/custom_folder/myNote')\nUse Note Packs if you have them, insert the name of the .json file in each field.",
 			fields: [
 				{label: 'Target', type: 'dropdown', options: ['BF', 'Dad', 'Both'], defaultValue: 'Both', width: DROPDOWN_WIDTH},
 				{label: 'Notes'},

@@ -32,7 +32,7 @@ class HoldCover extends FlxSprite
 	public var useRGB:Bool = true;
 	public var packPart(default, null):NotePackPart = null;
 
-	public function new(noteData:Int, isOpponent:Bool, isPixelStage:Bool, camera:FlxCamera, ?opponentSide:Null<Bool>)
+	public function new(noteData:Int, isOpponent:Bool, isPixelStage:Bool, camera:FlxCamera, ?opponentSide:Null<Bool>, ?part:NotePackPart)
 	{
 		super();
 
@@ -40,7 +40,7 @@ class HoldCover extends FlxSprite
 		this.isOpponent = isOpponent;
 		this.colorName = colors[noteData];
 
-		packPart = NotePack.partFor('holdCovers', (opponentSide != null) ? opponentSide : isOpponent, isPixelStage);
+		packPart = (part != null) ? part : NotePack.partFor('holdCovers', (opponentSide != null) ? opponentSide : isOpponent, isPixelStage);
 		if(packPart != null && packPart.animations != null && loadPackCover())
 		{
 			visible = false;

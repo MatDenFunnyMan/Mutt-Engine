@@ -6369,10 +6369,15 @@ end
 		// Note type drop down
 		if(noteTypeDropDown != null)
 		{
-			var exts:Array<String> = ['.txt'];
+			var exts:Array<String> = ['.txt', '.json'];
 			#if LUA_ALLOWED exts.push('.lua'); #end
 			#if HSCRIPT_ALLOWED exts.push('.hx'); #end
-			noteTypes = loadFileList('custom_notetypes/', exts);
+			var typeFolders:Array<String> = funkin.data.NoteTypesConfig.folders();
+			typeFolders.reverse();
+			noteTypes = [];
+			for (folder in typeFolders)
+				for (name in loadFileList(folder, exts))
+					if(!noteTypes.contains(name)) noteTypes.push(name);
 			
 			var defaultTypes:Array<String> = ['', 'Alt Animation', 'Hey!', 'Censor', 'GF Sing', 'No Animation'];
 			for (id => noteType in defaultTypes)
@@ -8998,7 +9003,13 @@ end
 			note.chartNoteData = column;
 			note.mustPress = column < GRID_COLUMNS_PER_PLAYER;
 			var type:String = (data.length > 3 && data[3] != null) ? (Std.isOfType(data[3], String) ? data[3] : Note.defaultNoteTypes[data[3]]) : '';
-			if(note.noteType != type) note.noteType = type;
+			if(note.noteType != type)
+			{
+				note.noteType = type;
+				if(note.width > note.height) note.setGraphicSize(GRID_SIZE);
+				else note.setGraphicSize(0, GRID_SIZE);
+				note.updateHitbox();
+			}
 			if(type == 'Alt Animation') note.animSuffix = (data.length > 4 && data[4] != null) ? data[4] : '';
 			positionNoteXByData(note);
 		}

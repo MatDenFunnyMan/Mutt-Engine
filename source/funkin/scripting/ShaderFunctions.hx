@@ -4,6 +4,14 @@ package funkin.scripting;
 import flixel.addons.display.FlxRuntimeShader;
 #end
 
+typedef ShaderTweenValue = {
+	name:String,
+	kind:String,
+	from:Array<Float>,
+	to:Array<Float>,
+	?bools:Array<Bool>
+}
+
 class ShaderFunctions
 {
 	#if (!flash && MODS_ALLOWED && sys)
@@ -511,11 +519,147 @@ class ShaderFunctions
 			return null;
 			#end
 		});
+		Lua_helper.add_callback(lua, "tweenShader", function(tag:String, obj:String, values:Dynamic, duration:Float, ?options:Dynamic = null) {
+			#if (!flash && MODS_ALLOWED && sys)
+			var shader:FlxRuntimeShader = getShader(obj);
+			if(shader == null)
+			{
+				report('tweenShader: Shader of $obj not found!');
+				return null;
+			}
+			if(values == null || Type.typeof(values) != TObject)
+			{
+				report('tweenShader: values must be a table, like {intensity = 1}');
+				return null;
+			}
+			var targets:Array<ShaderTweenValue> = [];
+			for (name in Reflect.fields(values))
+			{
+				var target:ShaderTweenValue = tweenTarget(shader, name, Reflect.field(values, name));
+				if(target == null) report('tweenShader: "$name" is not a float, int, bool or vec uniform of the shader of $obj, or its value is not valid!');
+				else targets.push(target);
+			}
+			if(targets.length < 1) return null;
+
+			if(tag == null || tag.length < 1) tag = 'shader_' + obj;
+			LuaUtils.cancelTween(tag);
+			var myOptions = LuaUtils.getLuaTween(options);
+			var key:String = 'tween_' + LuaUtils.formatVariable(tag);
+			var variables = MusicBeatState.getVariables();
+			var tween:FlxTween = FlxTween.num(0, 1, duration, {
+				type: myOptions != null ? myOptions.type : FlxTweenType.ONESHOT,
+				ease: myOptions != null ? myOptions.ease : FlxEase.linear,
+				startDelay: myOptions != null ? myOptions.startDelay : 0,
+				loopDelay: myOptions != null ? myOptions.loopDelay : 0,
+				onStart: function(twn:FlxTween) {
+					if(myOptions != null && myOptions.onStart != null) notify(myOptions.onStart, [tag, obj]);
+				},
+				onComplete: function(twn:FlxTween) {
+					for (target in targets) if(target.kind == 'bool') setShaderValue(shader, target, 1);
+					if(twn.type == FlxTweenType.ONESHOT || twn.type == FlxTweenType.BACKWARD) variables.remove(key);
+					if(myOptions != null && myOptions.onComplete != null) notify(myOptions.onComplete, [tag, obj]);
+				}
+			}, function(progress:Float) {
+				for (target in targets) if(target.kind != 'bool') setShaderValue(shader, target, progress);
+				if(myOptions != null && myOptions.onUpdate != null) notify(myOptions.onUpdate, [tag, obj]);
+			});
+			variables.set(key, tween);
+			return tag;
+			#else
+			return null;
+			#end
+		});
 	}
+
+	#if (!flash && MODS_ALLOWED && sys)
+	static function tweenTarget(shader:FlxRuntimeShader, name:String, value:Dynamic):ShaderTweenValue
+	{
+		if(value == null || shader.data == null) return null;
+		var param:Dynamic = Reflect.field(shader.data, name);
+		if(param == null) return null;
+		var rawType:Dynamic = null;
+		try rawType = Reflect.getProperty(param, 'type') catch(e:Dynamic) {}
+		var type:Null<Int> = Std.parseInt(Std.string(rawType));
+		if(type == null || type < 0 || type > 11) return null;
+		var kind:String = (type < 4) ? 'bool' : ((type < 8) ? 'float' : 'int');
+		var size:Int = (type % 4) + 1;
+
+		var current:Array<Dynamic> = Reflect.getProperty(param, 'value');
+		var from:Array<Float> = [for (i in 0...size) (current != null && i < current.length) ? numberOf(current[i], 0) : 0];
+		if(kind == 'bool')
+		{
+			var list:Array<Dynamic> = Std.isOfType(value, Array) ? value : [for (i in 0...size) value];
+			var bools:Array<Bool> = [for (i in 0...size) (i < list.length) ? boolOf(list[i]) : (current != null && i < current.length && current[i] == true)];
+			return {name: name, kind: kind, from: from, to: from.copy(), bools: bools};
+		}
+
+		var to:Array<Float> = null;
+		if(Std.isOfType(value, Array))
+		{
+			var list:Array<Dynamic> = value;
+			to = [for (i in 0...size) (i < list.length) ? numberOf(list[i], from[i]) : from[i]];
+		}
+		else if(Std.isOfType(value, String) && Math.isNaN(Std.parseFloat(value)))
+		{
+			if(kind != 'float' || size < 3) return null;
+			var color:Null<FlxColor> = LuaUtils.colorFromLua(value);
+			if(color == null) return null;
+			var channels:Array<Float> = [color.redFloat, color.greenFloat, color.blueFloat, color.alphaFloat];
+			to = [for (i in 0...size) channels[i]];
+		}
+		else
+		{
+			var number:Float = numberOf(value, Math.NaN);
+			if(Math.isNaN(number)) return null;
+			to = [for (i in 0...size) number];
+		}
+		return {name: name, kind: kind, from: from, to: to};
+	}
+
+	static function setShaderValue(shader:FlxRuntimeShader, target:ShaderTweenValue, progress:Float)
+	{
+		switch(target.kind)
+		{
+			case 'bool':
+				if(target.bools.length == 1) shader.setBool(target.name, target.bools[0]);
+				else shader.setBoolArray(target.name, target.bools);
+			case 'int':
+				var values:Array<Int> = [for (i in 0...target.to.length) Math.round(FlxMath.lerp(target.from[i], target.to[i], progress))];
+				if(values.length == 1) shader.setInt(target.name, values[0]);
+				else shader.setIntArray(target.name, values);
+			default:
+				var values:Array<Float> = [for (i in 0...target.to.length) FlxMath.lerp(target.from[i], target.to[i], progress)];
+				if(values.length == 1) shader.setFloat(target.name, values[0]);
+				else shader.setFloatArray(target.name, values);
+		}
+	}
+
+	static function numberOf(value:Dynamic, fallback:Float):Float
+	{
+		if(value == null) return fallback;
+		if(Std.isOfType(value, Bool)) return value ? 1 : 0;
+		var number:Float = Std.parseFloat(Std.string(value));
+		return Math.isNaN(number) ? fallback : number;
+	}
+
+	static function boolOf(value:Dynamic):Bool
+	{
+		if(Std.isOfType(value, Bool)) return value;
+		var text:String = Std.string(value).trim().toLowerCase();
+		return text == 'true' || text == '1';
+	}
+	#end
 
 	#if (!flash && MODS_ALLOWED && sys)
 	public static function getShader(obj:String):FlxRuntimeShader
 	{
+		if(obj.startsWith('stage:'))
+		{
+			var name:String = obj.substr(6).trim();
+			var found:FlxRuntimeShader = (PlayState.instance != null) ? PlayState.instance.getStageShader(name) : null;
+			if(found == null) FunkinLua.luaTrace('Error on getting shader: Stage shader "$name" not found', false, false, FlxColor.RED);
+			return found;
+		}
 		if(isCamera(obj))
 			return cameraShader(obj);
 

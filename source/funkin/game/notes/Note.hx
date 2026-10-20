@@ -139,6 +139,8 @@ class Note extends FlxSprite
 
 	public var packOpponent:Bool = false;
 	public var packPart(default, null):NotePackPart = null;
+	public var typePack(default, null):NotePack = null;
+	var holdCenter:Float = 0;
 
 	public var noAnimation:Bool = false;
 	public var noMissAnimation:Bool = false;
@@ -243,10 +245,75 @@ class Note extends FlxSprite
 					animSuffix = '-censor';
 			}
 			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(this, value);
+			typePack = NotePack.forNoteType(value);
+			if (typePack != null) applyTypeGameplay();
 			if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound); //precache new sound for being idiot-proof
 			noteType = value;
+			if (typePack != null && (texture == null || texture.length < 1)) reloadTypeSkin();
 		}
 		return value;
+	}
+
+	public function applyTypeGameplay()
+	{
+		var data:NoteTypeGameplay = (typePack != null && typePack.data != null) ? typePack.data.gameplay : null;
+		if(data == null) return;
+		if(data.hitCausesMiss != null) hitCausesMiss = data.hitCausesMiss;
+		if(mustPress && data.ignoreNote != null) ignoreNote = data.ignoreNote;
+		if(!mustPress && data.opponentIgnoreNote != null) ignoreNote = data.opponentIgnoreNote;
+		if(data.noAnimation != null) noAnimation = data.noAnimation;
+		if(data.noMissAnimation != null) noMissAnimation = data.noMissAnimation;
+		if(data.noSplash != null) noteSplashData.disabled = data.noSplash;
+		if(data.lowPriority != null) lowPriority = data.lowPriority;
+		if(data.hitHealth != null) hitHealth = data.hitHealth;
+		if(data.missHealth != null) missHealth = data.missHealth;
+		if(data.hitsound != null && data.hitsound.trim().length > 0) hitsound = data.hitsound.trim();
+		if(data.animSuffix != null) animSuffix = data.animSuffix;
+	}
+
+	function reloadTypeSkin()
+	{
+		if(isSustainNote) offsetX -= holdCenter;
+		reloadNote(texture, getNoteSkinPostfix());
+		if(!isSustainNote) return;
+		var head:Note = prevNote;
+		while(head != null && head.isSustainNote && head.prevNote != null && head.prevNote != head) head = head.prevNote;
+		var headWidth:Float = (head != null && !head.isSustainNote) ? head.width : width;
+		holdCenter = headWidth / 2 - width / 2;
+		offsetX += holdCenter;
+	}
+
+	public function typeCoverPart():NotePackPart
+	{
+		if(typePack == null) return null;
+		var pixel:Bool = PlayState.isPixelStage;
+		var base:NotePackPart = NotePack.partFor('holdCovers', packOpponent, pixel);
+		if(base == null) base = NotePackData.defaultPart('holdCovers', pixel);
+		return typePack.typePart('holdCovers', packOpponent, pixel, base);
+	}
+
+	function notesPart():NotePackPart
+	{
+		var base:NotePackPart = NotePack.partFor('notes', packOpponent);
+		if(typePack == null) return base;
+		var custom:NotePackPart = typePack.typePart('notes', packOpponent, PlayState.isPixelStage, base);
+		return (custom != null) ? custom : base;
+	}
+
+	function applyPackColors()
+	{
+		if(rgbShader == null || noteData < 0) return;
+		var part:NotePackPart = packPart;
+		if(typePack != null)
+		{
+			var raw:NotePackPart = typePack.rawPart('notes', packOpponent, PlayState.isPixelStage);
+			if(raw != null && raw.colors != null) part = raw;
+		}
+		var colors:Array<FlxColor> = NotePackData.packColors(part, noteData);
+		if(colors == null) return;
+		rgbShader.r = colors[0];
+		rgbShader.g = colors[1];
+		rgbShader.b = colors[2];
 	}
 
 	public function new(strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null, ?opponentSide:Bool = false)
@@ -303,6 +370,7 @@ class Note extends FlxSprite
 			hitsoundDisabled = true;
 			if(ClientPrefs.data.downScroll) flipY = true;
 
+			holdCenter = width / 2;
 			offsetX += width / 2;
 			copyAngle = false;
 
@@ -311,6 +379,7 @@ class Note extends FlxSprite
 			updateHitbox();
 
 			offsetX -= width / 2;
+			holdCenter -= width / 2;
 
 			if (PlayState.isPixelStage)
 				offsetX += 30;
@@ -379,7 +448,7 @@ class Note extends FlxSprite
 		if(texture == null) texture = '';
 		if(postfix == null) postfix = '';
 
-		packPart = (texture.length < 1 && noteData > -1) ? NotePack.partFor('notes', packOpponent) : null;
+		packPart = (texture.length < 1 && noteData > -1) ? notesPart() : null;
 		if(packPart != null && reloadPackNote()) return;
 		packPart = null;
 
@@ -478,6 +547,7 @@ class Note extends FlxSprite
 
 		if(animName != null)
 			animation.play(animName, true);
+		if(texture.length < 1) applyPackColors();
 	}
 
 	function reloadPackNote():Bool
@@ -518,12 +588,13 @@ class Note extends FlxSprite
 		updateHitbox();
 		applyPackOffsets();
 		if(animName != null && animation.exists(animName)) animation.play(animName, true);
+		applyPackColors();
 		return true;
 	}
 
 	public function refreshPackPart()
 	{
-		if(noteData > -1) packPart = NotePack.partFor('notes', packOpponent);
+		if(noteData > -1) packPart = notesPart();
 	}
 
 	public function applyPackOffsets()

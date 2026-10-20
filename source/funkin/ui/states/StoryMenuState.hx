@@ -1,6 +1,7 @@
 package funkin.ui.states;
 
 import funkin.data.WeekData;
+import funkin.graphics.shaders.WeekColorShader;
 import funkin.save.Highscore;
 import funkin.data.Song;
 
@@ -83,7 +84,7 @@ class StoryMenuState extends MusicBeatState
 		txtWeekTitle.alpha = 0.7;
 
 		var ui_tex = Paths.getSparrowAtlas('campaign_menu_UI_assets');
-		var bgYellow:FlxSprite = new FlxSprite(0, 56).makeGraphic(FlxG.width, 386, 0xFFF9CF51);
+		bgYellow = new FlxSprite(0, 56).makeGraphic(FlxG.width, 386, FlxColor.WHITE);
 		bgSprite = new FlxSprite(0, 56);
 
 		grpWeekText = new FlxTypedGroup<MenuItem>();
@@ -204,6 +205,11 @@ class StoryMenuState extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
+		if(bgYellow != null)
+			for (sprite in [bgSprite].concat(cast grpWeekCharacters.members))
+				if(sprite != null && Std.isOfType(sprite.shader, WeekColorShader))
+					(cast sprite.shader:WeekColorShader).setColor(bgYellow.color);
+
 		if(WeekData.weeksList.length < 1)
 		{
 			if (controls.BACK && !movedBack && !selectedWeek)
@@ -419,6 +425,9 @@ class StoryMenuState extends MusicBeatState
 	var lerpScore:Int = 49324858;
 	var intendedScore:Int = 0;
 
+	var bgYellow:FlxSprite;
+	var bgYellowTween:FlxTween;
+	var bgYellowSet:Bool = false;
 	function changeWeek(change:Int = 0):Void
 	{
 		curWeek += change;
@@ -430,6 +439,14 @@ class StoryMenuState extends MusicBeatState
 
 		var leWeek:WeekData = loadedWeeks[curWeek];
 		WeekData.setDirectoryFromWeek(leWeek);
+
+		var weekColor:FlxColor = WeekData.getWeekColor(leWeek.weekColor);
+		if(bgYellowTween != null) bgYellowTween.cancel();
+		if(!bgYellowSet) bgYellow.color = weekColor;
+		else if(bgYellow.color != weekColor) bgYellowTween = FlxTween.color(bgYellow, 0.4, bgYellow.color, weekColor);
+		bgYellowSet = true;
+		WeekColorShader.apply(bgSprite, leWeek.weekColor, bgYellow.color);
+		for (char in grpWeekCharacters.members) WeekColorShader.apply(char, leWeek.weekColor, bgYellow.color);
 
 		var leName:String = Language.getPhrase('storyname_${leWeek.fileName}', leWeek.storyName);
 		txtWeekTitle.text = leName.toUpperCase();

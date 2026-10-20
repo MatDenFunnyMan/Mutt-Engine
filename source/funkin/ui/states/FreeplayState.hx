@@ -85,6 +85,10 @@ class FreeplayState extends MusicBeatState
 	var canSwitchPlayer:Bool = false;
 
 	var bg:FlxSprite;
+	var bgImage:FlxSprite;
+	var bgImageKey:String = null;
+	var bgImageTint:Bool = false;
+	var bgImageTween:FlxTween;
 	var intendedColor:Int;
 	var rows:FlxTypedGroup<FreeplaySongRow>;
 	var visibleRows:Array<FreeplaySongRow> = [];
@@ -250,7 +254,7 @@ class FreeplayState extends MusicBeatState
 				{
 					colors = [146, 113, 253];
 				}
-				addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]), weekDifficulties);
+				addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]), weekDifficulties, song[3], song[4] == true);
 			}
 		}
 		#if MODS_ALLOWED
@@ -282,6 +286,11 @@ class FreeplayState extends MusicBeatState
 		bg.antialiasing = ClientPrefs.data.antialiasing;
 		add(bg);
 		bg.screenCenter();
+
+		bgImage = new FlxSprite();
+		bgImage.antialiasing = ClientPrefs.data.antialiasing;
+		bgImage.visible = false;
+		add(bgImage);
 
 		backdrop = new FlxBackdrop(Paths.image('freeplay/backdrop'));
 		backdrop.scale.set(BACKDROP_SCALE, BACKDROP_SCALE);
@@ -418,6 +427,7 @@ class FreeplayState extends MusicBeatState
 		var firstSong:SongMetadata = songs[curSelected];
 		bg.color = firstSong.isRandom ? RANDOM_COLOR : firstSong.color;
 		intendedColor = bg.color;
+		updateBGImage(firstSong, true);
 
 		if(pendingResult != null)
 		{
@@ -461,9 +471,11 @@ class FreeplayState extends MusicBeatState
 		musicDimTween = FlxTween.num(group.volume, dim ? MENU_MUSIC_DIM : 1, 0.3, null, function(value:Float) group.volume = value);
 	}
 
-	public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Int, ?difficulties:Array<String>)
+	public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Int, ?difficulties:Array<String>, ?bgImage:String, ?bgTint:Bool = false)
 	{
 		var song:SongMetadata = new SongMetadata(songName, weekNum, songCharacter, color);
+		song.bgImage = bgImage;
+		song.bgTint = bgTint;
 		song.loadFreeplayData(difficulties != null ? difficulties : Difficulty.defaultList);
 		allSongs.push(song);
 	}
@@ -486,6 +498,8 @@ class FreeplayState extends MusicBeatState
 	{
 		if(WeekData.weeksList.length < 1 || songs.length < 1)
 			return;
+
+		if(bgImage.visible) bgImage.color = bgImageTint ? bg.color : FlxColor.WHITE;
 
 		#if (lime_vorbis && target.threaded)
 		var clip:PreviewClip = clipQueue.pop(false);
@@ -754,6 +768,8 @@ class FreeplayState extends MusicBeatState
 			PlayState.storyWeek = song.week;
 		}
 
+		updateBGImage(song);
+
 		Difficulty.copyFrom(song.difficulties);
 		curDifficulty = song.indexOfDifficulty(lastDifficultyName);
 		if(curDifficulty < 0) curDifficulty = song.indexOfDifficulty(Difficulty.getDefault());
@@ -761,6 +777,39 @@ class FreeplayState extends MusicBeatState
 
 		changeDiff();
 		schedulePreview();
+	}
+
+	function updateBGImage(song:SongMetadata, ?instant:Bool = false)
+	{
+		var key:String = (song != null && !song.isRandom) ? song.bgImage : null;
+		if(key != null) Mods.currentModDirectory = song.folder;
+		if(key != null && (key.length < 1 || !Paths.fileExists('images/$key.png', IMAGE))) key = null;
+		bgImageTint = (key != null && song.bgTint);
+		if(key == bgImageKey) return;
+		bgImageKey = key;
+
+		if(bgImageTween != null) bgImageTween.cancel();
+		if(key == null)
+		{
+			if(instant || !bgImage.visible) bgImage.visible = false;
+			else bgImageTween = FlxTween.tween(bgImage, {alpha: 0}, 0.3, {onComplete: function(_) bgImage.visible = false});
+			return;
+		}
+
+		fitBackground(bgImage.loadGraphic(Paths.image(key)));
+		bgImage.visible = true;
+		bgImage.color = bgImageTint ? bg.color : FlxColor.WHITE;
+		bgImage.alpha = instant ? 1 : 0;
+		if(!instant) bgImageTween = FlxTween.tween(bgImage, {alpha: 1}, 0.3);
+	}
+
+	public static function fitBackground(sprite:FlxSprite):FlxSprite
+	{
+		var size:Float = Math.max(FlxG.width / sprite.frameWidth, FlxG.height / sprite.frameHeight);
+		sprite.scale.set(size, size);
+		sprite.updateHitbox();
+		sprite.screenCenter();
+		return sprite;
 	}
 
 	function refreshSongList(?keepSong:SongMetadata)
@@ -1382,6 +1431,8 @@ class SongMetadata
 	public var week:Int = 0;
 	public var songCharacter:String = "";
 	public var color:Int = -7179779;
+	public var bgImage:String = null;
+	public var bgTint:Bool = false;
 	public var folder:String = "";
 	public var isRandom:Bool = false;
 	public var player:String = "";

@@ -1,6 +1,7 @@
 package funkin.game.notes;
 
 import funkin.data.NotePackData;
+import funkin.data.NoteTypesConfig;
 import funkin.data.Song.SwagSong;
 
 using StringTools;
@@ -13,6 +14,7 @@ class NotePack
 
 	static var cache:Map<String, NotePack> = new Map();
 	static var overrides:Map<String, NotePack> = new Map();
+	static var typeCache:Map<String, NotePack> = new Map();
 
 	public static var active(get, never):NotePack;
 	static var activeSong:SwagSong = null;
@@ -119,10 +121,23 @@ class NotePack
 	public static function antialiasingOf(part:NotePackPart):Bool
 		return ClientPrefs.data.antialiasing && part.antialiasing != false;
 
+	public static function forNoteType(name:String):NotePack
+	{
+		if(name == null || name.trim().length < 1) return null;
+		var key:String = '$name|${PlayState.SONG != null ? PlayState.SONG.song : ''}|${Mods.currentModDirectory}';
+		if(typeCache.exists(key)) return typeCache.get(key);
+		var path:String = NoteTypesConfig.findFile(name, '.json');
+		var pack:NotePack = (path != null) ? load(path) : null;
+		typeCache.set(key, pack);
+		return pack;
+	}
+
 	public var path(default, null):String;
 	public var data(default, null):NotePackFile;
 
 	var parts:Map<String, NotePackPart> = new Map();
+	var typeParts:Map<String, NotePackPart> = new Map();
+	var typeBases:Map<String, NotePackPart> = new Map();
 
 	function new(path:String, data:NotePackFile)
 	{
@@ -139,6 +154,36 @@ class NotePack
 
 	public function hasPart(name:String, opponent:Bool, pixel:Bool):Bool
 		return part(name, opponent, pixel) != null;
+
+	public function rawPart(name:String, opponent:Bool, pixel:Bool):NotePackPart
+	{
+		var raw:NotePackPart = NotePackData.rawPart(data, name, opponent, pixel);
+		if(raw == null && pixel) raw = NotePackData.rawPart(data, name, opponent, false);
+		return raw;
+	}
+
+	public function typePart(name:String, opponent:Bool, pixel:Bool, base:NotePackPart):NotePackPart
+	{
+		var raw:NotePackPart = NotePackData.rawPart(data, name, opponent, pixel);
+		var ownSkin:Bool = false;
+		if(raw == null && pixel)
+		{
+			raw = NotePackData.rawPart(data, name, opponent, false);
+			ownSkin = raw != null && (raw.image != null || raw.animations != null);
+			if(ownSkin) base = null;
+			pixel = false;
+		}
+		if(raw == null) return null;
+		if(base == null && raw.image == null && raw.animations == null && !ownSkin) return null;
+
+		var key:String = '$name|$opponent|$pixel';
+		if(!typeParts.exists(key) || typeBases.get(key) != base)
+		{
+			typeBases.set(key, base);
+			typeParts.set(key, NotePackData.mergePart((base != null) ? base : NotePackData.defaultPart(name, pixel), raw, name));
+		}
+		return typeParts.get(key);
+	}
 
 	public function tint(opponent:Bool):NotePackTint
 		return NotePackData.tint(data, opponent);
@@ -228,6 +273,7 @@ class NotePack
 	{
 		cache.clear();
 		overrides.clear();
+		typeCache.clear();
 		activeSong = null;
 		activeKey = null;
 		activeValue = null;

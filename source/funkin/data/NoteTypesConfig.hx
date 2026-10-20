@@ -9,6 +9,26 @@ typedef NoteTypeProperty = {
 
 class NoteTypesConfig
 {
+	public static final FOLDER:String = 'custom_notetypes/';
+
+	public static function songFolders():Array<String>
+	{
+		if(PlayState.SONG == null || PlayState.SONG.song == null) return [];
+		var song:String = Paths.formatToSongPath(PlayState.SONG.song);
+		return ['data/songs/$song/$FOLDER', 'data/$song/$FOLDER'];
+	}
+
+	public static function folders():Array<String>
+		return songFolders().concat([FOLDER]);
+
+	public static function findFile(name:String, extension:String):String
+	{
+		if(name == null || name.trim().length < 1) return null;
+		for (folder in folders())
+			if(Paths.fileExists(folder + name + extension, TEXT)) return folder + name + extension;
+		return null;
+	}
+
 	private static var noteTypesData:Map<String, Array<NoteTypeProperty>> = new Map<String, Array<NoteTypeProperty>>();
 	public static function clearNoteTypesData()
 		noteTypesData.clear();
@@ -17,7 +37,8 @@ class NoteTypesConfig
 	{
 		if(noteTypesData.exists(name)) return noteTypesData.get(name);
 
-		var str:String = Paths.getTextFromFile('custom_notetypes/$name.txt');
+		var path:String = findFile(name, '.txt');
+		var str:String = (path != null) ? Paths.getTextFromFile(path) : null;
 		if(str == null || !str.contains(':') || !str.contains('=')) noteTypesData.set(name, null);
 
 		var parsed:Array<NoteTypeProperty> = [];
