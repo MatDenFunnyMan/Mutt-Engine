@@ -40,7 +40,7 @@ class Flx3DView extends FlxView3D {
 	//public function addModel(assetPath:String, callback:Asset3DEvent->Void, ?texturePath:String, smoothTexture:Bool = true) {
 	public function addModel(assetPath:String, callback:Asset3DEvent->Void, #if sys ?texturePath:FlxGraphic #else ?texturePath:String #end, smoothTexture:Bool = true) {
 		#if sys
-		var model = openfl.utils.ByteArray.fromBytes(sys.io.File.getBytes(assetPath)); //Lets you add model files without having to recompile
+		var model = openfl.utils.ByteArray.fromBytes(funkin.backend.vfs.File.getBytes(assetPath)); //Lets you add model files without having to recompile
 		#else
 		var model = Assets.getBytes(assetPath); //Works with stuff like html, but you need to recompile in order to register the model file.
 		#end

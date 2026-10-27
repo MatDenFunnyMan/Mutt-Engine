@@ -17,6 +17,8 @@ import funkin.save.Achievements;
 #if sys
 import sys.*;
 import sys.io.*;
+import funkin.backend.vfs.FileSystem;
+import funkin.backend.vfs.File;
 #elseif js
 import js.html.*;
 #end

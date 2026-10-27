@@ -23,7 +23,7 @@ class ThreadedCache
 			var bitmap:BitmapData = null;
 			#if MODS_ALLOWED
 			if (FileSystem.exists(file))
-				bitmap = BitmapData.fromFile(file);
+				bitmap = funkin.backend.vfs.EmbeddedFiles.loadBitmap(file);
 			else
 			#end
 			if (openfl.utils.Assets.exists(file, IMAGE))
@@ -44,7 +44,7 @@ class ThreadedCache
 			var sound:Sound = null;
 			#if sys
 			if (FileSystem.exists(file))
-				sound = Sound.fromFile(file);
+				sound = funkin.backend.vfs.EmbeddedFiles.loadSound(file);
 			#end
 			if (sound == null && openfl.utils.Assets.exists(file, SOUND))
 				sound = openfl.utils.Assets.getSound(file);

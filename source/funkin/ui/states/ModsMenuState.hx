@@ -860,7 +860,7 @@ class ModItem extends FlxSpriteGroup
 		}
 		
 		var bmp:BitmapData = null;
-		if (FileSystem.exists(file)) bmp = BitmapData.fromFile(file);
+		if (FileSystem.exists(file)) bmp = funkin.backend.vfs.EmbeddedFiles.loadBitmap(file);
 		else isPixel = false;
 
 		if(FileSystem.exists(file))

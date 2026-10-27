@@ -77,6 +77,13 @@ class EditorHelper
 		return checkBox;
 	}
 
+	public static function isModPath(path:String):Bool
+	{
+		if(path == null) return false;
+		var normalized:String = path.replace('\\', '/').toLowerCase();
+		return normalized.startsWith('mods/') || normalized.contains('/mods/');
+	}
+
 	public static function saveCurrentState():Void
 	{
 		var currentState = Type.getClassName(Type.getClass(FlxG.state));

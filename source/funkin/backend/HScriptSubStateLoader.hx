@@ -88,11 +88,10 @@ class HScriptSubStateLoader
 				modDirectory = save.data.currentMod;
 		}
 
-		if(modDirectory == null || modDirectory == '') return null;
-
-		var dir:String = Paths.mods('$modDirectory/states/substates/');
-		var scriptPath:String = HScriptStateLoader.findScriptInDir(dir, '$subStateName.hx');
+		var scriptPath:String = (modDirectory != null && modDirectory != '') ? HScriptStateLoader.findScriptInDir(Paths.mods('$modDirectory/states/substates/'), '$subStateName.hx') : null;
+		if(scriptPath == null) scriptPath = HScriptStateLoader.findScriptInDir('assets/states/substates/', '$subStateName.hx');
 		if(scriptPath == null) return null;
+		if(modDirectory == null) modDirectory = '';
 
 		try
 		{

@@ -55,8 +55,8 @@ class LuaSharedFunctions
 		});
 		Lua_helper.add_callback(lua, "directoryFileList", function(folder:String) {
 			#if sys
-			if(sys.FileSystem.exists(folder) && sys.FileSystem.isDirectory(folder))
-				return sys.FileSystem.readDirectory(folder);
+			if(funkin.backend.vfs.FileSystem.exists(folder) && funkin.backend.vfs.FileSystem.isDirectory(folder))
+				return funkin.backend.vfs.FileSystem.readDirectory(folder);
 			#end
 			return [];
 		});
@@ -197,7 +197,7 @@ class LuaSharedFunctions
 			leSprite.active = true;
 		});
 		Lua_helper.add_callback(lua, "makeAnimatedLuaSprite", function(tag:String, ?image:String = null, ?x:Float = 0, ?y:Float = 0, ?spriteType:String = 'auto') {
-			LuaUtils.warnDeprecated('makeAnimatedLuaSprite', 'createSprite');
+			LuaUtils.warnDeprecated('makeAnimatedLuaSprite', 'createAnimatedSprite');
 			tag = tag.replace('.', '');
 			LuaUtils.destroyObject(tag);
 			var leSprite:ModchartSprite = new ModchartSprite(x, y);
@@ -240,26 +240,70 @@ class LuaSharedFunctions
 		});
 	}
 
+	public static function registerCharacterPos(lua:State, getGroup:Dynamic->flixel.group.FlxSpriteGroup)
+	{
+		Lua_helper.add_callback(lua, "setCharacterPos", function(character:Dynamic, ?x:Null<Float>, ?y:Null<Float>, ?zIndex:Null<Float>) {
+			var group:flixel.group.FlxSpriteGroup = getGroup(character);
+			if(group == null) return false;
+			if(x != null) group.x = x;
+			if(y != null) group.y = y;
+			var game:funkin.game.states.PlayState = funkin.game.states.PlayState.instance;
+			if(zIndex != null && game != null && game.members.contains(group))
+			{
+				game.remove(group, true);
+				game.insert(Std.int(Math.max(0, Math.min(zIndex, game.members.length))), group);
+			}
+			if(game != null && FlxG.state == game) game.refreshCameraTarget();
+			return true;
+		});
+		Lua_helper.add_callback(lua, "getCharacterPos", function(character:Dynamic) {
+			var group:flixel.group.FlxSpriteGroup = getGroup(character);
+			if(group == null) return null;
+			var game:funkin.game.states.PlayState = funkin.game.states.PlayState.instance;
+			return {x: group.x, y: group.y, zIndex: (game != null) ? game.members.indexOf(group) : -1};
+		});
+	}
+
 	public static function registerCreateFunctions(lua:State, place:FlxBasic->Bool->Null<Int>->Void, ?textCamera:Void->FlxCamera)
 	{
 		registerGradient(lua, place);
-		Lua_helper.add_callback(lua, "createSprite", function(tag:String, ?image:String = null, ?x:Float = 0, ?y:Float = 0, ?options:Dynamic = null) {
+		Lua_helper.add_callback(lua, "createSprite", function(tag:String, ?image:String = null, ?x:Null<Float>, ?y:Null<Float>, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, LuaUtils.SPRITE_OPTIONS);
 			tag = tag.replace('.', '');
-			LuaUtils.destroyObject(tag);
-			var sprite:ModchartSprite = new ModchartSprite(x, y);
+			var existing:FlxSprite = existingSprite(tag);
+			var sprite:FlxSprite = (existing != null) ? existing : new ModchartSprite();
+			if(x != null) sprite.x = x;
+			if(y != null) sprite.y = y;
+			if(image != null && image.trim().length > 0)
+				sprite.loadGraphic(Paths.image(image.trim()));
+			sprite.active = true;
+			applyCreateOptions(sprite, options);
+			finishCreate(tag, sprite, existing != null, options, place);
+			return tag;
+		});
+		Lua_helper.add_callback(lua, "createAnimatedSprite", function(tag:String, ?image:String = null, ?x:Null<Float>, ?y:Null<Float>, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, LuaUtils.SPRITE_OPTIONS.concat(['spriteType']));
+			tag = tag.replace('.', '');
+			var existing:FlxSprite = existingSprite(tag);
+			var sprite:FlxSprite = (existing != null) ? existing : new ModchartSprite();
+			if(x != null) sprite.x = x;
+			if(y != null) sprite.y = y;
 			if(image != null && image.trim().length > 0)
 			{
 				if(image.contains(',')) sprite.frames = Paths.getMultiAtlas([for (part in image.split(',')) part.trim()]);
-				else if(LuaUtils.hasAtlas(image)) LuaUtils.loadFrames(sprite, image, 'auto');
-				else sprite.loadGraphic(Paths.image(image));
+				else
+				{
+					var spriteType:String = LuaUtils.option(options, 'spriteType');
+					LuaUtils.loadFrames(sprite, image.trim(), spriteType != null ? spriteType : 'auto');
+				}
 			}
 			sprite.active = true;
 			applyCreateOptions(sprite, options);
-			MusicBeatState.getVariables().set(tag, sprite);
-			place(sprite, LuaUtils.option(options, 'front') == true, zIndexOption(options));
+			finishCreate(tag, sprite, existing != null, options, place);
 			return tag;
 		});
 		Lua_helper.add_callback(lua, "createText", function(tag:String, ?text:String = '', ?x:Float = 0, ?y:Float = 0, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, ['font', 'size', 'width', 'height', 'autoSize', 'color', 'alpha', 'camera', 'zIndex', 'front', 'scrollX', 'scrollY']);
 			tag = tag.replace('.', '');
 			LuaUtils.destroyObject(tag);
 			var size:Null<Float> = LuaUtils.option(options, 'size');
@@ -283,9 +327,31 @@ class LuaSharedFunctions
 		});
 	}
 
+	static function existingSprite(tag:String):FlxSprite
+	{
+		var obj:Dynamic = MusicBeatState.getVariables().get(tag);
+		if(obj != null && Std.isOfType(obj, FlxSprite) && !Std.isOfType(obj, FlxText) && (cast obj:FlxSprite).exists) return cast obj;
+		LuaUtils.destroyObject(tag);
+		return null;
+	}
+
+	static function finishCreate(tag:String, sprite:FlxSprite, reused:Bool, options:Dynamic, place:FlxBasic->Bool->Null<Int>->Void)
+	{
+		MusicBeatState.getVariables().set(tag, sprite);
+		var front:Dynamic = LuaUtils.option(options, 'front');
+		var zIndex:Null<Int> = zIndexOption(options);
+		if(!reused) place(sprite, front == true, zIndex);
+		else if(front != null || zIndex != null)
+		{
+			LuaUtils.getTargetInstance().remove(sprite, true);
+			place(sprite, front == true, zIndex);
+		}
+	}
+
 	static function registerGradient(lua:State, place:FlxBasic->Bool->Null<Int>->Void)
 	{
 		Lua_helper.add_callback(lua, "createGradient", function(tag:String, x:Float, y:Float, width:Int, height:Int, colors:Array<String>, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, ['angle', 'chunkSize', 'interpolate'].concat(LuaUtils.SPRITE_OPTIONS));
 			tag = tag.replace('.', '');
 			LuaUtils.destroyObject(tag);
 			var parsed:Array<FlxColor> = [];

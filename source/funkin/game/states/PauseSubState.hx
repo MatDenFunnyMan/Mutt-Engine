@@ -287,7 +287,7 @@ class PauseSubState extends MusicBeatSubstate
 			Thread.create(function()
 			{
 				var sound:Sound = null;
-				try { sound = Sound.fromFile(path); } catch(e:Dynamic) {}
+				try { sound = funkin.backend.vfs.EmbeddedFiles.loadSound(path); } catch(e:Dynamic) {}
 				if(sound != null) queue.add(sound);
 			});
 			return;

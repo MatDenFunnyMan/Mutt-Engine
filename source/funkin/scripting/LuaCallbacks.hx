@@ -171,17 +171,14 @@ class LuaCallbacks
 		Lua_helper.add_callback(lua, "addAnimationByIndices", function(obj:String, name:String, prefix:String, indices:Any, framerate:Float = 24, loop:Bool = false) {
 			return LuaUtils.addAnimByIndices(obj, name, prefix, indices, framerate, loop);
 		});
-		Lua_helper.add_callback(lua, "playAnim", function(obj:String, name:String, ?forced:Bool = false, ?reverse:Bool = false, ?startFrame:Int = 0) {
+		Lua_helper.add_callback(lua, "playAnim", function(obj:String, name:String, ?forced:Bool = false, ?reverse:Bool = false, ?startFrame:Int = 0, ?looped:Null<Bool>) {
 			var obj:Dynamic = LuaUtils.getObjectDirectly(obj);
-			if(obj.playAnim != null) {
-				obj.playAnim(name, forced, reverse, startFrame);
-				return true;
-			} else {
-				if(obj.anim != null) obj.anim.play(name, forced, reverse, startFrame);
-				else obj.animation.play(name, forced, reverse, startFrame);
-				return true;
-			}
-			return false;
+			if(obj == null) return false;
+			if(obj.playAnim != null) obj.playAnim(name, forced, reverse, startFrame);
+			else if(obj.anim != null) obj.anim.play(name, forced, reverse, startFrame);
+			else obj.animation.play(name, forced, reverse, startFrame);
+			LuaUtils.setCurAnimLooped(obj, looped);
+			return true;
 		});
 		Lua_helper.add_callback(lua, "addOffset", function(obj:String, anim:String, x:Float, y:Float) {
 			var obj:Dynamic = LuaUtils.getObjectDirectly(obj);

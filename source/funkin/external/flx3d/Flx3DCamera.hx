@@ -66,7 +66,7 @@ class Flx3DCamera extends FlxCamera {
 	public function addModel(assetPath:String, callback:Asset3DEvent->Void, #if sys ?texturePath:FlxGraphic #else ?texturePath:String #end, smoothTexture:Bool = true) {
 
 		#if sys
-		var model = openfl.utils.ByteArray.fromBytes(sys.io.File.getBytes(assetPath));
+		var model = openfl.utils.ByteArray.fromBytes(funkin.backend.vfs.File.getBytes(assetPath));
 		#else
 		var model = Assets.getBytes(assetPath);
 		#end

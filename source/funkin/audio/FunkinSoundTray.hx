@@ -49,8 +49,8 @@ class FunkinSoundTray extends FlxSoundTray
 	{
 		#if MODS_ALLOWED
 		var modPath:String = Paths.modFolders('images/soundtray/' + file + '.png');
-		if (sys.FileSystem.exists(modPath))
-			return BitmapData.fromFile(modPath);
+		if (funkin.backend.vfs.FileSystem.exists(modPath))
+			return funkin.backend.vfs.EmbeddedFiles.loadBitmap(modPath);
 		#end
 		return Assets.getBitmapData(Paths.getPath('images/soundtray/' + file + '.png', IMAGE));
 	}
@@ -59,7 +59,7 @@ class FunkinSoundTray extends FlxSoundTray
 	{
 		#if MODS_ALLOWED
 		var modPath:String = Paths.modFolders('sounds/soundtray/' + file + '.ogg');
-		if (sys.FileSystem.exists(modPath))
+		if (funkin.backend.vfs.FileSystem.exists(modPath))
 			return modPath;
 		#end
 		return Paths.getPath('sounds/soundtray/' + file + '.ogg', SOUND);

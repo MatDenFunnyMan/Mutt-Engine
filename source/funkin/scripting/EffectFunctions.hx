@@ -9,6 +9,7 @@ class EffectFunctions
 	{
 		var lua = funk.lua;
 		Lua_helper.add_callback(lua, "setGhostTrail", function(character:String, type:String, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, ['doubleNote', 'color', 'alpha', 'duration', 'distance', 'grow', 'rate', 'blend']);
 			if(PlayState.instance == null) return false;
 			if(!PlayState.instance.setGhostTrail(character, type, options))
 			{
@@ -19,11 +20,13 @@ class EffectFunctions
 			return true;
 		});
 		Lua_helper.add_callback(lua, "setSilhouette", function(enabled:Bool, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, ['characterColor', 'characterColors', 'backgroundColor', 'strength', 'characterAlpha', 'backgroundAlpha', 'duration', 'ease', 'hud', 'details']);
 			if(PlayState.instance == null) return false;
 			PlayState.instance.setSilhouette(enabled, options);
 			return true;
 		});
 		Lua_helper.add_callback(lua, "backgroundFlash", function(?color:String = 'FFFFFF', ?duration:Float = 1, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, ['characterColor', 'ease']);
 			if(PlayState.instance == null) return false;
 			PlayState.instance.backgroundFlash(color, duration, options);
 			return true;

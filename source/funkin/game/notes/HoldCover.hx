@@ -261,7 +261,7 @@ class HoldCover extends FlxSprite
 
 		try
 		{
-			var raw:Dynamic = haxe.Json.parse(sys.io.File.getContent(jsonPath));
+			var raw:Dynamic = haxe.Json.parse(funkin.backend.vfs.File.getContent(jsonPath));
 
 			if(raw.offsetNormal != null)
 				configOffsetNormal = raw.offsetNormal;

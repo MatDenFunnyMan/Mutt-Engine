@@ -117,7 +117,7 @@ class FunkinLuaScript extends FunkinScript
 	{
 		if(lua == null) return false;
 		try {
-			var result:Dynamic = LuaL.dofile(lua, path);
+			var result:Dynamic = funkin.backend.vfs.EmbeddedFiles.runLua(lua, path);
 			var resultStr:String = Lua.tostring(lua, result);
 			if(resultStr != null && result != 0) {
 				trace('$traceLabel: Error loading $path\n$resultStr');

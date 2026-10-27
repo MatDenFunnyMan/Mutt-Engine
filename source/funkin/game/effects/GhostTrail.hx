@@ -40,6 +40,7 @@ class GhostTrail extends FlxTypedGroup<Character>
 
 	var resolver:Void->Character;
 	var ghosts:Array<TrailGhost> = [];
+	var pools:Map<String, Array<TrailGhost>> = [];
 	var nextGhost:Int = 0;
 	var characterName:String = null;
 	var characterIsPlayer:Bool = false;
@@ -90,25 +91,33 @@ class GhostTrail extends FlxTypedGroup<Character>
 		if(source != null) preparePool(source, poolSize(type, duration, interval));
 	}
 
-	public function precache(type:String, ?options:Dynamic)
+	public function precache(type:String, ?options:Dynamic, ?characterName:String, ?isPlayer:Null<Bool>)
 	{
 		var source:Character = resolver();
-		if(source == null) return;
+		if(characterName == null && source == null) return;
+		if(characterName == null) characterName = source.curCharacter;
+		if(isPlayer == null) isPlayer = (source != null) ? source.isPlayer : false;
 		var aura:Bool = (type == 'aura');
-		preparePool(source, poolSize(type, number(options, 'duration', aura ? 0.4 : 0.5), 1 / Math.max(1, number(options, 'rate', 30))));
+		fillPool(characterName, isPlayer, poolSize(type, number(options, 'duration', aura ? 0.4 : 0.5), 1 / Math.max(1, number(options, 'rate', 30))));
 	}
 
-	public function onSing(source:Character, strumTime:Float)
+	var lastChordPose:String = null;
+	public function onSing(source:Character, strumTime:Float, ?chordPose:String, ?holdPoseShown:Bool = false, ?forcePose:Bool = false)
 	{
 		if(!enabled || type == 'aura' || source != resolver()) return;
 
 		var chord:Bool = Math.abs(strumTime - lastStrumTime) < 1;
 		lastStrumTime = strumTime;
+		if(!chord) lastChordPose = null;
 		if(doubleNote && !chord) return;
+		if(!chord && holdPoseShown) return;
 
-		var pose:String = source.getAnimationName();
+		var useOverride:Bool = (chord || forcePose) && chordPose != null && source.hasAnimation(chordPose);
+		var pose:String = useOverride ? chordPose : source.getAnimationName();
 		if(pose == null || !pose.startsWith('sing')) return;
-		spawn(source);
+		if(chord && pose == lastChordPose) return;
+		lastChordPose = pose;
+		spawn(source, useOverride ? chordPose : null);
 	}
 
 	override function update(elapsed:Float)
@@ -122,7 +131,7 @@ class GhostTrail extends FlxTypedGroup<Character>
 		spawn(resolver());
 	}
 
-	function spawn(source:Character)
+	function spawn(source:Character, ?pose:String)
 	{
 		if(source == null || !source.visible || source.alpha <= 0 || source.isAnimationNull()) return;
 		preparePool(source, poolSize(type, duration, interval));
@@ -133,7 +142,7 @@ class GhostTrail extends FlxTypedGroup<Character>
 		if(ghost.tween != null) ghost.tween.cancel();
 
 		var sprite:Character = ghost.sprite;
-		copyPose(sprite, source);
+		copyPose(sprite, source, pose);
 		sprite.color = healthTint ? FlxColor.fromRGB(source.healthColorArray[0], source.healthColorArray[1], source.healthColorArray[2]) : (tint != null ? tint : FlxColor.WHITE);
 		sprite.blend = blend;
 		#if flxanimate
@@ -149,7 +158,8 @@ class GhostTrail extends FlxTypedGroup<Character>
 		ghost.moveX = ghost.moveY = 0;
 		if(type == 'animated')
 		{
-			var pose:String = source.getAnimationName().toUpperCase();
+			var pose:String = sprite.getAnimationName();
+			pose = (pose != null) ? pose.toUpperCase() : '';
 			if(pose.contains('LEFT')) ghost.moveX = -distance;
 			else if(pose.contains('RIGHT')) ghost.moveX = distance;
 			else if(pose.contains('UP')) ghost.moveY = -distance;
@@ -179,37 +189,42 @@ class GhostTrail extends FlxTypedGroup<Character>
 
 	function preparePool(source:Character, size:Int)
 	{
-		if(characterName != source.curCharacter || characterIsPlayer != source.isPlayer) clearPool();
-		characterName = source.curCharacter;
-		characterIsPlayer = source.isPlayer;
-		if(ghosts.length >= size) return;
+		if(characterName != source.curCharacter || characterIsPlayer != source.isPlayer || ghosts.length < 1)
+		{
+			characterName = source.curCharacter;
+			characterIsPlayer = source.isPlayer;
+			ghosts = fillPool(characterName, characterIsPlayer, 0);
+			nextGhost = 0;
+		}
+		fillPool(characterName, characterIsPlayer, size);
+	}
+
+	function fillPool(name:String, isPlayer:Bool, size:Int):Array<TrailGhost>
+	{
+		var key:String = name + (isPlayer ? ':player' : ':opponent');
+		var pool:Array<TrailGhost> = pools.get(key);
+		if(pool == null)
+		{
+			pool = [];
+			pools.set(key, pool);
+		}
+		if(pool.length >= size) return pool;
 
 		var speakerNotes:Array<Dynamic> = TankmenBG.animationNotes;
-		while(ghosts.length < size)
+		while(pool.length < size)
 		{
-			var sprite:Character = new Character(0, 0, characterName, characterIsPlayer);
+			var sprite:Character = new Character(0, 0, name, isPlayer);
 			sprite.debugMode = true;
 			sprite.active = false;
 			sprite.visible = false;
 			add(sprite);
-			ghosts.push(new TrailGhost(sprite));
+			pool.push(new TrailGhost(sprite));
 		}
 		TankmenBG.animationNotes = speakerNotes;
+		return pool;
 	}
 
-	function clearPool()
-	{
-		for (ghost in ghosts)
-		{
-			if(ghost.tween != null) ghost.tween.cancel();
-			remove(ghost.sprite, true);
-			ghost.sprite.destroy();
-		}
-		ghosts = [];
-		nextGhost = 0;
-	}
-
-	static function copyPose(ghost:Character, source:Character)
+	static function copyPose(ghost:Character, source:Character, ?pose:String)
 	{
 		var frame:Int = 0;
 		var reversed:Bool = false;
@@ -228,9 +243,10 @@ class GhostTrail extends FlxTypedGroup<Character>
 		ghost.canPlayOtherAnims = true;
 		ghost.loopAnim = null;
 		ghost.animSuffix = '';
-		ghost.playAnim(source.getAnimationName(), true, reversed, frame);
+		if(pose != null) ghost.playAnim(pose, true);
+		else ghost.playAnim(source.getAnimationName(), true, reversed, frame);
 		ghost.setPosition(source.x, source.y);
-		ghost.offset.copyFrom(source.offset);
+		if(pose == null) ghost.offset.copyFrom(source.offset);
 		ghost.origin.copyFrom(source.origin);
 		ghost.scale.copyFrom(source.scale);
 		ghost.scrollFactor.copyFrom(source.scrollFactor);
@@ -254,8 +270,10 @@ class GhostTrail extends FlxTypedGroup<Character>
 
 	override function destroy()
 	{
-		for (ghost in ghosts)
-			if(ghost.tween != null) ghost.tween.cancel();
+		for (pool in pools)
+			for (ghost in pool)
+				if(ghost.tween != null) ghost.tween.cancel();
+		pools = null;
 		ghosts = null;
 		resolver = null;
 		super.destroy();

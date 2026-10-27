@@ -18,8 +18,8 @@ import polymod.backends.PolymodAssets;
 #end
 #end
 #if sys
-import sys.io.File;
-import sys.FileSystem;
+import funkin.backend.vfs.File;
+import funkin.backend.vfs.FileSystem;
 #end
 import crowplexus.hscript.*;
 using StringTools;

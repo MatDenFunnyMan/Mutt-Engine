@@ -128,7 +128,7 @@ class TitleState extends MusicBeatState
 				lime.app.Application.current.window.title = Main.windowTitle;
 
 			var iconPath:String = Paths.modFolders('pack.png');
-			if(sys.FileSystem.exists(iconPath))
+			if(funkin.backend.vfs.FileSystem.exists(iconPath))
 			{
 				var icon = lime.graphics.Image.fromFile(iconPath);
 				lime.app.Application.current.window.setIcon(icon);

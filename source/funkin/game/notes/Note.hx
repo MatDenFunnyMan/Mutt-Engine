@@ -71,6 +71,7 @@ class Note extends FlxSprite
 	public var nextNote:Note;
 
 	public var spawned:Bool = false;
+	public var skinDirty:Bool = false;
 
 	public var tail:Array<Note> = []; // for sustains
 	public var parent:Note;

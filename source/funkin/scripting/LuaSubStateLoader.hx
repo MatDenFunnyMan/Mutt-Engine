@@ -100,11 +100,10 @@ class LuaSubStateLoader
 				modDirectory = save.data.currentMod;
 		}
 
-		if(modDirectory == null || modDirectory == '') return null;
-
-		var dir:String = Paths.mods('$modDirectory/states/substates/');
-		var scriptPath:String = LuaStateLoader.findScriptInDir(dir, '$subStateName.lua');
+		var scriptPath:String = (modDirectory != null && modDirectory != '') ? LuaStateLoader.findScriptInDir(Paths.mods('$modDirectory/states/substates/'), '$subStateName.lua') : null;
+		if(scriptPath == null) scriptPath = LuaStateLoader.findScriptInDir('assets/states/substates/', '$subStateName.lua');
 		if(scriptPath == null) return null;
+		if(modDirectory == null) modDirectory = '';
 
 		try
 		{

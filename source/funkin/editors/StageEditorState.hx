@@ -58,6 +58,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 	var lastLoadedStage:String;
 	var quickSavePath:String = null;
+	var quickSaveFromLoad:Bool = true;
 	var camFollow:FlxObject = new FlxObject(0, 0, 1, 1);
 	var camDragging:Bool = false;
 	var movedWithMouse:Bool = false;
@@ -96,6 +97,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		{
 			stageJson = StageData.getStageFile(lastLoadedStage);
 			quickSavePath = stageFilePath(lastLoadedStage);
+			quickSaveFromLoad = true;
 		}
 		FlxG.camera.follow(null, LOCKON, 0);
 
@@ -356,7 +358,6 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		spriteListRadioGroup = new PsychUIRadioGroup(10, 10, [], 25, 18, false, 200);
 		spriteListRadioGroup.cameras = [camHUD];
 		spriteListRadioGroup.onClick = function() {
-			trace('Selected sprite: ${spriteListRadioGroup.checkedRadio.label}');
 			updateSelectedUI();
 		}
 		tab_group.add(spriteListRadioGroup);
@@ -378,6 +379,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			stageSprites.insert(newSel, spr);
 
 			updateSpriteListRadio();
+			selectSprite(spr);
 		});
 		buttonMoveUp.cameras = [camHUD];
 		tab_group.add(buttonMoveUp);
@@ -397,6 +399,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			stageSprites.insert(newSel, spr);
 
 			updateSpriteListRadio();
+			selectSprite(spr);
 		});
 		buttonMoveDown.cameras = [camHUD];
 		tab_group.add(buttonMoveDown);
@@ -564,11 +567,13 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	{
 		pushAction();
 
-		var num:Int = Std.int(Math.max(0, Math.min(spriteListRadioGroup.labels.length, spriteListRadioGroup.labels.length - spriteListRadioGroup.checked - 1 + insertOffset)));
+		var selected:Int = getSelectedIndex();
+		var num:Int = (selected >= 0) ? selected + insertOffset : stageSprites.length;
+		num = Std.int(Math.max(0, Math.min(stageSprites.length, num)));
 		stageSprites.insert(num, meta);
 		updateSpriteListRadio();
 		createPopup.visible = createPopup.active = false;
-		spriteListRadioGroup.checked = spriteListRadioGroup.labels.length - num - 1;
+		selectSprite(meta);
 		updateSelectedUI();
 		checkUIOnObject();
 		unsavedProgress = true;
@@ -619,7 +624,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	
 	function updateSpriteListRadio()
 	{
-		var _sel:String = (spriteListRadioGroup.checkedRadio != null ? spriteListRadioGroup.checkedRadio.label : null);
+		var _sel = getSelected(false);
 		var nameList:Array<String> = [];
 		for (spr in stageSprites)
 		{
@@ -642,14 +647,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		nameList.reverse();
 		
 		spriteListRadioGroup.labels = nameList;
-		for (radio in spriteListRadioGroup.radios)
-		{
-			if(radio.label == _sel)
-			{
-				spriteListRadioGroup.checkedRadio = radio;
-				break;
-			}
-		}
+		selectSprite(_sel);
 
 		final maxNum:Int = 19;
 		spriteList_box.resize(250, Std.int(Math.min(maxNum, spriteListRadioGroup.labels.length) * 25 + 35));
@@ -998,13 +996,23 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 	function getSelectedIndex():Int
 	{
-		var row:Int = spriteListRadioGroup.checked;
-		if(row < 0) return -1;
-
-		var listIndex:Int = row + spriteListRadioGroup.curScroll;
+		var listIndex:Int = spriteListRadioGroup.selectedIndex;
 		if(listIndex < 0 || listIndex >= stageSprites.length) return -1;
 
 		return stageSprites.length - listIndex - 1;
+	}
+
+	function selectSprite(meta:StageEditorMetaSprite)
+	{
+		var index:Int = (meta != null) ? stageSprites.indexOf(meta) : -1;
+		if(index < 0)
+		{
+			spriteListRadioGroup.selectedIndex = -1;
+			return;
+		}
+		var listIndex:Int = stageSprites.length - index - 1;
+		spriteListRadioGroup.scrollTo(listIndex);
+		spriteListRadioGroup.selectedIndex = listIndex;
 	}
 
 	function getSelected(blockReserved:Bool = true)
@@ -1067,7 +1075,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				pushPropertyAction('name');
 				renameShaderTarget(selected.name, changedName);
 				selected.name = changedName;
-				spriteListRadioGroup.checkedRadio.label = selected.name;
+				updateSpriteListRadio();
 				outputTime = 0;
 				outputTxt.alpha = 0;
 			}
@@ -1640,9 +1648,10 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		repositionExtra(index);
 
 		var num:Int = highestCharacterIndex() + 1;
-		stageSprites.insert(num, new StageEditorMetaSprite({type: StageData.extraCharacterType(Song.FIRST_EXTRA_SLOT + index)}, char));
+		var extraMeta:StageEditorMetaSprite = new StageEditorMetaSprite({type: StageData.extraCharacterType(Song.FIRST_EXTRA_SLOT + index)}, char);
+		stageSprites.insert(num, extraMeta);
 		updateSpriteListRadio();
-		spriteListRadioGroup.checked = spriteListRadioGroup.labels.length - num - 1;
+		selectSprite(extraMeta);
 		refreshCharactersUI();
 		updateSelectedUI();
 		checkUIOnObject();
@@ -1704,7 +1713,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		if(extraFocus == slot) extraFocus = -1;
 		syncExtraCharacters();
 
-		spriteListRadioGroup.checked = -1;
+		spriteListRadioGroup.selectedIndex = -1;
 		updateSpriteListRadio();
 		checkUIOnObject();
 		updateSelectedUI();
@@ -1721,9 +1730,23 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		#end
 
 		stageJson = StageData.dummy();
+		undoStack = [];
+		redoStack = [];
+
+		var oldStage:String = lastLoadedStage;
+		lastLoadedStage = '';
+		spriteListRadioGroup.selectedIndex = -1;
 		updateSpriteList();
+		lastLoadedStage = oldStage;
+		quickSavePath = null;
+		quickSaveFromLoad = false;
+
 		updateStageDataUI();
 		reloadCharacters();
+		checkUIOnObject();
+		updateSelectedUI();
+		unsavedProgress = true;
+		showOutput('Template loaded.');
 	}
 
 	function addStageTab()
@@ -1748,6 +1771,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				stageJson = StageData.getStageFile(selected);
 				lastLoadedStage = selected;
 				quickSavePath = stageFilePath(selected);
+				quickSaveFromLoad = true;
 				#if DISCORD_ALLOWED
 				#if MODS_ALLOWED
 				DiscordClient.loadModRPC();
@@ -1956,6 +1980,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 		pushAction();
 
+		spriteListRadioGroup.selectedIndex = -1;
 		stageSprites.remove(spr);
 		spr.sprite = FlxDestroyUtil.destroy(spr.sprite);
 
@@ -2183,6 +2208,17 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		}
 	}
 
+	function moveListSelection(change:Int)
+	{
+		var count:Int = spriteListRadioGroup.labels.length;
+		if(count < 1) return;
+
+		var listIndex:Int = spriteListRadioGroup.selectedIndex;
+		listIndex = (listIndex < 0) ? (change > 0 ? 0 : count - 1) : FlxMath.wrap(listIndex + change, 0, count - 1);
+		spriteListRadioGroup.scrollTo(listIndex);
+		spriteListRadioGroup.selectedIndex = listIndex;
+	}
+
 	public function UIEvent(id:String, sender:Dynamic)
 	{
 		switch(id)
@@ -2191,7 +2227,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				if(sender == spriteListRadioGroup)
 				{
 					if(_preClickSelected >= 0 && getSelectedIndex() == _preClickSelected)
-						spriteListRadioGroup.checked = -1;
+						spriteListRadioGroup.selectedIndex = -1;
 
 					_preClickSelected = -1;
 					checkUIOnObject();
@@ -2256,14 +2292,12 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		}
 
 		if(FlxG.keys.justPressed.W && !FlxG.keys.pressed.CONTROL){
-			spriteListRadioGroup.checked = FlxMath.wrap(spriteListRadioGroup.checked - 1, 0, spriteListRadioGroup.labels.length-1);
-			trace(spriteListRadioGroup.checked);
+			moveListSelection(-1);
 			checkUIOnObject();
 			updateSelectedUI();
 		}
 		else if(FlxG.keys.justPressed.S && !FlxG.keys.pressed.CONTROL){
-			spriteListRadioGroup.checked = FlxMath.wrap(spriteListRadioGroup.checked + 1, 0, spriteListRadioGroup.labels.length-1);
-			trace(spriteListRadioGroup.checked);
+			moveListSelection(1);
 			checkUIOnObject();
 			updateSelectedUI();
 		}
@@ -2457,7 +2491,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				if(basic != null && basic.visible)
 					basic.draw(curFilters);
 	
-			if(showSelectionQuad && spriteListRadioGroup.checkedRadio != null)
+			if(showSelectionQuad && getSelectedIndex() >= 0)
 			{
 				var selected:Int = getSelectedIndex();
 				var spr = (selected >= 0) ? stageSprites[selected] : null;
@@ -2559,8 +2593,8 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		@:privateAccess
 		var lineSize:Int = Std.int(Math.max(2, Math.floor(3 / FlxG.camera.zoom)));
 
-		var sprX:Float = spr.x - spr.offset.x;
-		var sprY:Float = spr.y - spr.offset.y;
+		var sprX:Float = spr.x - spr.offset.x + spr.origin.x * (1 - spr.scale.x);
+		var sprY:Float = spr.y - spr.offset.y + spr.origin.y * (1 - spr.scale.y);
 		var sprWidth:Int = Std.int(spr.frameWidth * spr.scale.x);
 		var sprHeight:Int = Std.int(spr.frameHeight * spr.scale.y);
 		for (num => sel in selectionSprites.members)
@@ -2722,7 +2756,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	function quickSaveStage()
 	{
 		if(_file != null || _fileLua != null) return;
-		if(quickSavePath == null || !FileSystem.exists(quickSavePath))
+		if(quickSavePath == null || !FileSystem.exists(quickSavePath) || (quickSaveFromLoad && !EditorHelper.isModPath(quickSavePath)))
 		{
 			askScriptFormat();
 			return;
@@ -3072,7 +3106,11 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		_file.removeEventListener(Event.CANCEL, onSaveCancel);
 		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
 		var savedPath:String = @:privateAccess cast(_file, FileReferenceCustom)._trackSavedPath;
-		if(savedPath != null) quickSavePath = savedPath;
+		if(savedPath != null)
+		{
+			quickSavePath = savedPath;
+			quickSaveFromLoad = false;
+		}
 		_file = null;
 		FlxG.log.notice('Successfully saved JSON file.');
 		saveLuaScript();
@@ -3787,9 +3825,38 @@ class StageEditorMetaSprite
 		sprite.blend = (blend != null && blend.length > 0) ? LuaUtils.blendModeFromString(blend) : BlendMode.NORMAL;
 	}
 
+	public static function uniqueAnimations(list:Array<AnimArray>):Array<AnimArray>
+	{
+		if(list == null) return null;
+		var order:Array<String> = [];
+		var last:Map<String, AnimArray> = [];
+		for (anim in list)
+		{
+			if(anim == null || anim.anim == null) continue;
+			if(!last.exists(anim.anim)) order.push(anim.anim);
+			last.set(anim.anim, anim);
+		}
+		return [for (name in order) last.get(name)];
+	}
+
 	public function autoDetectAndPlayAnimation()
 	{
 		if(type != 'animatedSprite' || sprite.frames == null) return;
+
+		animations = uniqueAnimations(animations);
+		if(animations != null && animations.length > 0)
+		{
+			for (anim in animations)
+			{
+				if(anim.indices != null && anim.indices.length > 0)
+					sprite.animation.addByIndices(anim.anim, anim.name, anim.indices, '', anim.fps, anim.loop);
+				else
+					sprite.animation.addByPrefix(anim.anim, anim.name, anim.fps, anim.loop);
+			}
+			var first:String = (firstAnimation != null && sprite.animation.exists(firstAnimation)) ? firstAnimation : animations[0].anim;
+			if(sprite.animation.exists(first)) sprite.animation.play(first, true);
+			return;
+		}
 
 		var frameNames:Array<String> = [];
 		for(frame in sprite.frames.frames)

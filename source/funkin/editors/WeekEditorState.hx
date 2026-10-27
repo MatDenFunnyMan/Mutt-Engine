@@ -816,6 +816,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 
 					weekFileName = cutName;
 					weekPath = fullPath;
+					weekPathFromLoad = true;
 					_file = null;
 					unsavedProgress = false;
 					return;
@@ -855,10 +856,11 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 	}
 
 	public static var weekPath:String = null;
+	public static var weekPathFromLoad:Bool = false;
 
 	public static function saveWeek(weekFile:WeekFile) {
 		#if sys
-		if(weekPath != null)
+		if(weekPath != null && (!weekPathFromLoad || EditorHelper.isModPath(weekPath)))
 		{
 			var path:String = haxe.io.Path.join([haxe.io.Path.directory(weekPath), weekFileName + '.json']);
 			try
@@ -905,6 +907,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		if(savedPath != null && savedPath.length > 0)
 		{
 			weekPath = savedPath;
+			weekPathFromLoad = false;
 			weekFileName = haxe.io.Path.withoutExtension(haxe.io.Path.withoutDirectory(savedPath));
 			if(FlxG.state is WeekEditorState) (cast FlxG.state:WeekEditorState).refreshWeekFileName();
 		}

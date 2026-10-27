@@ -29,9 +29,9 @@ class CursorLoader
 		_lastMod = curMod;
 
 		var modPath:String = Paths.mods(curMod + '/images/ui/cursor.png');
-		if (sys.FileSystem.exists(modPath))
+		if (funkin.backend.vfs.FileSystem.exists(modPath))
 		{
-			_lastData = BitmapData.fromFile(modPath);
+			_lastData = funkin.backend.vfs.EmbeddedFiles.loadBitmap(modPath);
 			FlxG.mouse.load(_lastData);
 			return;
 		}
@@ -39,9 +39,9 @@ class CursorLoader
 		for (mod in Mods.getGlobalMods())
 		{
 			var globalPath:String = Paths.mods(mod + '/images/ui/cursor.png');
-			if (sys.FileSystem.exists(globalPath))
+			if (funkin.backend.vfs.FileSystem.exists(globalPath))
 			{
-				_lastData = BitmapData.fromFile(globalPath);
+				_lastData = funkin.backend.vfs.EmbeddedFiles.loadBitmap(globalPath);
 				FlxG.mouse.load(_lastData);
 				return;
 			}

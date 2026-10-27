@@ -27,6 +27,8 @@ class Bar extends FlxSpriteGroup
 	public var customBackground(default, null):String = null;
 	public var customScale:Float = 1;
 	public var customOffset:FlxPoint = new FlxPoint();
+	public var fillScale:FlxPoint = new FlxPoint(1, 1);
+	public var fillShift:FlxPoint = new FlxPoint();
 
 	var defaultImage:String;
 	var fillOffset:FlxPoint = new FlxPoint();
@@ -146,6 +148,8 @@ class Bar extends FlxSpriteGroup
 	{
 		customScale = 1;
 		customOffset.set();
+		fillScale.set(1, 1);
+		fillShift.set();
 		setBackground(null);
 		setFill(null);
 	}
@@ -187,10 +191,10 @@ class Bar extends FlxSpriteGroup
 		{
 			for (bar in [leftBar, rightBar])
 			{
-				bar.scale.set(scale, scale);
+				bar.scale.set(scale * fillScale.x, scale * fillScale.y);
 				bar.updateHitbox();
 			}
-			fillOffset.set(centerX - leftBar.width / 2 - bg.x, middleY - leftBar.height / 2 - bg.y);
+			fillOffset.set(centerX - leftBar.width / 2 - bg.x + fillShift.x, middleY - leftBar.height / 2 - bg.y + fillShift.y);
 			@:bypassAccessor barWidth = leftBar.frameWidth;
 			@:bypassAccessor barHeight = leftBar.frameHeight;
 			barOffset.set(0, 0);
@@ -249,6 +253,15 @@ class Bar extends FlxSpriteGroup
 			rightBar.setGraphicSize(Std.int(bg.width), Std.int(bg.height));
 			rightBar.updateHitbox();
 			rightBar.clipRect = new FlxRect(0, 0, Std.int(bg.width), Std.int(bg.height));
+		}
+		if(customFill == null && leftBar != null && rightBar != null)
+		{
+			for (bar in [leftBar, rightBar])
+			{
+				bar.scale.set(bar.scale.x * fillScale.x, bar.scale.y * fillScale.y);
+				bar.updateHitbox();
+			}
+			fillOffset.set((bg.width - leftBar.width) / 2 + fillShift.x, (bg.height - leftBar.height) / 2 + fillShift.y);
 		}
 		updateBar();
 	}

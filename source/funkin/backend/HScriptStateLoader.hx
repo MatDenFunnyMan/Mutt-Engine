@@ -92,7 +92,7 @@ class HScriptState extends MusicBeatState
 
 		if(!_hasBlockingSubState)
 		{
-			if(stateName == 'MainMenuState' && FlxG.keys.justPressed.TAB)
+			if(#if STANDALONE_BUILD false && #end stateName == 'MainMenuState' && FlxG.keys.justPressed.TAB)
 			{
 				var sub = new funkin.modding.ModSelectorSubstate();
 				sub._mouseWasVisible = FlxG.mouse.visible;
@@ -159,10 +159,7 @@ class HScriptStateLoader
 			modMode = save.data.modMode;
 		}
 		
-		if(modMode == 'DISABLE MODS' || modMode == 'MODS + FNF SONGS' || modMode == 'ALL MODS')
-		{
-			return null;
-		}
+		var modStates:Bool = !(modMode == 'DISABLE MODS' || modMode == 'MODS + FNF SONGS' || modMode == 'ALL MODS');
 		
 		var savedModDirectory = Mods.currentModDirectory;
 		
@@ -174,10 +171,15 @@ class HScriptStateLoader
 			}
 		}
 		
-		if(savedModDirectory != null && savedModDirectory != '')
+		var scriptPath:String = (modStates && savedModDirectory != null && savedModDirectory != '') ? findScriptInDir(Paths.modFolders('$savedModDirectory/states/'), '$stateName.hx') : null;
+		if(scriptPath == null)
 		{
-			var statesDir = Paths.modFolders('$savedModDirectory/states/');
-			var scriptPath = findScriptInDir(statesDir, '$stateName.hx');
+			scriptPath = findScriptInDir('assets/states/', '$stateName.hx');
+			if(scriptPath != null && savedModDirectory == null) savedModDirectory = '';
+		}
+
+		if(scriptPath != null)
+		{
 			var exists = scriptPath != null;
 
 			if(exists && stateName != 'LoadingState' && stateName != 'LoadingScreen')
@@ -224,17 +226,17 @@ class HScriptStateLoader
 	}
 	public static function findScriptInDir(dir:String, fileName:String):String
 	{
-		if(!sys.FileSystem.exists(dir) || !sys.FileSystem.isDirectory(dir))
+		if(!funkin.backend.vfs.FileSystem.exists(dir) || !funkin.backend.vfs.FileSystem.isDirectory(dir))
 			return null;
 
 		var direct = dir + fileName;
-		if(sys.FileSystem.exists(direct))
+		if(funkin.backend.vfs.FileSystem.exists(direct))
 			return direct;
 
-		for(entry in sys.FileSystem.readDirectory(dir))
+		for(entry in funkin.backend.vfs.FileSystem.readDirectory(dir))
 		{
 			var full = dir + entry;
-			if(sys.FileSystem.isDirectory(full))
+			if(funkin.backend.vfs.FileSystem.isDirectory(full))
 			{
 				var found = findScriptInDir(full + '/', fileName);
 				if(found != null) return found;

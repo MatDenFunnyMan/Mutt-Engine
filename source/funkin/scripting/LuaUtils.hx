@@ -27,8 +27,48 @@ class LuaUtils
 	public static final Function_StopHScript:String = "##PSYCHLUA_FUNCTIONSTOPHSCRIPT";
 	public static final Function_StopAll:String = "##PSYCHLUA_FUNCTIONSTOPALL";
 
+	public static final TWEEN_OPTIONS:Array<String> = ['ease', 'type', 'startDelay', 'loopDelay', 'onStart', 'onUpdate', 'onComplete'];
+	public static final SPRITE_OPTIONS:Array<String> = ['alpha', 'scaleX', 'scaleY', 'camera', 'zIndex', 'front', 'scrollX', 'scrollY', 'skewX', 'skewY'];
+
+	public static function namedOptions(options:Dynamic, order:Array<String>):Dynamic
+	{
+		if(options == null || order == null) return options;
+		var result:Dynamic = {};
+		if(Std.isOfType(options, Array))
+		{
+			var list:Array<Dynamic> = cast options;
+			for (i in 0...Std.int(Math.min(list.length, order.length)))
+				if(list[i] != null) Reflect.setField(result, order[i], list[i]);
+			return result;
+		}
+		if(Type.typeof(options) != TObject) return options;
+		for (field in Reflect.fields(options))
+		{
+			var index:Null<Int> = Std.parseInt(field);
+			if(index != null && Std.string(index) == field)
+			{
+				if(index >= 1 && index <= order.length && !Reflect.hasField(options, order[index - 1]))
+					Reflect.setField(result, order[index - 1], Reflect.field(options, field));
+			}
+			else Reflect.setField(result, field, Reflect.field(options, field));
+		}
+		return result;
+	}
+
+	public static function setCurAnimLooped(obj:Dynamic, looped:Null<Bool>)
+	{
+		if(obj == null || looped == null) return;
+		try
+		{
+			var controller:Dynamic = (obj.anim != null) ? obj.anim : obj.animation;
+			if(controller != null && controller.curAnim != null) controller.curAnim.looped = looped;
+		}
+		catch(e:Dynamic) {}
+	}
+
 	public static function getLuaTween(options:Dynamic)
 	{
+		options = namedOptions(options, TWEEN_OPTIONS);
 		return (options != null) ? {
 			type: getTweenTypeByString(options.type),
 			startDelay: options.startDelay,

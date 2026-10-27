@@ -13,6 +13,7 @@ class ObjectFunctions
 		var report:String->Void = (onError != null) ? onError : function(msg:String) trace(msg);
 
 		Lua_helper.add_callback(lua, "createBackdrop", function(tag:String, image:String, ?x:Float = 0, ?y:Float = 0, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, ['axes', 'spacingX', 'spacingY', 'velocityX', 'velocityY', 'alpha', 'scaleX', 'scaleY', 'scrollX', 'scrollY', 'camera', 'zIndex', 'front']);
 			tag = tag.replace('.', '');
 			LuaUtils.destroyObject(tag);
 			var axes:String = LuaUtils.option(options, 'axes');
@@ -38,6 +39,7 @@ class ObjectFunctions
 		});
 
 		Lua_helper.add_callback(lua, "createParticles", function(tag:String, ?image:String = null, ?x:Float = 0, ?y:Float = 0, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, ['amount', 'size', 'color', 'width', 'height', 'lifespan', 'speed', 'angle', 'spin', 'alpha', 'scale', 'gravity', 'gravityX', 'startColor', 'endColor', 'blend', 'frequency', 'quantity', 'explode', 'start', 'scrollX', 'scrollY', 'camera', 'zIndex', 'front']);
 			tag = tag.replace('.', '');
 			LuaUtils.destroyObject(tag);
 			var emitter:FlxEmitter = new FlxEmitter(x, y);
@@ -129,6 +131,7 @@ class ObjectFunctions
 		});
 
 		Lua_helper.add_callback(lua, "typeText", function(tag:String, text:String, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, ['speed', 'sound', 'volume', 'append']);
 			var obj:FlxText = UtilityFunctions.objectFromPath(tag);
 			if(obj == null)
 			{

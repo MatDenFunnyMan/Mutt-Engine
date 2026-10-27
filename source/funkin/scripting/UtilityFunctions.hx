@@ -37,6 +37,7 @@ class UtilityFunctions
 			return [value.red, value.green, value.blue, value.alpha];
 		});
 		Lua_helper.add_callback(lua, "setColorTransform", function(obj:String, values:Dynamic) {
+			values = LuaUtils.namedOptions(values, ['redMultiplier', 'greenMultiplier', 'blueMultiplier', 'alphaMultiplier', 'redOffset', 'greenOffset', 'blueOffset', 'alphaOffset']);
 			var spr:FlxSprite = objectFromPath(obj);
 			if(spr == null || values == null)
 			{
@@ -101,6 +102,7 @@ class UtilityFunctions
 		Lua_helper.add_callback(lua, "pauseTimer", function(tag:String) return setTimerActive(tag, false));
 		Lua_helper.add_callback(lua, "resumeTimer", function(tag:String) return setTimerActive(tag, true));
 		Lua_helper.add_callback(lua, "tweenNumber", function(tag:String, from:Float, to:Float, duration:Float, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, LuaUtils.TWEEN_OPTIONS);
 			if(tag == null) return null;
 			LuaUtils.cancelTween(tag);
 			var myOptions = LuaUtils.getLuaTween(options);
@@ -123,6 +125,7 @@ class UtilityFunctions
 		});
 
 		Lua_helper.add_callback(lua, "applyTextMarkup", function(tag:String, text:String, rules:Array<Dynamic>) {
+			if(rules != null) rules = [for (rule in rules) LuaUtils.namedOptions(rule, ['marker', 'color', 'bold', 'italic', 'borderColor'])];
 			var obj:FlxText = objectFromPath(tag);
 			if(obj == null)
 			{
@@ -303,6 +306,8 @@ class UtilityFunctions
 			window.move(Std.int(bounds.x + (bounds.width - window.width) / 2), Std.int(bounds.y + (bounds.height - window.height) / 2));
 		});
 		Lua_helper.add_callback(lua, "doTweenWindow", function(tag:String, values:Dynamic, duration:Float, ?options:Dynamic = null) {
+			values = LuaUtils.namedOptions(values, ['x', 'y', 'width', 'height']);
+			options = LuaUtils.namedOptions(options, LuaUtils.TWEEN_OPTIONS);
 			if(values == null) return null;
 			backupWindow();
 			var window = lime.app.Application.current.window;

@@ -21,8 +21,8 @@ import funkin.ui.states.InitialState;
 import openfl.display.BitmapData;
 import openfl.utils.ByteArray;
 import openfl.display.PNGEncoderOptions;
-import sys.io.File;
-import sys.FileSystem;
+import funkin.backend.vfs.File;
+import funkin.backend.vfs.FileSystem;
 import flixel.FlxG;
 import flixel.tweens.FlxTween;
 
@@ -67,8 +67,11 @@ class Main extends Sprite
 	public static var fpsVar:FPSCounter;
 	public static var screenshotCounter:Int = 1;
 	public static var engineName:String = "Mutt Engine";
-	public static var windowTitle:String = "Friday Night Funkin' Mutt Engine";
-	public static var engineVersion:String = "1.2.0";
+	public static var windowTitle(get, never):String;
+	static var baseWindowTitle:String = null;
+	static function get_windowTitle():String
+		return (baseWindowTitle != null && baseWindowTitle.length > 0) ? baseWindowTitle : "Friday Night Funkin' Mutt Engine";
+	public static var engineVersion:String = "1.2.1";
 	public static var audioDisconnected:Bool = false;
 	public static var changeID:Int = 0;
 	public static var focusVolume:Null<Float> = null;
@@ -95,6 +98,8 @@ class Main extends Sprite
 	public function new()
 	{
 		super();
+		if(lime.app.Application.current != null && lime.app.Application.current.window != null)
+			baseWindowTitle = lime.app.Application.current.window.title;
 
 		#if (cpp && windows)
 		funkin.util.Native.fixScaling();
@@ -115,7 +120,7 @@ class Main extends Sprite
 
 		FlxG.save.bind('funkin', CoolUtil.getSavePath());
 		
-		#if MODS_ALLOWED
+		#if (MODS_ALLOWED && !STANDALONE_BUILD)
 		var save = FlxG.save;
 		if(save != null && save.data != null)
 		{
@@ -227,6 +232,9 @@ class Main extends Sprite
 		@:privateAccess
 		gameObject._customSoundTray = funkin.audio.FunkinSoundTray;
 		addChild(gameObject);
+		#if sys
+		funkin.backend.vfs.EmbeddedFiles.init();
+		#end
 
 		ClientPrefs.loadPrefs();
 

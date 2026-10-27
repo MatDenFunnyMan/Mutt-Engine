@@ -47,6 +47,7 @@ class ShaderEditorState extends MusicBeatState implements PsychUIEventHandler.Ps
 	var stageJson:StageFile;
 	var lastLoadedStage:String;
 	var quickSavePath:String = null;
+	var quickSaveFromLoad:Bool = true;
 	var unsavedProgress:Bool = false;
 
 	var gf:Character;
@@ -147,6 +148,7 @@ class ShaderEditorState extends MusicBeatState implements PsychUIEventHandler.Ps
 		if(!stages.contains(lastLoadedStage) && stages.length > 0 && stages[0].length > 0) lastLoadedStage = stages[0];
 		stageJson = StageData.getStageFile(lastLoadedStage);
 		quickSavePath = stageFilePath(lastLoadedStage);
+		quickSaveFromLoad = true;
 		FlxG.camera.follow(null, LOCKON, 0);
 		loadJsonAssetDirectory();
 
@@ -768,6 +770,7 @@ class ShaderEditorState extends MusicBeatState implements PsychUIEventHandler.Ps
 		lastLoadedStage = name;
 		stageJson = StageData.getStageFile(name);
 		quickSavePath = stageFilePath(name);
+		quickSaveFromLoad = true;
 		loadJsonAssetDirectory();
 
 		#if DISCORD_ALLOWED
@@ -1362,7 +1365,7 @@ class ShaderEditorState extends MusicBeatState implements PsychUIEventHandler.Ps
 		if(_file != null) return;
 
 		var data:Dynamic = null;
-		var toFile:Bool = (quickSavePath != null && FileSystem.exists(quickSavePath));
+		var toFile:Bool = (quickSavePath != null && FileSystem.exists(quickSavePath) && (!quickSaveFromLoad || EditorHelper.isModPath(quickSavePath)));
 		if(toFile)
 		{
 			try { data = haxe.Json.parse(File.getContent(quickSavePath)); }
@@ -1415,7 +1418,11 @@ class ShaderEditorState extends MusicBeatState implements PsychUIEventHandler.Ps
 	{
 		if(_file == null) return;
 		var savedPath:String = @:privateAccess cast(_file, FileReferenceCustom)._trackSavedPath;
-		if(savedPath != null) quickSavePath = savedPath;
+		if(savedPath != null)
+		{
+			quickSavePath = savedPath;
+			quickSaveFromLoad = false;
+		}
 		clearFile();
 		unsavedProgress = false;
 		showOutput('Stage saved!');

@@ -122,7 +122,7 @@ class LuaState extends MusicBeatState implements IFunkinScript
 		registerCallbacks();
 
 		try {
-			var result:Dynamic = LuaL.dofile(lua, scriptPath);
+			var result:Dynamic = funkin.backend.vfs.EmbeddedFiles.runLua(lua, scriptPath);
 			var resultStr:String = Lua.tostring(lua, result);
 			if(resultStr != null && result != 0) {
 				trace('LuaState: Error loading $scriptPath\n$resultStr');
@@ -175,6 +175,7 @@ class LuaState extends MusicBeatState implements IFunkinScript
 			}
 		}
 		Lua_helper.add_callback(lua, "switchState", function(stateName:String, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, ['transition', 'mode', 'song', 'difficulty']);
 			LuaSharedFunctions.switchStateWithOptions(stateName, options, switchNormal, switchDirect);
 		});
 
@@ -191,7 +192,7 @@ class LuaState extends MusicBeatState implements IFunkinScript
 			#if MODS_ALLOWED
 			var weekPath = Paths.mods(Mods.currentModDirectory + '/weeks/' + weekName + '.json');
 			if(FileSystem.exists(weekPath)) {
-				var weekData:Dynamic = haxe.Json.parse(sys.io.File.getContent(weekPath));
+				var weekData:Dynamic = haxe.Json.parse(funkin.backend.vfs.File.getContent(weekPath));
 				for(songData in cast(weekData.songs, Array<Dynamic>)) {
 					result.push(songData[0]);
 				}
@@ -1254,19 +1255,24 @@ class LuaState extends MusicBeatState implements IFunkinScript
 			var game:PlayState = PlayState.instance;
 			return (game != null) ? game.characterGroupFromName(Std.string(type), game.boyfriendGroup) : null;
 		}
+		LuaSharedFunctions.registerCharacterPos(lua, stateCharacterGroup);
 		Lua_helper.add_callback(lua, "getCharacterX", function(type:Dynamic) {
+			LuaUtils.warnDeprecated('getCharacterX', 'getCharacterPos');
 			var group:FlxSpriteGroup = stateCharacterGroup(type);
 			return (group != null) ? group.x : 0.0;
 		});
 		Lua_helper.add_callback(lua, "setCharacterX", function(type:Dynamic, value:Float) {
+			LuaUtils.warnDeprecated('setCharacterX', 'setCharacterPos');
 			var group:FlxSpriteGroup = stateCharacterGroup(type);
 			if(group != null) group.x = value;
 		});
 		Lua_helper.add_callback(lua, "getCharacterY", function(type:Dynamic) {
+			LuaUtils.warnDeprecated('getCharacterY', 'getCharacterPos');
 			var group:FlxSpriteGroup = stateCharacterGroup(type);
 			return (group != null) ? group.y : 0.0;
 		});
 		Lua_helper.add_callback(lua, "setCharacterY", function(type:Dynamic, value:Float) {
+			LuaUtils.warnDeprecated('setCharacterY', 'setCharacterPos');
 			var group:FlxSpriteGroup = stateCharacterGroup(type);
 			if(group != null) group.y = value;
 		});
@@ -1376,7 +1382,7 @@ class LuaState extends MusicBeatState implements IFunkinScript
 
 		if(!_hasBlockingSubState)
 		{
-			if(stateName.toLowerCase() == 'mainmenustate' && FlxG.keys.justPressed.TAB) {
+			if(#if STANDALONE_BUILD false && #end stateName.toLowerCase() == 'mainmenustate' && FlxG.keys.justPressed.TAB) {
 				var sub = new funkin.modding.ModSelectorSubstate();
 				sub._mouseWasVisible = FlxG.mouse.visible;
 				FlxG.mouse.visible = false;
@@ -1655,15 +1661,15 @@ class LuaState extends MusicBeatState implements IFunkinScript
 public static function resolveLuaScriptPath(path:String):String
 	{
 		#if (sys && MODS_ALLOWED)
-		if(sys.FileSystem.exists(path)) return path;
+		if(funkin.backend.vfs.FileSystem.exists(path)) return path;
 		var modDir:String = Mods.currentModDirectory;
 		if(modDir != null && modDir != '')
 		{
 			var inMod:String = 'mods/$modDir/$path';
-			if(sys.FileSystem.exists(inMod)) return inMod;
+			if(funkin.backend.vfs.FileSystem.exists(inMod)) return inMod;
 		}
 		var inMods:String = 'mods/$path';
-		if(sys.FileSystem.exists(inMods)) return inMods;
+		if(funkin.backend.vfs.FileSystem.exists(inMods)) return inMods;
 		#end
 		return path;
 	}
@@ -1671,15 +1677,15 @@ public static function resolveLuaScriptPath(path:String):String
 	public static function resolveHScriptPath(path:String):String
 	{
 		#if (sys && MODS_ALLOWED)
-		if(sys.FileSystem.exists(path)) return path;
+		if(funkin.backend.vfs.FileSystem.exists(path)) return path;
 		var modDir:String = Mods.currentModDirectory;
 		if(modDir != null && modDir != '')
 		{
 			var inMod:String = 'mods/$modDir/$path';
-			if(sys.FileSystem.exists(inMod)) return inMod;
+			if(funkin.backend.vfs.FileSystem.exists(inMod)) return inMod;
 		}
 		var inMods:String = 'mods/$path';
-		if(sys.FileSystem.exists(inMods)) return inMods;
+		if(funkin.backend.vfs.FileSystem.exists(inMods)) return inMods;
 		#end
 		return path;
 	}
@@ -1725,8 +1731,7 @@ class LuaStateLoader
 		if(save != null && save.data != null && save.data.modMode != null)
 			modMode = save.data.modMode;
 
-		if(modMode == 'DISABLE MODS' || modMode == 'ALL MODS' || modMode == 'MODS + FNF SONGS')
-			return null;
+		var modStates:Bool = !(modMode == 'DISABLE MODS' || modMode == 'ALL MODS' || modMode == 'MODS + FNF SONGS');
 
 		var savedModDirectory = Mods.currentModDirectory;
 
@@ -1737,9 +1742,13 @@ class LuaStateLoader
 			}
 		}
 
-		if(savedModDirectory != null && savedModDirectory != '') {
-			var statesDir = Paths.modFolders('$savedModDirectory/states/');
-			var scriptPath = findScriptInDir(statesDir, '$stateName.lua');
+		var scriptPath:String = (modStates && savedModDirectory != null && savedModDirectory != '') ? findScriptInDir(Paths.modFolders('$savedModDirectory/states/'), '$stateName.lua') : null;
+		if(scriptPath == null) {
+			scriptPath = findScriptInDir('assets/states/', '$stateName.lua');
+			if(scriptPath != null && savedModDirectory == null) savedModDirectory = '';
+		}
+
+		if(scriptPath != null) {
 			var exists = scriptPath != null;
 
 			if(exists && stateName != 'LoadingState' && stateName != 'LoadingScreen') {
@@ -1759,17 +1768,17 @@ class LuaStateLoader
 	}
     public static function findScriptInDir(dir:String, fileName:String):String
 		{
-			if(!sys.FileSystem.exists(dir) || !sys.FileSystem.isDirectory(dir))
+			if(!funkin.backend.vfs.FileSystem.exists(dir) || !funkin.backend.vfs.FileSystem.isDirectory(dir))
 				return null;
 
 			var direct = dir + fileName;
-			if(sys.FileSystem.exists(direct))
+			if(funkin.backend.vfs.FileSystem.exists(direct))
 				return direct;
 
-			for(entry in sys.FileSystem.readDirectory(dir))
+			for(entry in funkin.backend.vfs.FileSystem.readDirectory(dir))
 			{
 				var full = dir + entry;
-				if(sys.FileSystem.isDirectory(full))
+				if(funkin.backend.vfs.FileSystem.isDirectory(full))
 				{
 					var found = findScriptInDir(full + '/', fileName);
 					if(found != null) return found;
@@ -1784,9 +1793,9 @@ class LuaStateLoader
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory.trim().length > 0)
 		{
 			var scriptPath:String = 'mods/${Mods.currentModDirectory}/data/LoadingScreen.lua';
-			if(!sys.FileSystem.exists(scriptPath))
+			if(!funkin.backend.vfs.FileSystem.exists(scriptPath))
 				scriptPath = 'mods/${Mods.currentModDirectory}/data/LoadingState.lua';
-			if(sys.FileSystem.exists(scriptPath))
+			if(funkin.backend.vfs.FileSystem.exists(scriptPath))
 			{
 				try
 				{
@@ -1843,6 +1852,7 @@ class LoadingLuaScript extends FunkinLuaScript
 			}
 		}
 		Lua_helper.add_callback(lua, "switchState", function(stateName:String, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, ['transition', 'mode', 'song', 'difficulty']);
 			LuaSharedFunctions.switchStateWithOptions(stateName, options, switchNormal, function(name:String) {
 				FlxTransitionableState.skipNextTransIn = true;
 				switchNormal(name);
@@ -1854,7 +1864,7 @@ class LoadingLuaScript extends FunkinLuaScript
 				#if MODS_ALLOWED
 				var weekPath = Paths.mods(Mods.currentModDirectory + '/weeks/' + weekName + '.json');
 				if(FileSystem.exists(weekPath)) {
-					var weekData:funkin.data.WeekData = haxe.Json.parse(sys.io.File.getContent(weekPath));
+					var weekData:funkin.data.WeekData = haxe.Json.parse(funkin.backend.vfs.File.getContent(weekPath));
 					if(weekData != null) funkin.data.Difficulty.loadFromWeek(weekData);
 				}
 				#end

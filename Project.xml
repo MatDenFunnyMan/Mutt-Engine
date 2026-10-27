@@ -53,9 +53,9 @@
 	<assets path="assets/songs" exclude="*.mp3" unless="web"/>
 
 	<section if="MODS_ALLOWED">
-		<assets path='loaded-mods' rename='mods' embed='false' unless="mac"/>
-		<assets path='loaded-mods' rename='mods' embed='false' if="mac"/>
-		<assets path='list.txt' rename='modsList.txt' />
+		<assets path='loaded-mods' rename='mods' embed='false' unless="mac || STANDALONE_BUILD"/>
+		<assets path='loaded-mods' rename='mods' embed='false' if="mac" unless="STANDALONE_BUILD"/>
+		<assets path='list.txt' rename='modsList.txt' unless="STANDALONE_BUILD"/>
 	</section>
 
 	<section if="BASE_GAME_FILES">

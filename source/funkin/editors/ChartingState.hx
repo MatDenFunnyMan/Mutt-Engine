@@ -961,9 +961,74 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		return parsed != null && Std.string(parsed) == key;
 	}
 
+	var _toyPreloadQueue:Array<{key:String, bitmap:BitmapData}> = [];
+	var _toyPreloadRequested:Map<String, Bool> = [];
+	var _toyPreloadScanned:Map<String, Bool> = [];
+	#if sys
+	var _toyPreloadMutex:sys.thread.Mutex = new sys.thread.Mutex();
+	#end
+
+	function preloadToyCharacters()
+	{
+		#if sys
+		var keys:Array<String> = [];
+		var files:Array<String> = [];
+		for (ev in events)
+		{
+			if(ev == null) continue;
+			for (sub in ev.events)
+			{
+				if(sub == null || sub[0] != 'Change Character') continue;
+				var name:String = (sub[2] != null) ? sub[2].trim() : '';
+				if(name.length < 1 || _toyPreloadScanned.exists(name)) continue;
+				_toyPreloadScanned.set(name, true);
+				var data:CharacterFile = loadCharacterFile(name);
+				if(data == null || data.image == null) continue;
+				for (part in data.image.split(','))
+				{
+					var image:String = part.trim();
+					if(image.length < 1) continue;
+					var key:String = Language.getFileTranslation('images/$image') + '.png';
+					if(_toyPreloadRequested.exists(key) || Paths.currentTrackedAssets.exists(key)) continue;
+					var file:String = Paths.getPath(key, IMAGE, null, true);
+					if(!FileSystem.exists(file)) continue;
+					_toyPreloadRequested.set(key, true);
+					keys.push(key);
+					files.push(file);
+				}
+			}
+		}
+		if(keys.length < 1) return;
+
+		sys.thread.Thread.create(function() {
+			for (i in 0...keys.length)
+			{
+				var bitmap:BitmapData = null;
+				try { bitmap = funkin.backend.vfs.EmbeddedFiles.loadBitmap(files[i]); } catch(e:Dynamic) {}
+				_toyPreloadMutex.acquire();
+				_toyPreloadQueue.push({key: keys[i], bitmap: bitmap});
+				_toyPreloadMutex.release();
+			}
+		});
+		#end
+	}
+
+	function processToyPreload()
+	{
+		#if sys
+		if(_toyPreloadQueue.length < 1) return;
+		_toyPreloadMutex.acquire();
+		var item = _toyPreloadQueue.shift();
+		_toyPreloadMutex.release();
+		if(item != null && item.bitmap != null && !Paths.currentTrackedAssets.exists(item.key))
+			Paths.cacheBitmap(item.key, null, item.bitmap);
+		#end
+	}
+
 	function syncToyState()
 	{
 		if(bfToy == null) return;
+		preloadToyCharacters();
 
 		var toys:Array<Toy> = [bfToy, gfToy, opponentToy];
 		var chars:Array<String> = [PlayState.SONG.player1, PlayState.SONG.gfVersion, PlayState.SONG.player2];
@@ -1076,6 +1141,16 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		var direction:Int = column % GRID_COLUMNS_PER_PLAYER;
 		var line:Int = Math.floor(column / GRID_COLUMNS_PER_PLAYER);
 		var type:String = (note.noteType != null) ? note.noteType : '';
+		var sustain:Float = note.sustainLength;
+		if(sustain <= 0)
+		{
+			var hold:MetaNote = toyHoldPartner(note, line, type);
+			if(hold != null)
+			{
+				direction = Std.int(hold.songData[1]) % GRID_COLUMNS_PER_PLAYER;
+				sustain = hold.sustainLength;
+			}
+		}
 
 		var main:Toy = note.mustPress ? bfToy : opponentToy;
 		if(line < 2 && note.gfNote && type != 'Boyfriend SING') main = gfToy;
@@ -1108,14 +1183,28 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		if(Song.isAltCharacterNote(type)) suffix = '-alt';
 		switch(type)
 		{
-			case 'Alt Animation': suffix = (note.songData.length > 4 && note.songData[4] != null) ? Std.string(note.songData[4]) : '-alt';
+			case 'Alt Animation': suffix = (note.songData.length > 4 && note.songData[4] != null && Std.string(note.songData[4]).trim().length > 0) ? Std.string(note.songData[4]).trim() : '-alt';
 			case 'Censor': suffix = '-censor';
 		}
 
 		var noAnimation:Bool = note.noAnimation || type == 'No Animation';
 		var noteColor:FlxColor = [0xFFC04B99, 0xFF01FFFF, 0xFF12FA06, 0xFFFA3941][direction % 4];
 		for (toy in targets)
-			if(toy != null && toy.visible) toy.sing(direction, suffix, note.strumTime, note.sustainLength, noAnimation, type == 'Hey!', noteColor);
+			if(toy != null && toy.visible) toy.sing(direction, suffix, note.strumTime, sustain, noAnimation, type == 'Hey!', noteColor);
+	}
+
+	function toyHoldPartner(note:MetaNote, line:Int, type:String):MetaNote
+	{
+		var best:MetaNote = null;
+		for (other in curRenderedNotes)
+		{
+			if(other == null || other == note || other.isEvent || other.songData == null || other.ignoreNote || other.noAnimation || other.noteType == 'No Animation' || other.sustainLength <= 0) continue;
+			if(other.mustPress != note.mustPress || other.gfNote != note.gfNote || Math.abs(other.strumTime - note.strumTime) >= 2) continue;
+			var otherType:String = (other.noteType != null) ? other.noteType : '';
+			if(PlayState.singTypeKey(otherType) != PlayState.singTypeKey(type) || Math.floor(Std.int(other.songData[1]) / GRID_COLUMNS_PER_PLAYER) != line) continue;
+			if(best == null || other.sustainLength > best.sustainLength) best = other;
+		}
+		return best;
 	}
 
 	function resizeHoveredToy(wheel:Int):Bool
@@ -2346,6 +2435,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	override function update(elapsed:Float)
 	{
+		processToyPreload();
 		if(customCursor != null && customCursor.visible)
 			customCursor.setPosition(FlxG.mouse.screenX, FlxG.mouse.screenY);
 
@@ -2904,13 +2994,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				selectionBox.visible = false;
 				addUndoAction(SELECT_NOTE, {old: sel, current: selectedNotes.copy()});
 			}
-			else if(FlxG.mouse.justMoved)
+			else
 				updateSelectionBox();
 		}
 		else if(FlxG.mouse.pressedRight && (FlxG.mouse.deltaScreenX != 0 || FlxG.mouse.deltaScreenY != 0))
 		{
 			selectionBox.setPosition(FlxG.mouse.screenX, FlxG.mouse.screenY);
-			selectionStart.set(FlxG.mouse.screenX, FlxG.mouse.screenY);
+			selectionStart.set(FlxG.mouse.screenX, FlxG.mouse.screenY + scrollY);
 			selectionBox.visible = true;
 			updateSelectionBox();
 			playClickDown(true);
@@ -3737,6 +3827,8 @@ if(Conductor.songPosition != lastTime || forceDataUpdate)
 		miniChartHandle.pixels.fillRect(new Rectangle(wid - border, 0, border, hei), 0xFFFFAA44);
 	}
 
+	static final MINI_CHART_COLORS:Array<Int> = [0xFFC24B99, 0xFF00FFFF, 0xFF12FA05, 0xFFF9393F];
+	var _miniChartRect:Rectangle = new Rectangle();
 	function updateMiniChart()
 	{
 		if(miniChart == null || !miniChart.exists) return;
@@ -3753,7 +3845,8 @@ if(Conductor.songPosition != lastTime || forceDataUpdate)
 		if(miniChartRedrawTimer > 0) return;
 		miniChartRedrawTimer = 0.1;
 
-		miniChart.pixels.fillRect(new Rectangle(0, 0, miniChart.width, miniChart.height), 0x00FFFFFF);
+		_miniChartRect.setTo(0, 0, miniChart.width, miniChart.height);
+		miniChart.pixels.fillRect(_miniChartRect, 0x00FFFFFF);
 
 		var songLength:Float = FlxG.sound.music.length;
 		if(songLength <= 0) return;
@@ -3773,16 +3866,18 @@ if(Conductor.songPosition != lastTime || forceDataUpdate)
 			var rawColumn:Int = Std.int(note.songData[1]);
 			var noteX:Float = rawColumn * columnWidth;
 
-			var noteColor:Int = selectedNotes.contains(note) ? 0xFFFFFF00 : [0xFFC24B99, 0xFF00FFFF, 0xFF12FA05, 0xFFF9393F][rawColumn % 4];
-			miniChart.pixels.fillRect(new Rectangle(noteX, noteY, columnWidth, 2), noteColor);
+			var noteColor:Int = selectedNotes.contains(note) ? 0xFFFFFF00 : MINI_CHART_COLORS[rawColumn % 4];
+			_miniChartRect.setTo(noteX, noteY, columnWidth, 2);
+			miniChart.pixels.fillRect(_miniChartRect, noteColor);
 		}
 	}
 
 	function updateSelectionBox()
 	{
+		var startY:Float = selectionStart.y - scrollY;
 		var diffX:Float = FlxG.mouse.screenX - selectionStart.x;
-		var diffY:Float = FlxG.mouse.screenY - selectionStart.y;
-		selectionBox.setPosition(selectionStart.x, selectionStart.y);
+		var diffY:Float = FlxG.mouse.screenY - startY;
+		selectionBox.setPosition(selectionStart.x, startY);
 
 		if(diffX < 0) //Fixes negative X scale
 		{
@@ -4696,14 +4791,12 @@ if(Conductor.songPosition != lastTime || forceDataUpdate)
 	
 	var _lastSec:Int = -1;
 	var _lastGfSection:Null<Bool> = null;
-	var _lastChangeCharTime:Float = -1;
+	var _lastOverrideP1:String = '';
+	var _lastOverrideP2:String = '';
 	function updateHeads(ignoreCheck:Bool = false):Void
 	{
 		var curSecData:SwagSection = PlayState.SONG.notes[curSec];
 		var isGfSection:Bool = (curSecData != null && curSecData.gfSection == true);
-
-		var changeCharTime:Float = Conductor.songPosition;
-		if(_lastGfSection == isGfSection && _lastSec == curSec && _lastChangeCharTime == changeCharTime && !ignoreCheck) return;
 
 		var overrideP1:String = null;
 		var overrideP2:String = null;
@@ -4722,6 +4815,8 @@ if(Conductor.songPosition != lastTime || forceDataUpdate)
 					overrideP2 = newChar;
 			}
 		}
+
+		if(_lastGfSection == isGfSection && _lastSec == curSec && _lastOverrideP1 == overrideP1 && _lastOverrideP2 == overrideP2 && !ignoreCheck) return;
 
 		for (i in 0...GRID_PLAYERS)
 		{
@@ -4786,7 +4881,8 @@ if(Conductor.songPosition != lastTime || forceDataUpdate)
 		}
 		_lastGfSection = isGfSection;
 		_lastSec = curSec;
-		_lastChangeCharTime = changeCharTime;
+		_lastOverrideP1 = overrideP1;
+		_lastOverrideP2 = overrideP2;
 	}
 
 	var playbackSlider:PsychUISlider;
@@ -5884,20 +5980,10 @@ end
 				if(typeSelected != null && typeSelected.length > 0)
 				{
 					note.songData[3] = typeSelected;
-						if(typeSelected == 'Alt Animation')
-					{
-						if(note.songData.length <= 4)
-							note.songData.push('');
-					}
-					else if(note.songData.length > 4)
-						note.songData.remove(note.songData[4]);
+					if(note.songData.length > 4) note.songData.splice(4, note.songData.length - 4);
 				}
-				else
-				{
-					note.songData.remove(note.songData[3]);
-					if(note.songData.length > 4)
-						note.songData.remove(note.songData[4]);
-				}
+				else if(note.songData.length > 3)
+					note.songData.splice(3, note.songData.length - 3);
 
 				var id:Int = notes.indexOf(note);
 				if(id > -1)
@@ -5931,8 +6017,10 @@ end
 				if(note == null || note.isEvent) continue;
 				if(note.noteType != 'Alt Animation') continue;
 				
-				note.animSuffix = cur.trim();
-				note.songData[4] = cur.trim();
+				var suffix:String = cur.trim();
+				note.animSuffix = (suffix.length > 0) ? suffix : '-alt';
+				if(suffix.length > 0) note.songData[4] = suffix;
+				else if(note.songData.length > 4) note.songData.splice(4, note.songData.length - 4);
 			}
 		};
 		altAnimInputText.visible = false;
@@ -6724,7 +6812,7 @@ end
 
 					var btn:PsychUIButton = new PsychUIButton(0, radioGrp.y + radioGrp.height + 20, 'Load', function()
 					{
-						var autosaveName:String = fileList[radioGrp.checked];
+						var autosaveName:String = fileList[radioGrp.selectedIndex];
 						var path:String = 'backups/$autosaveName';
 						state.close();
 

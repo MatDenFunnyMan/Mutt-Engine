@@ -115,10 +115,12 @@ class PsychUIDropDownMenu extends PsychUIInputText
 	}
 
 	var _items:Array<PsychUIDropDownItem> = [];
+	var _garbage:Array<PsychUIDropDownItem> = [];
 	public var curScroll:Int = 0;
 	public var maxVisibleItems:Int = 10;
 	override function update(elapsed:Float)
 	{
+		while(_garbage.length > 0) _garbage.pop().destroy();
 		var lastFocus = PsychUIInputText.focusOn;
 		super.update(elapsed);
 		if(!exists) return;
@@ -231,6 +233,12 @@ class PsychUIDropDownMenu extends PsychUIInputText
 		}
 	}
 
+	override function destroy()
+	{
+		while(_garbage.length > 0) _garbage.pop().destroy();
+		super.destroy();
+	}
+
 	public var broadcastDropDownEvent:Bool = true;
 	public var autoSort:Bool = true;
 	function clickedOn(num:Int, label:String)
@@ -246,7 +254,7 @@ class PsychUIDropDownMenu extends PsychUIInputText
 	{
 		@:bypassAccessor list.push(option);
 		var curID:Int = list.length - 1;
-		var item:PsychUIDropDownItem = cast recycle(PsychUIDropDownItem, () -> new PsychUIDropDownItem(1, 1, this._itemWidth), true);
+		var item:PsychUIDropDownItem = new PsychUIDropDownItem(1, 1, this._itemWidth);
 		item.cameras = cameras;
 		item.label = option;
 		item.visible = item.active = false;
@@ -263,7 +271,11 @@ class PsychUIDropDownMenu extends PsychUIInputText
 		showDropDown(false);
 
 		for (item in _items)
+		{
 			item.kill();
+			remove(item);
+			_garbage.push(item);
+		}
 
 		_items = [];
 		list = [];

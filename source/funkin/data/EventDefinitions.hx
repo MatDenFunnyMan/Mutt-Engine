@@ -203,7 +203,7 @@ class EventDefinitions
 		},
 		{
 			name: 'Silhouette',
-			description: "hehehe silhouette event for the funzies. also makes a color bg\n\nColors: bg first, then for chars separated with commas (ex.\"white\", \"red\", \"blue\", \"green\"), order: bg, dad, bf, optional values for gf and extra chars\nLeave empty for black bg and icon colors\nValue: 0 to 1 (default: 1), empty = default, 0 = off\nDuration: in seconds (0 or empty = instant)\nHUD: if checked, colors are applied to hud as well\nDetailed: shows character outlines/details",
+			description: "hehehe silhouette event for the funzies. also makes a color bg\n\nColors: bg first, then for chars separated with commas (ex.\"white\", \"red\", \"blue\", \"green\"), order: bg, dad, bf, optional values for gf and extra chars\nOnly one color = only the bg, characters keep their colors\nLeave empty for black bg and icon colors\nValue: 0 to 1 (default: 1), empty = default, 0 = off\nDuration: in seconds (0 or empty = instant)\nHUD: if checked, colors are applied to hud as well\nDetailed: shows character outlines/details",
 			fields: [
 				{label: 'Colors'},
 				{label: 'Value'},

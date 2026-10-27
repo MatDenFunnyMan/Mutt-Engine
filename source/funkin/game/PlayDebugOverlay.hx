@@ -229,7 +229,7 @@ class PlayDebugOverlay extends FlxGroup
 	function applyFreeCam()
 	{
 		var cam:FlxCamera = game.camGame;
-		if(cam == null || (game.subState != null && game.subState != freezeState)) return;
+		if(cam == null || cam.scroll == null || (game.subState != null && game.subState != freezeState)) return;
 		gameScroll.copyFrom(cam.scroll);
 		gameZoom = cam.zoom;
 		cam.scroll.copyFrom(freeScroll);
@@ -241,7 +241,7 @@ class PlayDebugOverlay extends FlxGroup
 	{
 		if(!freeCamApplied) return;
 		var cam:FlxCamera = game.camGame;
-		if(cam != null)
+		if(cam != null && cam.scroll != null)
 		{
 			cam.scroll.copyFrom(gameScroll);
 			cam.zoom = gameZoom;

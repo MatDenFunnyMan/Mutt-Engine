@@ -203,7 +203,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 				else
 					modsListContent += mod + '|0\n';
 			}
-			sys.io.File.saveContent('modsList.txt', modsListContent);
+			funkin.backend.vfs.File.saveContent('modsList.txt', modsListContent);
 			Mods.updatedOnState = false;
 			#end
 			
@@ -272,7 +272,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 					funkin.external.winapi.WindowsCPP.resetWindowIconFromExe();
 					#else
 					var defaultIconPath:String = "icon.png";
-					if (sys.FileSystem.exists(defaultIconPath))
+					if (funkin.backend.vfs.FileSystem.exists(defaultIconPath))
 					{
 						var iconImage = lime.graphics.Image.fromFile(defaultIconPath);
 						if(iconImage != null)
@@ -299,7 +299,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 				funkin.external.winapi.WindowsCPP.reDefineMainWindowTitle(newTitle);
 
 				var iconPath:String = Paths.modFolders('pack.png');
-				if (sys.FileSystem.exists(iconPath))
+				if (funkin.backend.vfs.FileSystem.exists(iconPath))
 				{
 					var icon = lime.graphics.Image.fromFile(iconPath);
 					lime.app.Application.current.window.setIcon(icon);
@@ -310,7 +310,7 @@ class ModSelectorSubstate extends MusicBeatSubstate
 					funkin.external.winapi.WindowsCPP.resetWindowIconFromExe();
 					#else
 					var defaultIconPath:String = "icon.png";
-					if (sys.FileSystem.exists(defaultIconPath))
+					if (funkin.backend.vfs.FileSystem.exists(defaultIconPath))
 					{
 						var icon = lime.graphics.Image.fromFile(defaultIconPath);
 						if (icon != null)

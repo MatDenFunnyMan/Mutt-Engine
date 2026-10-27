@@ -18,6 +18,8 @@ class PsychUIRadioGroup extends FlxSpriteGroup
 
 	public var checked(default, set):Int = -1;
 	public var checkedRadio(default, set):PsychUIRadioItem;
+	public var selectedIndex(default, set):Int = -1;
+	public var selectedLabel(get, never):String;
 
 	public var arrowUp:FlxSprite;
 	public var arrowDown:FlxSprite;
@@ -157,12 +159,38 @@ class PsychUIRadioGroup extends FlxSpriteGroup
 				arrowDown.alpha = 1;
 			}
 		}
-		if(curScroll != lastScroll)
-		{
-			checked += (lastScroll - curScroll);
-			updateRadioItems();
-		}
+		if(curScroll != lastScroll) updateRadioItems();
 		return curScroll;
+	}
+
+	public function scrollTo(index:Int)
+	{
+		if(maxItems <= 0 || index < 0) return;
+		if(index < curScroll) curScroll = index;
+		else if(index >= curScroll + maxItems) curScroll = index - maxItems + 1;
+	}
+
+	function set_selectedIndex(v:Int)
+	{
+		selectedIndex = Std.int(FlxMath.bound(v, -1, labels.length - 1));
+		refreshChecked();
+		return selectedIndex;
+	}
+
+	function get_selectedLabel():String
+		return (selectedIndex >= 0 && selectedIndex < labels.length) ? labels[selectedIndex] : null;
+
+	function refreshChecked()
+	{
+		var row:Int = (selectedIndex >= 0) ? selectedIndex - curScroll : -1;
+		if(row >= radios.length) row = -1;
+		@:bypassAccessor checked = row;
+		@:bypassAccessor checkedRadio = null;
+		for (num => radio in radios)
+		{
+			radio.checked = (row >= 0 && num == row);
+			if(radio.checked) @:bypassAccessor checkedRadio = radio;
+		}
 	}
 
 	function set_stackHorizontal(v:Bool)
@@ -174,38 +202,26 @@ class PsychUIRadioGroup extends FlxSpriteGroup
 
 	function set_checked(v:Int)
 	{
-		checked = Std.int(FlxMath.bound(v, -1, Math.min(labels.length-1, radios.length-1)));
-		@:bypassAccessor checkedRadio = null;
-		for (num => radio in radios)
-		{
-			radio.checked = (num == checked);
-			if(num == checked) @:bypassAccessor checkedRadio = radio;
-		}
+		var row:Int = Std.int(FlxMath.bound(v, -1, Math.min(labels.length-1, radios.length-1)));
+		@:bypassAccessor selectedIndex = (row < 0) ? -1 : Std.int(Math.min(row + curScroll, labels.length - 1));
+		refreshChecked();
 		return checked;
 	}
 
 	function set_labels(v:Array<String>)
 	{
 		labels = v;
+		@:bypassAccessor selectedIndex = Std.int(FlxMath.bound(selectedIndex, -1, labels.length - 1));
 		updateRadioItems();
-		set_checked(checked);
 		set_curScroll(curScroll);
 		return labels;
 	}
 
 	function set_checkedRadio(v:PsychUIRadioItem)
 	{
-		checkedRadio = null;
-		@:bypassAccessor checked = -1;
-		for (num => radio in radios)
-		{
-			radio.checked = (v == radio);
-			if(v == radio)
-			{
-				checkedRadio = radio;
-				@:bypassAccessor checked = num;
-			}
-		}
+		var row:Int = radios.indexOf(v);
+		@:bypassAccessor selectedIndex = (v == null || row < 0) ? -1 : row + curScroll;
+		refreshChecked();
 		return checkedRadio;
 	}
 
@@ -287,6 +303,7 @@ class PsychUIRadioGroup extends FlxSpriteGroup
 				radio.y = y;
 			}
 		}
+		refreshChecked();
 	}
 
 	override function set_cameras(v:Array<FlxCamera>)

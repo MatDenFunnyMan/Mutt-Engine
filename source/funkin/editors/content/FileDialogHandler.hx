@@ -6,7 +6,7 @@ import openfl.events.IOErrorEvent;
 import flash.net.FileFilter;
 
 import haxe.Exception;
-import sys.io.File;
+import funkin.backend.vfs.File;
 import lime.ui.*;
 
 import flixel.FlxBasic;
@@ -182,9 +182,34 @@ class FileReferenceCustom extends FileReference
 	static var lastSaveFolder:String = null;
 	override function saveFileDialog_onSelect(path:String):Void
 	{
+		resetInput();
 		_trackSavedPath = path;
 		if(path != null && path.length > 0) lastSaveFolder = haxe.io.Path.directory(path);
 		super.saveFileDialog_onSelect(path);
+	}
+
+	override function saveFileDialog_onCancel():Void
+	{
+		resetInput();
+		super.saveFileDialog_onCancel();
+	}
+
+	override function openFileDialog_onSelect(path:String):Void
+	{
+		resetInput();
+		super.openFileDialog_onSelect(path);
+	}
+
+	override function openFileDialog_onCancel():Void
+	{
+		resetInput();
+		super.openFileDialog_onCancel();
+	}
+
+	public static function resetInput():Void
+	{
+		FlxG.mouse.reset();
+		FlxG.keys.reset();
 	}
 
 	override public function save(data:Dynamic, defaultFileName:String = null):Void

@@ -52,12 +52,24 @@ class StageEffects extends FlxBasic
 
 		silhouetteBackground = makeBackground();
 		flashBackground = makeBackground();
-		var layer:Int = game.members.indexOf(LuaUtils.getLowestCharacterGroup());
-		if(layer < 0) layer = game.members.length;
-		game.insert(layer, flashBackground);
-		game.insert(layer, silhouetteBackground);
+		placeBackgrounds();
 
 		FlxG.signals.preDraw.add(applyTints);
+	}
+
+	function placeBackgrounds()
+	{
+		game.remove(flashBackground, true);
+		game.remove(silhouetteBackground, true);
+		var layer:Int = game.members.indexOf(LuaUtils.getLowestCharacterGroup());
+		if(layer < 0) layer = game.members.length;
+		for (trail in game.ghostTrails)
+		{
+			var trailLayer:Int = game.members.indexOf(trail);
+			if(trailLayer > -1 && trailLayer < layer) layer = trailLayer;
+		}
+		game.insert(layer, flashBackground);
+		game.insert(layer, silhouetteBackground);
 	}
 
 	function makeBackground():FlxSprite
@@ -75,6 +87,7 @@ class StageEffects extends FlxBasic
 
 	public function setSilhouette(enabled:Bool, characterColor:Null<FlxColor>, characterColors:Map<String, FlxColor>, backgroundColor:FlxColor, strength:Float, backgroundAlpha:Float, charactersAlpha:Float, duration:Float, ease:EaseFunction, hud:Bool, details:Bool = false)
 	{
+		placeBackgrounds();
 		var newHud:Bool = enabled ? hud : silhouetteHud;
 		for (sprite in targets(silhouetteHud || newHud))
 			silhouetteFrom.set(sprite, silhouetteNow(sprite));
@@ -124,6 +137,7 @@ class StageEffects extends FlxBasic
 
 	public function backgroundFlash(color:FlxColor, duration:Float, characterColor:Null<FlxColor>, ease:EaseFunction)
 	{
+		placeBackgrounds();
 		if(flashTween != null) flashTween.cancel();
 		flashTween = null;
 		flashBackground.color = color;

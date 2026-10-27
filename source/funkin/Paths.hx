@@ -512,7 +512,7 @@ class Paths
 		var file:String = getPath(graphic.key, IMAGE, null, true);
 		#if MODS_ALLOWED
 		if (FileSystem.exists(file))
-			bitmap = BitmapData.fromFile(file);
+			bitmap = funkin.backend.vfs.EmbeddedFiles.loadBitmap(file);
 		else #end if (OpenFlAssets.exists(file, IMAGE))
 			bitmap = OpenFlAssets.getBitmapData(file, false);
 
@@ -528,7 +528,7 @@ class Paths
 
 			#if MODS_ALLOWED
 			if (FileSystem.exists(file))
-				bitmap = BitmapData.fromFile(file);
+				bitmap = funkin.backend.vfs.EmbeddedFiles.loadBitmap(file);
 			else #end if (OpenFlAssets.exists(file, IMAGE))
 				bitmap = OpenFlAssets.getBitmapData(file);
 
@@ -677,6 +677,15 @@ class Paths
 		return parentFrames;
 	}
 
+	static function embeddedText(path:String):String
+	{
+		#if sys
+		return funkin.backend.vfs.EmbeddedFiles.readableAsset(path);
+		#else
+		return path;
+		#end
+	}
+
 	inline static public function getSparrowAtlas(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxAtlasFrames
 	{
 		var imageLoaded:FlxGraphic = image(key, parentFolder, allowGPU);
@@ -686,9 +695,9 @@ class Paths
 		var xml:String = modsXml(key);
 		if(FileSystem.exists(xml)) xmlExists = true;
 
-		return FlxAtlasFrames.fromSparrow(imageLoaded, (xmlExists ? File.getContent(xml) : getPath(Language.getFileTranslation('images/$key') + '.xml', TEXT, parentFolder)));
+		return FlxAtlasFrames.fromSparrow(imageLoaded, (xmlExists ? File.getContent(xml) : embeddedText(getPath(Language.getFileTranslation('images/$key') + '.xml', TEXT, parentFolder))));
 		#else
-		return FlxAtlasFrames.fromSparrow(imageLoaded, getPath(Language.getFileTranslation('images/$key') + '.xml', TEXT, parentFolder));
+		return FlxAtlasFrames.fromSparrow(imageLoaded, embeddedText(getPath(Language.getFileTranslation('images/$key') + '.xml', TEXT, parentFolder)));
 		#end
 	}
 
@@ -701,9 +710,9 @@ class Paths
 		var txt:String = modsTxt(key);
 		if(FileSystem.exists(txt)) txtExists = true;
 
-		return FlxAtlasFrames.fromSpriteSheetPacker(imageLoaded, (txtExists ? File.getContent(txt) : getPath(Language.getFileTranslation('images/$key') + '.txt', TEXT, parentFolder)));
+		return FlxAtlasFrames.fromSpriteSheetPacker(imageLoaded, (txtExists ? File.getContent(txt) : embeddedText(getPath(Language.getFileTranslation('images/$key') + '.txt', TEXT, parentFolder))));
 		#else
-		return FlxAtlasFrames.fromSpriteSheetPacker(imageLoaded, getPath(Language.getFileTranslation('images/$key') + '.txt', TEXT, parentFolder));
+		return FlxAtlasFrames.fromSpriteSheetPacker(imageLoaded, embeddedText(getPath(Language.getFileTranslation('images/$key') + '.txt', TEXT, parentFolder)));
 		#end
 	}
 
@@ -716,9 +725,9 @@ class Paths
 		var json:String = modsImagesJson(key);
 		if(FileSystem.exists(json)) jsonExists = true;
 
-		return FlxAtlasFrames.fromTexturePackerJson(imageLoaded, (jsonExists ? File.getContent(json) : getPath(Language.getFileTranslation('images/$key') + '.json', TEXT, parentFolder)));
+		return FlxAtlasFrames.fromTexturePackerJson(imageLoaded, (jsonExists ? File.getContent(json) : embeddedText(getPath(Language.getFileTranslation('images/$key') + '.json', TEXT, parentFolder))));
 		#else
-		return FlxAtlasFrames.fromTexturePackerJson(imageLoaded, getPath(Language.getFileTranslation('images/$key') + '.json', TEXT, parentFolder));
+		return FlxAtlasFrames.fromTexturePackerJson(imageLoaded, embeddedText(getPath(Language.getFileTranslation('images/$key') + '.json', TEXT, parentFolder)));
 		#end
 	}
 
@@ -780,7 +789,7 @@ public static function returnSound(key:String, ?path:String, ?modsAllowed:Bool =
 		{
 			#if sys
 			if (FileSystem.exists(file))
-				currentTrackedSounds.set(file, Sound.fromFile(file));
+				currentTrackedSounds.set(file, funkin.backend.vfs.EmbeddedFiles.loadSound(file));
 			#else
 			if (OpenFlAssets.exists(file, SOUND))
 				currentTrackedSounds.set(file, OpenFlAssets.getSound(file));

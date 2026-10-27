@@ -352,6 +352,8 @@ class Character extends animate.FlxAnimate
 		if (getAnimationName().startsWith('sing')) holdTimer += elapsed;
 		else if(isPlayer) holdTimer = 0;
 
+		if(!isAnimateAtlas && holdTimer > Conductor.stepCrochet * 0.0015 && getAnimationName().endsWith('-hold')) releaseHoldAnim();
+
 		if (!isPlayer && holdTimer >= Conductor.stepCrochet * (0.0011 #if FLX_PITCH / (FlxG.sound.music != null ? FlxG.sound.music.pitch : 1) #end) * singDuration)
 		{
 			dance();
@@ -453,6 +455,29 @@ class Character extends animate.FlxAnimate
 		canPlayOtherAnims = true;
 		specialAnim = false;
 		dance();
+	}
+
+	function releaseHoldAnim()
+	{
+		var holdName:String = getAnimationName();
+		var baseName:String = holdName.substr(0, holdName.length - '-hold'.length);
+		var hold = animation.getByName(holdName);
+		var base = animation.getByName(baseName);
+		if(hold == null || base == null || base.frames.length < 1)
+		{
+			if(hasAnimation(baseName)) playAnim(baseName, true, false, 0);
+			return;
+		}
+
+		var start:Int = base.frames.length - 1;
+		if(hold.frames.length > 0)
+		{
+			var index:Int = base.frames.indexOf(hold.frames[hold.frames.length - 1]);
+			if(index > -1) start = Std.int(Math.min(index + 1, base.frames.length - 1));
+		}
+		var timer:Float = holdTimer;
+		playAnim(baseName, true, false, start);
+		holdTimer = timer;
 	}
 
 	public function playAnim(AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0):Void

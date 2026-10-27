@@ -339,9 +339,17 @@ class PlayState extends MusicBeatState
 	public static var nextReloadAll:Bool = false;
 	public static var songmeta:SongMeta;
 
+	var chartArrowSkin:String = null;
+	var chartSplashSkin:String = null;
+
 	override public function create()
 	{
 		//trace('Playback Rate: ' + playbackRate);
+		if(SONG != null)
+		{
+			chartArrowSkin = SONG.arrowSkin;
+			chartSplashSkin = SONG.splashSkin;
+		}
 		_lastLoadedModDirectory = Mods.currentModDirectory;
 		Paths.clearStoredMemory();
 		NotePack.clearCache();
@@ -517,6 +525,9 @@ class PlayState extends MusicBeatState
 		startCharacterPos(boyfriend);
 		boyfriendGroup.add(boyfriend);
 		createExtraCharacters();
+
+		if(stageData.hide_boyfriend == true) boyfriendGroup.visible = false;
+		if(stageData.hide_opponent == true) dadGroup.visible = false;
 
 		if(stageData.objects != null && stageData.objects.length > 0)
 		{
@@ -800,6 +811,7 @@ class PlayState extends MusicBeatState
 		}
 		#end
 
+		precacheGhostTrails();
 		if(eventNotes.length > 0)
 		{
 			for (event in eventNotes) event.strumTime -= eventEarlyTrigger(event);
@@ -1961,8 +1973,8 @@ class PlayState extends MusicBeatState
 				else if(extraLine > -1)
 					swagNote.characterSlot = extraStrumData[extraLine].slot;
 
-				if(noteType == 'Alt Animation' && songNotes.length > 4 && songNotes[4] != null)
-					swagNote.animSuffix = songNotes[4];
+				if(noteType == 'Alt Animation' && songNotes.length > 4 && songNotes[4] != null && Std.string(songNotes[4]).trim().length > 0)
+					swagNote.animSuffix = Std.string(songNotes[4]).trim();
 					swagNote.texture = '';
 				swagNote.reloadNote();
 				if (extraLine > -1) swagNote.multSpeed = extraStrumSpeed(extraStrumData[extraLine]);
@@ -2092,7 +2104,7 @@ class PlayState extends MusicBeatState
 			{
 				var fileName:String = Paths.video(vName);
 				#if sys
-				if(sys.FileSystem.exists(fileName))
+				if(funkin.backend.vfs.FileSystem.exists(fileName))
 				#else
 				if(openfl.utils.Assets.exists(fileName))
 				#end
@@ -2108,6 +2120,45 @@ class PlayState extends MusicBeatState
 	}
 
 	// called only once per different event (Used for precaching)
+	function precacheNoteSkin(value:String)
+	{
+		if(value == null) return;
+		value = value.trim();
+		if(value.length < 1 || value.toLowerCase() == 'default') return;
+		var pack:NotePack = NotePack.named(value);
+		if(pack != null)
+		{
+			precachePackImages(pack.data);
+			return;
+		}
+		for (key in [value, 'noteSkins/$value'])
+		{
+			if(!Paths.fileExists('images/$key.png', IMAGE)) continue;
+			Paths.image(key);
+			return;
+		}
+	}
+
+	function precachePackImages(data:Dynamic)
+	{
+		if(data == null || Std.isOfType(data, String) || Std.isOfType(data, Float) || Std.isOfType(data, Bool)) return;
+		if(Std.isOfType(data, Array))
+		{
+			for (item in (data:Array<Dynamic>)) precachePackImages(item);
+			return;
+		}
+		for (field in Reflect.fields(data))
+		{
+			var value:Dynamic = Reflect.field(data, field);
+			if(field == 'image' && Std.isOfType(value, String))
+			{
+				var image:String = value;
+				if(image.length > 0 && Paths.fileExists('images/$image.png', IMAGE)) Paths.image(image);
+			}
+			else precachePackImages(value);
+		}
+	}
+
 	function eventPushed(event:EventNote) {
 		eventPushedUnique(event);
 		if(eventsPushed.contains(event.event)) {
@@ -2121,6 +2172,11 @@ class PlayState extends MusicBeatState
 	// called by every event with the same name
 	function eventPushedUnique(event:EventNote) {
 		switch(event.event) {
+			case 'Change Notes' | 'Change Note Skin' | 'Change NoteStrum Skin' | 'Change Hold Cover Skin' | 'Change Note Splash Skin':
+				var skinValues:Array<String> = [event.value1, event.value2];
+				if(event.values != null) skinValues = skinValues.concat(event.values);
+				for (value in skinValues) precacheNoteSkin(value);
+
 			case "Change Character":
 				var charType:Int = 0;
 				switch(event.value1.toLowerCase()) {
@@ -2143,7 +2199,7 @@ class PlayState extends MusicBeatState
 			case 'Ghost Trail':
 				var type:String = (event.value2 != null) ? event.value2.trim().toLowerCase() : '';
 				var trail:GhostTrail = GhostTrail.TYPES.contains(type) ? getGhostTrail(event.value1, true) : null;
-				if(trail != null) trail.precache(type, {duration: (event.values != null && event.values.length > 3) ? event.values[3] : ''});
+				if(trail != null) pendingTrailPrecache.push(event);
 
 			case 'Silhouette' | 'BG Flash' | 'Background Flash':
 				getStageEffects();
@@ -2816,6 +2872,12 @@ class PlayState extends MusicBeatState
 			while (unspawnNotes.length > 0 && unspawnNotes[0].strumTime - Conductor.songPosition < time)
 			{
 				var dunceNote:Note = unspawnNotes[0];
+				if(dunceNote.skinDirty)
+				{
+					dunceNote.skinDirty = false;
+					dunceNote.texture = '';
+					dunceNote.reloadNote();
+				}
 				notes.insert(0, dunceNote);
 				dunceNote.spawned = true;
 
@@ -2961,9 +3023,14 @@ class PlayState extends MusicBeatState
 	function loadModHealthBar()
 	{
 		modHealthBar = null;
+		for (key in ['songs/$songName/healthbar', 'healthbar'])
+		{
+			modHealthBar = readHealthBarFile(key);
+			if(modHealthBar != null) break;
+		}
 		#if MODS_ALLOWED
 		var mod:String = Mods.currentModDirectory;
-		if(mod != null && mod.length > 0)
+		if(modHealthBar == null && mod != null && mod.length > 0)
 		{
 			var folder:String = Paths.mods(mod + '/content/images/healthbar/');
 			if(FileSystem.exists(folder) && FileSystem.isDirectory(folder))
@@ -2985,11 +3052,73 @@ class PlayState extends MusicBeatState
 		applyHealthBarStyle();
 	}
 
+	public function loadHealthBar(?key:String):Bool
+	{
+		if(key == null || key.trim().length < 1)
+		{
+			loadModHealthBar();
+			return true;
+		}
+		var data:Dynamic = readHealthBarFile(key.trim());
+		if(data == null) return false;
+		modHealthBar = data;
+		applyHealthBarStyle();
+		return true;
+	}
+
+	function readHealthBarFile(key:String):Dynamic
+	{
+		#if sys
+		if(key.endsWith('.json')) key = key.substr(0, key.length - 5);
+		var candidates:Array<String> = [];
+		#if MODS_ALLOWED
+		candidates.push(Paths.modsJson(key));
+		#end
+		candidates.push(Paths.json(key));
+		for (path in candidates)
+		{
+			if(path == null || !FileSystem.exists(path)) continue;
+			try
+			{
+				var config:Dynamic = Json.parse(File.getContent(path));
+				if(config == null) return null;
+				return {fill: healthBarImageField(config.bar), bg: healthBarImageField(config.bg), config: config};
+			}
+			catch(e:Dynamic)
+			{
+				addTextToDebug('$key.json: ' + e, FlxColor.RED);
+				return null;
+			}
+		}
+		#end
+		return null;
+	}
+
+	static function healthBarImageField(value:Dynamic):String
+	{
+		if(value == null) return null;
+		var image:String = Std.string(value).trim();
+		return (image.length > 0) ? image : null;
+	}
+
 	static function configNumber(value:Dynamic, fallback:Float):Float
 	{
 		if(value == null) return fallback;
 		var number:Float = Std.parseFloat(Std.string(value));
 		return Math.isNaN(number) ? fallback : number;
+	}
+
+	static function configScale(value:Dynamic, point:FlxPoint)
+	{
+		if(value != null && !Std.isOfType(value, Array))
+		{
+			var single:Float = configNumber(value, 1);
+			point.set(single, single);
+			return;
+		}
+		var list:Array<Dynamic> = (value != null) ? value : [];
+		var scaleX:Float = configNumber(list[0], 1);
+		point.set(scaleX, configNumber(list[1], scaleX));
 	}
 
 	static function configPoint(value:Dynamic, point:FlxPoint)
@@ -3013,6 +3142,8 @@ class PlayState extends MusicBeatState
 		var config:Dynamic = (modHealthBar != null) ? modHealthBar.config : {};
 		healthBar.customScale = configNumber(config.scale, 1);
 		configPoint(config.offset, healthBar.customOffset);
+		configScale(config.barScale, healthBar.fillScale);
+		configPoint(config.barOffset, healthBar.fillShift);
 		healthIconScale = configNumber(config.iconScale, 1);
 		configPoint(config.iconOffset, healthIconOffset);
 		healthIconBop = (config.iconBop != false);
@@ -5126,6 +5257,7 @@ class PlayState extends MusicBeatState
 				var ease:Float->Float = eventEase(str(2), str(3));
 				if(str(0).length < 1)
 				{
+					camEventTarget = null;
 					releaseCameraEvent(classic ? -1 : duration, ease);
 					return true;
 				}
@@ -5133,12 +5265,14 @@ class PlayState extends MusicBeatState
 				var point:FlxPoint = eventCameraPoint(str(0));
 				if(point != null)
 				{
+					camEventTarget = str(0);
 					if(classic) moveCameraClassic(point.x, point.y, bool(4, true));
 					else moveCameraEvent(point.x, point.y, duration, ease, bool(4, true));
 					point.put();
 				}
 
 			case 'Center Camera':
+				camEventTarget = null;
 				var bfPoint:FlxPoint = eventCameraPoint('bf');
 				var dadPoint:FlxPoint = eventCameraPoint('dad');
 				if(bfPoint != null && dadPoint != null)
@@ -5432,13 +5566,44 @@ class PlayState extends MusicBeatState
 		if(trail != null || !create) return trail;
 
 		trail = new GhostTrail(() -> eventCharacter(key, null));
+		placeGhostTrail(key, trail);
+		ghostTrails.set(key, trail);
+		Character.onSingAnim = characterSang;
+		return trail;
+	}
+
+	var pendingTrailPrecache:Array<EventNote> = [];
+	function precacheGhostTrails()
+	{
+		for (event in pendingTrailPrecache)
+		{
+			var key:String = trailKey(event.value1);
+			var trail:GhostTrail = (key != null) ? ghostTrails.get(key) : null;
+			var current:Character = (key != null) ? eventCharacter(key, null) : null;
+			if(trail == null || current == null) continue;
+
+			var name:String = current.curCharacter;
+			var lastTime:Float = Math.NEGATIVE_INFINITY;
+			for (other in eventNotes)
+			{
+				if(other.event != 'Change Character' || other.strumTime > event.strumTime + 1 || other.strumTime < lastTime) continue;
+				if(trailKey(other.value1) != key || other.value2 == null || other.value2.trim().length < 1) continue;
+				name = other.value2.trim();
+				lastTime = other.strumTime;
+			}
+			var type:String = event.value2.trim().toLowerCase();
+			trail.precache(type, {duration: (event.values != null && event.values.length > 3) ? event.values[3] : ''}, name, current.isPlayer);
+		}
+		pendingTrailPrecache = [];
+	}
+
+	function placeGhostTrail(key:String, trail:GhostTrail)
+	{
+		remove(trail, true);
 		var layer:Int = members.indexOf(characterGroup(key));
 		if(layer < 0) layer = members.indexOf(LuaUtils.getLowestCharacterGroup());
 		if(layer < 0) add(trail);
 		else insert(layer, trail);
-		ghostTrails.set(key, trail);
-		Character.onSingAnim = characterSang;
-		return trail;
 	}
 
 	public function setGhostTrail(character:String, type:String, ?options:Dynamic):Bool
@@ -5449,6 +5614,7 @@ class PlayState extends MusicBeatState
 		if(key == null || (enable && eventCharacter(key, null) == null)) return false;
 		var trail:GhostTrail = getGhostTrail(key, enable);
 		if(trail == null) return false;
+		if(enable) placeGhostTrail(key, trail);
 		trail.setup(type, options);
 		return true;
 	}
@@ -5554,10 +5720,45 @@ class PlayState extends MusicBeatState
 		}
 	}
 
+	var chordRealPose:Map<Character, {pose:String, time:Float}> = [];
+	var trailSang:Bool = false;
+
+	function silentNoteGhost(note:Note, playerSide:Bool)
+	{
+		if(note == null || note.isSustainNote || note.hitCausesMiss) return;
+		var char:Character = playerSide ? boyfriend : dad;
+		if(note.gfNote && gf != null) char = gf;
+		char = noteCharacter(note, char);
+		if(char == null) return;
+
+		var own:Int = Std.int(Math.abs(Math.min(singAnimations.length - 1, note.noteData)));
+		var pose:String = resolveSingPose(char, singAnimations[own] + note.animSuffix);
+		if(!char.hasAnimation(pose)) return;
+		chordRealPose.set(char, {pose: pose, time: note.strumTime});
+		for (trail in ghostTrails) trail.onSing(char, note.strumTime, pose, false, true);
+	}
+
 	function characterSang(char:Character)
 	{
 		if(trailNote == null || trailNote.isSustainNote) return;
-		for (trail in ghostTrails) trail.onSing(char, trailNote.strumTime);
+		trailSang = true;
+		var own:Int = Std.int(Math.abs(Math.min(singAnimations.length - 1, trailNote.noteData)));
+		var target:Int = singNoteData(trailNote);
+		var current:String = char.getAnimationName();
+		var holdPoseShown:Bool = (trailNote.sustainLength > 0 || target != own) && current != null && current.startsWith(singAnimations[target]);
+		var pose:String = null;
+		if(target != own)
+		{
+			pose = resolveSingPose(char, singAnimations[own] + trailNote.animSuffix);
+			chordRealPose.set(char, {pose: pose, time: trailNote.strumTime});
+		}
+		else
+		{
+			var last = chordRealPose.get(char);
+			if(last != null && Math.abs(last.time - trailNote.strumTime) < 1) pose = last.pose;
+			chordRealPose.remove(char);
+		}
+		for (trail in ghostTrails) trail.onSing(char, trailNote.strumTime, pose, holdPoseShown);
 	}
 
 	public function getStageEffects():StageEffects
@@ -5603,13 +5804,14 @@ class PlayState extends MusicBeatState
 	function silhouetteEventOptions(colors:String, value:Float, duration:Float, ease:String, hud:Bool, details:Bool):Dynamic
 	{
 		var parts:Array<String> = [for (part in colors.split(',')) part.trim().replace('"', '').replace("'", '')];
+		var bgOnly:Bool = (parts.length == 1 && parts[0].length > 0);
 		var characterColors:Dynamic = {};
 		var keys:Array<String> = ['dad', 'bf', 'gf'];
 		for (slot in Song.FIRST_EXTRA_SLOT...Song.MAX_CHARACTERS + 1) keys.push(Std.string(slot));
 		for (i in 1...parts.length)
 			if(i - 1 < keys.length && parts[i].length > 0) Reflect.setField(characterColors, keys[i - 1], parts[i]);
 
-		return {backgroundColor: parts[0], characterColors: characterColors, strength: value, characterAlpha: 1,
+		return {backgroundColor: parts[0], characterColors: characterColors, strength: bgOnly ? 0 : value, characterAlpha: 1,
 			backgroundAlpha: value, duration: duration, ease: ease, hud: hud, details: details};
 	}
 
@@ -5746,7 +5948,19 @@ class PlayState extends MusicBeatState
 		{
 			camFollowEventTween = null;
 			camFollowLocked = forced;
+			refreshCameraTarget();
 		}});
+	}
+
+	public var camEventTarget:String = null;
+	public function refreshCameraTarget()
+	{
+		if(camFollow == null || camFollowEventTween != null) return;
+		if(!camFollowLocked || camEventTarget == null) return;
+		var point:FlxPoint = eventCameraPoint(camEventTarget);
+		if(point == null) return;
+		camFollow.setPosition(point.x, point.y);
+		point.put();
 	}
 
 	public function moveCameraClassic(x:Float, y:Float, forced:Bool)
@@ -5918,8 +6132,7 @@ class PlayState extends MusicBeatState
 			if(note == null) continue;
 			if(noteTarget == 'bf' && !note.mustPress) continue;
 			if(noteTarget == 'dad' && note.mustPress) continue;
-			note.texture = '';
-			note.reloadNote();
+			note.skinDirty = true;
 		}
 	}
 
@@ -7169,6 +7382,44 @@ class PlayState extends MusicBeatState
 		vsliceScoreRemainder -= whole;
 	}
 
+	function singNoteData(note:Note):Int
+	{
+		var data:Int = Std.int(Math.abs(Math.min(singAnimations.length - 1, note.noteData)));
+		if(note.isSustainNote || note.sustainLength > 0) return data;
+
+		var best:Note = null;
+		for (n in notes.members)
+		{
+			if(n == null) continue;
+			var head:Note = n.isSustainNote ? n.parent : n;
+			if(head == null || head == note || head.sustainLength <= 0 || head.tooLate || head.hitCausesMiss || head.noAnimation) continue;
+			if(head.mustPress != note.mustPress || head.strumline != note.strumline || head.gfNote != note.gfNote || singTypeKey(head.noteType) != singTypeKey(note.noteType)) continue;
+			if(Math.abs(head.strumTime - note.strumTime) >= 2) continue;
+			if(best == null || head.sustainLength > best.sustainLength) best = head;
+		}
+		return (best != null) ? Std.int(Math.abs(Math.min(singAnimations.length - 1, best.noteData))) : data;
+	}
+
+	public static function singTypeKey(type:String):String
+	{
+		if(type == null) return '';
+		switch(type)
+		{
+			case 'Opponent Sing' | 'Boyfriend SING' | 'GF + BF Note' | 'Opponent + GF Note' | 'Opponent + BF + GF':
+				return type;
+		}
+		if(Song.slotFromNoteType(type) >= 0 || Song.isAltCharacterNote(type)) return type;
+		return '';
+	}
+
+	static function resolveSingPose(char:Character, name:String):String
+	{
+		if(char.animSuffix.length > 0 && char.hasAnimation(name + char.animSuffix)) name += char.animSuffix;
+		var dash:Int = name.lastIndexOf('-');
+		if(!char.hasAnimation(name) && dash > 0 && char.hasAnimation(name.substr(0, dash))) name = name.substr(0, dash);
+		return name;
+	}
+
 	function keepSustainPose(note:Note, playerSide:Bool):Void
 	{
 		if(!note.isSustainNote) return;
@@ -7177,7 +7428,13 @@ class PlayState extends MusicBeatState
 		if(note.gfNote && gf != null) char = gf;
 		char = noteCharacter(note, char);
 
-		if(char != null && char.getAnimationName() != null && char.getAnimationName().startsWith('sing')) char.holdTimer = 0;
+		if(char == null) return;
+		var anim:String = char.getAnimationName();
+		if(anim == null || !anim.startsWith('sing')) return;
+		char.holdTimer = 0;
+
+		if(!(char.vsliceSustains || InputSystem.isVSlice()) || anim.contains('miss') || anim.endsWith('-hold') || anim.endsWith('-hold-loop')) return;
+		if(char.hasAnimation(anim + '-hold')) char.playAnim(anim + '-hold', true);
 	}
 
 	function opponentNoteHit(note:Note):Void
@@ -7185,9 +7442,14 @@ class PlayState extends MusicBeatState
 		var lastNote:Note = trailNote;
 		var wasHit:Bool = note.hitByOpponent;
 		trailNote = note;
+		trailSang = false;
 		handleOpponentNoteHit(note);
 		trailNote = lastNote;
-		if(!wasHit && note.hitByOpponent) noteHitExtras(note, opponentMode);
+		if(!wasHit && note.hitByOpponent)
+		{
+			if(!trailSang) silentNoteGhost(note, opponentMode);
+			noteHitExtras(note, opponentMode);
+		}
 	}
 
 	function handleOpponentNoteHit(note:Note):Void
@@ -7210,7 +7472,7 @@ class PlayState extends MusicBeatState
 			}
 			else if(note.extraData != null && note.extraData.get('noAnimation') == false)
 			{
-				var animToPlay:String = singAnimations[Std.int(Math.abs(Math.min(singAnimations.length-1, note.noteData)))] + note.animSuffix;
+				var animToPlay:String = singAnimations[singNoteData(note)] + note.animSuffix;
 				
 				var char:Character = boyfriend;
 				if(note.noteType == 'Opponent Sing')
@@ -7261,7 +7523,7 @@ class PlayState extends MusicBeatState
 		}
 		else if(!note.noAnimation)
 		{
-			var animToPlay:String = singAnimations[Std.int(Math.abs(Math.min(singAnimations.length-1, note.noteData)))] + note.animSuffix;
+			var animToPlay:String = singAnimations[singNoteData(note)] + note.animSuffix;
 			
 			if(note.noteType == 'GF + BF Note')
 				{
@@ -7438,10 +7700,12 @@ class PlayState extends MusicBeatState
 		var lastNote:Note = trailNote;
 		var wasHit:Bool = note.wasGoodHit;
 		trailNote = note;
+		trailSang = false;
 		handleGoodNoteHit(note);
 		trailNote = lastNote;
 		if(!wasHit && note.wasGoodHit)
 		{
+			if(!trailSang) silentNoteGhost(note, !opponentMode);
 			if(inputOverlay != null && !note.isSustainNote) inputOverlay.registerNote();
 			noteHitExtras(note, !opponentMode);
 		}
@@ -7484,7 +7748,7 @@ class PlayState extends MusicBeatState
 			if(shouldPlayAnim)
 			{
 				var char:Character = opponentMode ? dad : boyfriend;
-				var noteIdx:Int = Std.int(Math.abs(Math.min(singAnimations.length-1, note.noteData)));
+				var noteIdx:Int = singNoteData(note);
 				var animToPlay:String = singAnimations[noteIdx] + note.animSuffix;
 				var animCheck:String = 'hey';
 				if(note.gfNote && note.noteType != 'Boyfriend SING')
@@ -7785,6 +8049,11 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		if(SONG != null)
+		{
+			SONG.arrowSkin = chartArrowSkin;
+			SONG.splashSkin = chartSplashSkin;
+		}
 		if (debugOverlay != null) PlayDebugOverlay.saved = debugOverlay.saveState();
 		#if LUA_ALLOWED
 		funkin.scripting.UtilityFunctions.restoreWindow();

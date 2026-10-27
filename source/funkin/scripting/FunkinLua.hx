@@ -456,6 +456,7 @@ class FunkinLua extends FunkinLuaScript {
 			return noteTweenFunction(tag, note, {direction: value}, duration, ease);
 		});
 		Lua_helper.add_callback(lua, "noteTween", function(tag:String, note:Int, values:Dynamic, duration:Float, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, LuaUtils.TWEEN_OPTIONS);
 			if(values == null || PlayState.instance == null) return null;
 			var strumNote:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 			if(strumNote == null) return null;
@@ -625,6 +626,7 @@ class FunkinLua extends FunkinLuaScript {
 			return true;
 		});
 		Lua_helper.add_callback(lua, "switchState", function(stateName:String, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, ['transition', 'mode', 'song', 'difficulty']);
 			LuaSharedFunctions.switchStateWithOptions(stateName, options,
 				(name) -> funkin.backend.MusicBeatState.switchStateByName(name),
 				(name) -> funkin.backend.MusicBeatState.switchStateDirectByName(name));
@@ -662,19 +664,38 @@ class FunkinLua extends FunkinLuaScript {
 			return Conductor.songPosition;
 		});
 
+		LuaSharedFunctions.registerCharacterPos(lua, type -> game.characterGroupFromName(Std.string(type), game.boyfriendGroup));
+		Lua_helper.add_callback(lua, "setCamOffset", function(character:Dynamic, ?x:Null<Float>, ?y:Null<Float>) {
+			var char:Character = game.characterFromName(Std.string(character));
+			if(char == null) return false;
+			if(char.cameraPosition == null) char.cameraPosition = [0, 0];
+			if(x != null) char.cameraPosition[0] = x;
+			if(y != null) char.cameraPosition[1] = y;
+			game.refreshCameraTarget();
+			return true;
+		});
+		Lua_helper.add_callback(lua, "getCamOffset", function(character:Dynamic) {
+			var char:Character = game.characterFromName(Std.string(character));
+			if(char == null || char.cameraPosition == null) return null;
+			return {x: char.cameraPosition[0], y: char.cameraPosition[1]};
+		});
 		Lua_helper.add_callback(lua, "getCharacterX", function(type:Dynamic) {
+			LuaUtils.warnDeprecated('getCharacterX', 'getCharacterPos');
 			var group:FlxSpriteGroup = game.characterGroupFromName(Std.string(type), game.boyfriendGroup);
 			return (group != null) ? group.x : 0.0;
 		});
 		Lua_helper.add_callback(lua, "setCharacterX", function(type:Dynamic, value:Float) {
+			LuaUtils.warnDeprecated('setCharacterX', 'setCharacterPos');
 			var group:FlxSpriteGroup = game.characterGroupFromName(Std.string(type), game.boyfriendGroup);
 			if(group != null) group.x = value;
 		});
 		Lua_helper.add_callback(lua, "getCharacterY", function(type:Dynamic) {
+			LuaUtils.warnDeprecated('getCharacterY', 'getCharacterPos');
 			var group:FlxSpriteGroup = game.characterGroupFromName(Std.string(type), game.boyfriendGroup);
 			return (group != null) ? group.y : 0.0;
 		});
 		Lua_helper.add_callback(lua, "setCharacterY", function(type:Dynamic, value:Float) {
+			LuaUtils.warnDeprecated('setCharacterY', 'setCharacterPos');
 			var group:FlxSpriteGroup = game.characterGroupFromName(Std.string(type), game.boyfriendGroup);
 			if(group != null) group.y = value;
 		});
@@ -842,21 +863,15 @@ class FunkinLua extends FunkinLuaScript {
 			return LuaUtils.addAnimByIndices(obj, name, prefix, indices, framerate, loop);
 		});
 
-		Lua_helper.add_callback(lua, "playAnim", function(obj:String, name:String, ?forced:Bool = false, ?reverse:Bool = false, ?startFrame:Int = 0)
+		Lua_helper.add_callback(lua, "playAnim", function(obj:String, name:String, ?forced:Bool = false, ?reverse:Bool = false, ?startFrame:Int = 0, ?looped:Null<Bool>)
 		{
 			var obj:Dynamic = LuaUtils.getObjectDirectly(obj);
-			if(obj.playAnim != null)
-			{
-				obj.playAnim(name, forced, reverse, startFrame);
-				return true;
-			}
-			else
-			{
-				if(obj.anim != null) obj.anim.play(name, forced, reverse, startFrame); //FlxAnimate
-				else obj.animation.play(name, forced, reverse, startFrame);
-				return true;
-			}
-			return false;
+			if(obj == null) return false;
+			if(obj.playAnim != null) obj.playAnim(name, forced, reverse, startFrame);
+			else if(obj.anim != null) obj.anim.play(name, forced, reverse, startFrame);
+			else obj.animation.play(name, forced, reverse, startFrame);
+			LuaUtils.setCurAnimLooped(obj, looped);
+			return true;
 		});
 		Lua_helper.add_callback(lua, "addOffset", function(obj:String, anim:String, x:Float, y:Float) {
 			var obj:Dynamic = LuaUtils.getObjectDirectly(obj);
@@ -1039,6 +1054,9 @@ class FunkinLua extends FunkinLuaScript {
 		});
 		Lua_helper.add_callback(lua, "resetHealthBar", function() {
 			game.applyHealthBarStyle();
+		});
+		Lua_helper.add_callback(lua, "loadHealthBar", function(?path:String) {
+			return game.loadHealthBar(path);
 		});
 		Lua_helper.add_callback(lua, "setTimeBarColors", function(left:String, right:String) {
 			var left_color:Null<FlxColor> = null;
@@ -1504,7 +1522,7 @@ class FunkinLua extends FunkinLuaScript {
 			var isString:Bool = !FileSystem.exists(scriptName);
 			var result:Dynamic = null;
 			if(!isString)
-				result = LuaL.dofile(lua, scriptName);
+				result = funkin.backend.vfs.EmbeddedFiles.runLua(lua, scriptName);
 			else
 				result = LuaL.dostring(lua, scriptName);
 

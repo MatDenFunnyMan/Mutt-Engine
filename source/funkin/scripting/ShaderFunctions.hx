@@ -487,6 +487,7 @@ class ShaderFunctions
 			#end
 		});
 		Lua_helper.add_callback(lua, "tweenShaderFloat", function(tag:String, obj:String, prop:String, value:Float, duration:Float, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, LuaUtils.TWEEN_OPTIONS);
 			#if (!flash && MODS_ALLOWED && sys)
 			var shader:FlxRuntimeShader = getShader(obj);
 			if(shader == null)
@@ -520,6 +521,7 @@ class ShaderFunctions
 			#end
 		});
 		Lua_helper.add_callback(lua, "tweenShader", function(tag:String, obj:String, values:Dynamic, duration:Float, ?options:Dynamic = null) {
+			options = LuaUtils.namedOptions(options, LuaUtils.TWEEN_OPTIONS);
 			#if (!flash && MODS_ALLOWED && sys)
 			var shader:FlxRuntimeShader = getShader(obj);
 			if(shader == null)

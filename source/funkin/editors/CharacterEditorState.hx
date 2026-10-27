@@ -58,6 +58,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	var copiedOffset:Array<Float> = [0, 0];
 	var _char:String = null;
 	var quickSavePath:String = null;
+	var quickSaveFromLoad:Bool = false;
+	var quickSaveImage:String = null;
 	var _goToPlayState:Bool = true;
 
 	var anims:Array<AnimArray> = null;
@@ -260,7 +262,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 	function addCharacter(reload:Bool = false)
 	{
-		clearGhosts();
+		keepOldGhosts();
 
 		var pos:Int = -1;
 		if(character != null)
@@ -281,7 +283,12 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		character.debugMode = true;
 		character.missingCharacter = false;
 		loadedImageFile = character.imageFile;
-		if(!reload) quickSavePath = characterFilePath(_char);
+		if(!reload)
+		{
+			quickSavePath = characterFilePath(_char);
+			quickSaveFromLoad = true;
+			quickSaveImage = character.imageFile;
+		}
 
 		if(pos > -1) insert(pos, character);
 		else add(character);
@@ -976,6 +983,17 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		ghostLayers.splice(idx, 1);
 		refreshGhostList();
 		FlxG.sound.play(Paths.sound('chartingSounds/noteErase'));
+	}
+
+	function keepOldGhosts()
+	{
+		for (layer in ghostLayers)
+		{
+			if(layer.anim == null) continue;
+			layer.anim = null;
+			layer.label = '(old) ' + layer.label;
+		}
+		refreshGhostList();
 	}
 
 	function clearGhosts()
@@ -1796,7 +1814,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			return;
 		}
 
-		clearGhosts();
+		keepOldGhosts();
 
 		var lastAnim:String = character.getAnimationName();
 		var anims:Array<AnimArray> = character.animationsArray.copy();
@@ -2487,6 +2505,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			function() {
 				unsavedProgress = false;
 				quickSavePath = fileDialog.path;
+				quickSaveFromLoad = false;
+				quickSaveImage = character.imageFile;
 				showOutput('Character saved to: ${fileDialog.path}');
 			}, null,
 			function() showOutput('ERROR! Character not saved.', true));
@@ -2496,6 +2516,11 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	{
 		if(!fileDialog.completed) return;
 		if(quickSavePath == null || !FileSystem.exists(quickSavePath))
+		{
+			saveCharacter();
+			return;
+		}
+		if((quickSaveFromLoad && !EditorHelper.isModPath(quickSavePath)) || character.imageFile != quickSaveImage)
 		{
 			saveCharacter();
 			return;

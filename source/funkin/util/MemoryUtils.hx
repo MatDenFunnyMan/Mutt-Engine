@@ -47,9 +47,9 @@ class MemoryUtils
 		try
 		{
 			#if cpp
-			final input:sys.io.FileInput = sys.io.File.read('/proc/${cpp.NativeSys.sys_get_pid()}/status', false);
+			final input:sys.io.FileInput = funkin.backend.vfs.File.read('/proc/${cpp.NativeSys.sys_get_pid()}/status', false);
 			#else
-			final input:sys.io.FileInput = sys.io.File.read('/proc/self/status', false);
+			final input:sys.io.FileInput = funkin.backend.vfs.File.read('/proc/self/status', false);
 			#end
 
 			final regex:EReg = ~/^VmRSS:\s+(\d+)\s+kB/m;

@@ -279,7 +279,7 @@ class GameOverSubstate extends MusicBeatSubstate
 	{
 		#if sys
 		var file:String = Paths.getPath('sounds/$key.${Paths.SOUND_EXT}', SOUND);
-		if(sys.FileSystem.exists(file))
+		if(funkin.backend.vfs.FileSystem.exists(file))
 		{
 			var buffer:lime.media.AudioBuffer = lime.media.AudioBuffer.fromFile(file);
 			if(buffer != null && buffer.data != null && buffer.bitsPerSample == 16)
@@ -358,13 +358,15 @@ class GameOverSubstate extends MusicBeatSubstate
 			}
 			FlxG.sound.music.stop();
 			FlxG.sound.play(Paths.music(endSoundName));
-			new FlxTimer().start(0.7, function(tmr:FlxTimer)
-			{
-				FlxG.camera.fade(FlxColor.BLACK, 2, false, function()
-				{
-					MusicBeatState.resetState();
-				});
-			});
+			var fadeBlack:FlxSprite = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
+			fadeBlack.scale.set(FlxG.width + 20, FlxG.height + 20);
+			fadeBlack.updateHitbox();
+			fadeBlack.screenCenter();
+			fadeBlack.scrollFactor.set();
+			fadeBlack.alpha = 0;
+			fadeBlack.cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
+			add(fadeBlack);
+			FlxTween.tween(fadeBlack, {alpha: 1}, 2, {startDelay: 0.7, onComplete: function(_) MusicBeatState.resetState()});
 			PlayState.instance.callOnScripts('onGameOverConfirm', [true]);
 		}
 	}

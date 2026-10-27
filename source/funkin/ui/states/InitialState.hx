@@ -25,7 +25,7 @@ class InitialState extends MusicBeatState
 				lime.app.Application.current.window.title = newTitle;
 
 				var iconPath:String = Paths.modFolders('pack.png');
-				if (sys.FileSystem.exists(iconPath))
+				if (funkin.backend.vfs.FileSystem.exists(iconPath))
 				{
 					var icon = lime.graphics.Image.fromFile(iconPath);
 					lime.app.Application.current.window.setIcon(icon);
@@ -58,25 +58,32 @@ class InitialState extends MusicBeatState
 			var _saveForInit = FlxG.save;
 			var _initModMode:String = (_saveForInit != null && _saveForInit.data != null && _saveForInit.data.modMode != null) ? _saveForInit.data.modMode : null;
 			var _initIsSingle:Bool = (_initModMode == null || _initModMode == 'SINGLE MOD');
-			if(_initIsSingle && Mods.currentModDirectory != null && Mods.currentModDirectory != '')
+			var modDir:String = Mods.currentModDirectory;
+			var statesDir:String = null;
+			if(_initIsSingle && modDir != null && modDir != '')
+				statesDir = Paths.modFolders('$modDir/states/');
+			else if(funkin.backend.vfs.FileSystem.exists('assets/states/'))
 			{
-				var modDir = Mods.currentModDirectory;
-				var statesDir = Paths.modFolders('$modDir/states/');
+				statesDir = 'assets/states/';
+				modDir = '';
+			}
+			if(statesDir != null)
+			{
 
 				sys.thread.Thread.create(() -> {
 					var found:String = null;
 					var fallback:Bool = false;
 
-					if(sys.FileSystem.exists(statesDir) && sys.FileSystem.isDirectory(statesDir))
+					if(funkin.backend.vfs.FileSystem.exists(statesDir) && funkin.backend.vfs.FileSystem.isDirectory(statesDir))
 					{
 						#if HSCRIPT_ALLOWED
-						for(file in sys.FileSystem.readDirectory(statesDir))
+						for(file in funkin.backend.vfs.FileSystem.readDirectory(statesDir))
 						{
 							if(file.endsWith('.hx'))
 							{
 								var stateName = file.substr(0, file.length - 3);
 								var fullPath = statesDir + file;
-								if(sys.FileSystem.exists(fullPath))
+								if(funkin.backend.vfs.FileSystem.exists(fullPath))
 								{
 									try {
 										var hscript = new funkin.scripting.HScript(null, fullPath, null, false);
@@ -102,13 +109,13 @@ class InitialState extends MusicBeatState
 						#if LUA_ALLOWED
 						if(found == null)
 						{
-							for(file in sys.FileSystem.readDirectory(statesDir))
+							for(file in funkin.backend.vfs.FileSystem.readDirectory(statesDir))
 							{
 								if(file.endsWith('.lua'))
 								{
 									var stateName = file.substr(0, file.length - 4);
 									var fullPath = statesDir + file;
-									if(sys.FileSystem.exists(fullPath))
+									if(funkin.backend.vfs.FileSystem.exists(fullPath))
 									{
 										try {
 											var luaState = new funkin.scripting.LuaStateLoader.LuaState(fullPath, stateName, modDir);
@@ -181,13 +188,13 @@ class InitialState extends MusicBeatState
 	static function scanScriptsRecursive(dir:String, ext:String):Array<String>
 	{
 		var result:Array<String> = [];
-		if(!sys.FileSystem.exists(dir) || !sys.FileSystem.isDirectory(dir))
+		if(!funkin.backend.vfs.FileSystem.exists(dir) || !funkin.backend.vfs.FileSystem.isDirectory(dir))
 			return result;
 
-		for(entry in sys.FileSystem.readDirectory(dir))
+		for(entry in funkin.backend.vfs.FileSystem.readDirectory(dir))
 		{
 			var full = dir + entry;
-			if(sys.FileSystem.isDirectory(full))
+			if(funkin.backend.vfs.FileSystem.isDirectory(full))
 			{
 				for(found in scanScriptsRecursive(full + '/', ext))
 					result.push(found);

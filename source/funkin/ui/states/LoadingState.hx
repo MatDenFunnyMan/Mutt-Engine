@@ -867,7 +867,7 @@ class LoadingState extends MusicBeatState
 		{
 			if (#if sys FileSystem.exists(file) || #end OpenFlAssets.exists(file, SOUND))
 			{
-				var sound:Sound = #if sys Sound.fromFile(file) #else OpenFlAssets.getSound(file, false) #end;
+				var sound:Sound = #if sys funkin.backend.vfs.EmbeddedFiles.loadSound(file) #else OpenFlAssets.getSound(file, false) #end;
 				mutex.acquire();
 				Paths.currentTrackedSounds.set(file, sound);
 				mutex.release();
@@ -908,7 +908,7 @@ class LoadingState extends MusicBeatState
 					#if sys
 					size = imageSize(file);
 					waitForBudget(size);
-					var bitmap:BitmapData = BitmapData.fromFile(file);
+					var bitmap:BitmapData = funkin.backend.vfs.EmbeddedFiles.loadBitmap(file);
 					#else
 					var bitmap:BitmapData = OpenFlAssets.getBitmapData(file, false);
 					#end
@@ -945,7 +945,7 @@ class LoadingState extends MusicBeatState
 		#if sys
 		try
 		{
-			var input = sys.io.File.read(file, true);
+			var input = funkin.backend.vfs.File.read(file, true);
 			var header = input.read(24);
 			input.close();
 			if (header.get(1) == 'P'.code && header.get(2) == 'N'.code && header.get(3) == 'G'.code)

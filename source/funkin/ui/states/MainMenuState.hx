@@ -29,7 +29,7 @@ class MainMenuState extends MusicBeatState
 	var optionShit:Array<String> = [
 		'storymode',
 		'freeplay',
-		#if MODS_ALLOWED 'mods', #end
+		#if (MODS_ALLOWED && !STANDALONE_BUILD) 'mods', #end
 		'credits'
 	];
 
@@ -354,7 +354,7 @@ class MainMenuState extends MusicBeatState
 					FlxTween.tween(memb, {alpha: 0}, 0.4, {ease: FlxEase.quadOut});
 				}
 			}
-			if (FlxG.keys.justPressed.TAB && subState == null)
+			if (#if STANDALONE_BUILD false && #end FlxG.keys.justPressed.TAB && subState == null)
 			{
 				FlxG.mouse.visible = false;
 				persistentUpdate = false;

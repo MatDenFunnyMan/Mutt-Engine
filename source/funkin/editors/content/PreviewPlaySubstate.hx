@@ -25,7 +25,7 @@ import crowplexus.iris.Iris;
 #end
 
 #if sys
-import sys.FileSystem;
+import funkin.backend.vfs.FileSystem;
 #end
 
 class PreviewPlaySubstate extends MusicBeatSubstate
