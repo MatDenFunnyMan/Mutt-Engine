@@ -11,6 +11,8 @@ I wish I hadn't come to this, but sadly I don't have a team to help with this pr
 This project is not meant to be taken seriously. Rather, this is meant to be a "mock-up" idea for other programmers to make a better NON VIBE-CODED engine and take my additions as a "baseplate" for your own projects.
 Please someone take this and make it better without AI, thank you :)
 
+Oh also yeah this was made to help me save some time for mods and add some cool features.
+
 ## CHANGES:
 
 - New source structure, re-organized for a more "modern" look.
