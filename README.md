@@ -3,6 +3,14 @@
 An FNF engine focused on "modernizing" modding, bringing features from other projects (Codename, Nightmare Vision, V-Slice, and more!) whilst adding TONS of useful coding functions for modding.
 Base used: Cheese Engine by [@Chris](https://github.com/whenkenas) - Version 1.61
 
+## WARNING
+This project is partially **VIBE-CODED**. I used the assistance of AI for certain features and fixes, as I'm not a source code expert and don't know how to make such big changes on my own.
+I wish I hadn't come to this, but sadly I don't have a team to help with this projects (plus I'm kinda lazy ok.).
+
+### PLEASE DO NOT HARASS ME FOR USING AI.
+This project is not meant to be taken seriously. Rather, this is meant to be a "mock-up" idea for other programmers to make a better NON VIBE-CODED engine and take my additions as a "baseplate" for your own projects.
+Please someone take this and make it better without AI, thank you :)
+
 ## CHANGES:
 
 - New source structure, re-organized for a more "modern" look.
