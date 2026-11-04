@@ -1,2 +1,3 @@
-project is cancelled, i vibe coded most of the stuff here
-im sorry, but i cant do this anymore
+Mutt Engine is officially cancelled, this project was mostly vibe coded
+im not feeling well and i lost motivation to continue with this AI slop
+please somebody make a better version of this
