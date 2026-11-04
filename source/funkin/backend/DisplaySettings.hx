@@ -55,7 +55,7 @@ class DisplaySettings
 
 	public static function applyFramerate()
 	{
-		var target:Int = ClientPrefs.data.unlockedFramerate ? UNLOCKED_FRAMERATE : ClientPrefs.data.framerate;
+		var target:Int = (ClientPrefs.data.unlockedFramerate || vsyncActive()) ? UNLOCKED_FRAMERATE : ClientPrefs.data.framerate;
 		if(target > FlxG.drawFramerate)
 		{
 			FlxG.updateFramerate = target;
@@ -68,11 +68,19 @@ class DisplaySettings
 		}
 	}
 
+	static var vsyncWorking:Bool = false;
+
+	public static inline function vsyncActive():Bool
+		return ClientPrefs.data.vsync && vsyncWorking;
+
 	public static function applyVSync():Bool
 	{
 		#if (cpp && windows)
 		var enabled:Bool = ClientPrefs.data.vsync;
-		return untyped __cpp__('muttSetSwapInterval({0} ? 1 : 0)', enabled);
+		var result:Bool = untyped __cpp__('muttSetSwapInterval({0} ? 1 : 0)', enabled);
+		vsyncWorking = enabled && result;
+		applyFramerate();
+		return result;
 		#else
 		return false;
 		#end

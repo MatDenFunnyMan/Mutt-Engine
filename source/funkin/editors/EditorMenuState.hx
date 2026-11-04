@@ -32,9 +32,7 @@ class EditorMenuState extends MusicBeatState
 		{name: "Modchart Editor", state: funkin.editors.ModchartEditorState, loading: false},
 		#end
 		{name: "Week Editor", state: WeekEditorState, loading: false},
-		#if DIALOGUE_EDITORS
 		{name: "Dialogue Editor", state: DialogueEditorState, loading: true},
-		#end
 	];
 
 	public static function openEditor(option:EditorMenuOption)

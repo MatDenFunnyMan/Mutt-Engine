@@ -20,7 +20,7 @@ class PreferencesSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('Naughtyness',
-			"If unchecked, raunchy content (ex. swearing, explicit content, etc.)\nwill be disabled from gameplay.",
+			"If unchecked, raunchy content (ex. swearing, explicit content, etc.) will be disabled from gameplay.",
 			'naughtyness',
 			BOOL);
 		addOption(option);
@@ -48,7 +48,7 @@ class PreferencesSettingsSubState extends BaseOptionsMenu
 
 		#if DISCORD_ALLOWED
 		var option:Option = new Option('Discord RPC',
-			"If checked, shows the application running\nfrom your \"Playing\" box on Discord.\nUncheck this to avoid accidental leaks!\n(Seriously, this happened to me before and it sucks balls)",
+			"If checked, shows the application running from your \"Playing\" box on Discord.\nUncheck this to avoid accidental leaks!\n(Seriously, this happened to me before it sucks balls)",
 			'discordRPC',
 			BOOL);
 		addOption(option);
@@ -63,14 +63,14 @@ class PreferencesSettingsSubState extends BaseOptionsMenu
 		#end
 
 		var option:Option = new Option('Pause on Unfocus',
-			"If checked, the game will pause when losing focus.\nFor modders: uncheck this if you're making a 4th wall breaking mod",
+			"If checked, the game will pause when losing focus.\nFor modders: uncheck for your kool 4th wall breaking mod",
 			'autoPause',
 			BOOL);
 		option.onChange = onChangeAutoPause;
 		addOption(option);
 
 		var option:Option = new Option('Unfocused Volume',
-			"Volume of the game when unfocused.\n0% is recommended if you're streaming and want to avoid noise.",
+			"Volume of the game when unfocused.\nAdjust this for streaming!",
 			'unfocusedVolume',
 			PERCENT);
 		option.scrollSpeed = 1;
@@ -79,7 +79,7 @@ class PreferencesSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('Input Overlay',
-			"If checked, enables a dedicated window for key inputs,\nhold timer in ms, NPS & BPM.\nFor the true pro max gamers :)",
+			"If checked, enables a dedicated window for key inputs, hold timer in ms, NPS & BPM.\nFor the true pro max gamers :)",
 			'inputOverlay',
 			BOOL);
 		addOption(option);

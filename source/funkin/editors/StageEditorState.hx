@@ -1746,7 +1746,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		checkUIOnObject();
 		updateSelectedUI();
 		unsavedProgress = true;
-		showOutput('Template loaded.');
+		showOutput('Template Loaded.');
 	}
 
 	function addStageTab()

@@ -26,7 +26,7 @@ class NotesSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('Hold Note Tail',
-			"Where the hold note tail is drawn.\nFront uses classic style, Behind makes it look cleaner\nand may help with modcharting",
+			"Where the hold note tail is drawn.\nFront uses V-Slice classic style, Behind makes it look cleaner\nand may help with modcharting",
 			'holdNoteTail',
 			STRING,
 			['Front', 'Behind']);

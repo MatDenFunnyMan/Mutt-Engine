@@ -32,11 +32,12 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		option.defaultValue = Std.int(FlxMath.bound(refreshRate, option.minValue, option.maxValue));
 		option.displayFormat = '%v FPS';
 		option.onChange = onChangeFramerate;
+		lockByVSync(option);
 		#end
 
 		#if (cpp && windows)
 		var option:Option = new Option('V-Sync',
-			"If checked, FPS match monitor's refresh rate, prevents screen tearing.",
+			"If checked, FPS match monitor's refresh rate,\nprevents screen tearing.\nIf checked, Framerate options are ignored.",
 			'vsync',
 			BOOL);
 		option.onChange = onChangeVSync;
@@ -49,6 +50,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			'unlockedFramerate',
 			BOOL);
 		option.onChange = onChangeFramerate;
+		lockByVSync(option);
 		addOption(option);
 
 		var option:Option = new Option('Resolution',
@@ -83,7 +85,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('GPU Caching',
-			"If checked, images & sprites are stored on GPU instead of RAM,\nlowers memory usage.\nRecommended ONLY if you have a dedicated GPU!",
+			"If checked, images & sprites are stored on GPU instead of RAM, lowers memory usage.\nRecommended ONLY if you have a dedicated GPU!",
 			'cacheOnGPU',
 			BOOL);
 		addOption(option);
@@ -107,7 +109,18 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		DisplaySettings.applyFramerate();
 
 	function onChangeVSync()
+	{
 		DisplaySettings.applyVSync();
+		refreshOptions();
+	}
+
+	static function lockByVSync(option:Option)
+	{
+		#if (cpp && windows)
+		option.locked = () -> ClientPrefs.data.vsync;
+		option.lockedReason = Language.getPhrase('locked_by_vsync', 'Disabled while V-Sync is on.');
+		#end
+	}
 
 	function onChangeResolution()
 		DisplaySettings.applyResolution();

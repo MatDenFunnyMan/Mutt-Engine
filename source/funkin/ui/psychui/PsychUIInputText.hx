@@ -299,12 +299,11 @@ class PsychUIInputText extends FlxSpriteGroup
 
 			case BACKSPACE: //Delete letter to the left of caret
 				_handledByKeyDown = true;
-				if(caretIndex <= 0) return;
-
 				if(selectIndex > -1 && selectIndex != caretIndex)
 					deleteSelection();
 				else
 				{
+					if(caretIndex <= 0) return;
 					var lastText = text;
 					text = text.substring(0, caretIndex-1) + text.substring(caretIndex);
 					caretIndex--;
@@ -509,7 +508,7 @@ class PsychUIInputText extends FlxSpriteGroup
 					caretIndex = clickIndex;
 				}
 
-				_isDragging = true;
+				_isDragging = (_clickCount == 0);
 				_dragAnchor = (selectIndex == -1) ? caretIndex : selectIndex;
 				updateCaret();
 			}

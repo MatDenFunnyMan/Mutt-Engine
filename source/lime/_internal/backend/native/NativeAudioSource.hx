@@ -611,7 +611,7 @@ class NativeAudioSource {
 	function updateCompleteTimer() {
 		if (playing) {
 			var timeRemaining = (getLength() - getCurrentTime()) / getPitch();
-			if (timeRemaining > 50) completeTimer = resetTimer(completeTimer, timeRemaining, timer_onRun);
+			if (timeRemaining > 0) completeTimer = resetTimer(completeTimer, timeRemaining, timer_onRun);
 			else {
 				if (completeTimer != null) completeTimer.stop();
 				if (loops > 0) play();

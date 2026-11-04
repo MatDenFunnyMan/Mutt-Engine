@@ -29,7 +29,8 @@ import openfl.utils.Assets as OpenFlAssets;
 import openfl.events.KeyboardEvent;
 import haxe.Json;
 
-import funkin.game.cutscenes.DialogueBoxPsych;
+import funkin.game.cutscenes.DialogueCutscene;
+import funkin.data.DialogueData;
 
 import funkin.ui.states.StoryMenuState;
 import funkin.ui.states.FreeplayState;
@@ -819,7 +820,7 @@ class PlayState extends MusicBeatState
 		}
 
 		createSubtitles();
-		startCallback();
+		if(!startSongDialogue()) startCallback();
 		RecalculateRating(false, false);
 
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
@@ -1314,36 +1315,64 @@ class PlayState extends MusicBeatState
 	}
 
 	var dialogueCount:Int = 0;
-	public var psychDialogue:DialogueBoxPsych;
-	//You don't have to add a song, just saying. You can just do "startDialogue(DialogueBoxPsych.parseDialogue(Paths.json(songName + '/dialogue')))" and it should load dialogue.json
-	public function startDialogue(dialogueFile:DialogueFile, ?song:String = null):Void
-	{
-		// TO DO: Make this more flexible, maybe?
-		if(psychDialogue != null) return;
+	public var dialogue:DialogueCutscene;
 
-		if(dialogueFile.dialogue.length > 0) {
-			inCutscene = true;
-			psychDialogue = new DialogueBoxPsych(dialogueFile, song);
-			psychDialogue.scrollFactor.set();
-			if(endingSong) {
-				psychDialogue.finishThing = function() {
-					psychDialogue = null;
-					endSong();
-				}
-			} else {
-				psychDialogue.finishThing = function() {
-					psychDialogue = null;
-					startCountdown();
-				}
+	function startSongDialogue():Bool
+		return !chartingMode && !seenCutscene && startDialogue('dialogue', startCallback);
+
+	function playEndDialogue()
+	{
+		if(chartingMode || !startDialogue('dialogue-end', endCallback, true)) endCallback();
+	}
+
+	public function startDialogue(name:String = 'dialogue', ?onEnd:Void->Void, keepBlack:Bool = false):Bool
+	{
+		if(dialogue != null) return false;
+		var data:DialogueFileData = DialogueData.songDialogue(SONG.song, name);
+		if(data == null) return false;
+		if(callOnScripts('onDialogueStart', [name], true) == LuaUtils.Function_Stop) return false;
+
+		inCutscene = true;
+		var couldPause:Bool = canPause;
+		canPause = false;
+		var hudAlpha:Float = camHUD.alpha;
+		camHUD.alpha = 0;
+
+		var cutscene:DialogueCutscene = new DialogueCutscene(data, camOther, name);
+		dialogue = cutscene;
+		cutscene.colorResolver = dialogueColor;
+		cutscene.registerObject = (tag, obj) -> MusicBeatState.getVariables().set(tag, obj);
+		cutscene.onScene = (index, scene) -> callOnScripts('onDialogueScene', [index, scene.scene, (scene.character != null) ? scene.character : '']);
+		cutscene.onCustom = (custom, scene) -> callOnScripts('onDialogueCustom', [custom, cutscene.sceneIndex]);
+		cutscene.onFinish = function(faded:Bool)
+		{
+			dialogue = null;
+			canPause = couldPause;
+			callOnScripts('onDialogueEnd', [name]);
+			if(!(keepBlack && faded))
+			{
+				remove(cutscene, true);
+				cutscene.destroy();
+				camHUD.alpha = hudAlpha;
 			}
-			psychDialogue.nextDialogueThing = startNextDialogue;
-			psychDialogue.skipDialogueThing = skipDialogue;
-			psychDialogue.cameras = [camHUD];
-			add(psychDialogue);
-		} else {
-			FlxG.log.warn('Your dialogue file is badly formatted!');
-			startAndEnd();
+			if(onEnd != null) onEnd();
+		};
+		add(cutscene);
+		cutscene.start();
+		return true;
+	}
+
+	function dialogueColor(value:String):Null<FlxColor>
+	{
+		var char:Character = switch(value.toLowerCase())
+		{
+			case 'boyfriend' | 'bf' | 'player': boyfriend;
+			case 'dad' | 'opponent': dad;
+			case 'gf' | 'girlfriend': gf;
+			default: null;
 		}
+		if(char == null) return null;
+		return FlxColor.fromRGB(char.healthColorArray[0], char.healthColorArray[1], char.healthColorArray[2]);
 	}
 
 	var startTimer:FlxTimer;
@@ -2713,7 +2742,7 @@ class PlayState extends MusicBeatState
 
 	public var paused:Bool = false;
 	public var canReset:Bool = true;
-	var startedCountdown:Bool = false;
+	public var startedCountdown:Bool = false;
 	var canPause:Bool = true;
 	var freezeCamera:Bool = false;
 	var camZoomTweens:Array<FlxTween> = [];
@@ -6485,10 +6514,10 @@ class PlayState extends MusicBeatState
 		}
 
 		if(ClientPrefs.data.noteOffset <= 0 || ignoreNoteOffset) {
-			endCallback();
+			playEndDialogue();
 		} else {
 			finishTimer = new FlxTimer().start(ClientPrefs.data.noteOffset / 1000, function(tmr:FlxTimer) {
-				endCallback();
+				playEndDialogue();
 			});
 		}
 	}

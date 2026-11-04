@@ -20,7 +20,7 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 
 		//I'd suggest using "Downscroll" as an example for making your own option since it is the simplest here
 		var option:Option = new Option('Downscroll', //Name
-			"If checked, notes go Down instead of Up, simple enough.\nI FUCKING HATE YOU DOWNSCROLL PLAYERS (kidding, i luv yall :>)", //Description
+			"If checked, notes go Down instead of Up, simple enough.\nI FUCKING HATE YOU DOWNSCROLL PLAYERS\n(kidding, i luv yall :>)", //Description
 			'downScroll', //Save data variable name
 			BOOL); //Variable type
 		addOption(option);
@@ -61,7 +61,7 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		inputOption = addOption(option);
 
 		var option:Option = new Option('Safe Frames',
-			'Changes how many frames you have for\nhitting a note earlier or late.',
+			'Changes how many frames you have for\nhitting a note early or late.',
 			'safeFrames',
 			FLOAT);
 		option.scrollSpeed = 5;

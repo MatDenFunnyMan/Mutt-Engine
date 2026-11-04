@@ -16,7 +16,6 @@ import flixel.FlxState;
 import flixel.addons.display.FlxRuntimeShader;
 #end
 
-import funkin.game.cutscenes.DialogueBoxPsych;
 
 import funkin.game.notes.StrumNote;
 import funkin.game.notes.Note;
@@ -1160,45 +1159,25 @@ class FunkinLua extends FunkinLuaScript {
 			if(pixels != null) return pixels.getPixel32(x, y);
 			return FlxColor.BLACK;
 		});
-		Lua_helper.add_callback(lua, "startDialogue", function(dialogueFile:String, ?music:String = null) {
-			var path:String;
-			var songPath:String = Paths.formatToSongPath(Song.loadedSongName);
-			#if TRANSLATIONS_ALLOWED
-			path = Paths.getPath('data/$songPath/${dialogueFile}_${ClientPrefs.data.language}.json', TEXT);
-			#if MODS_ALLOWED
-			if(!FileSystem.exists(path))
-			#else
-			if(!Assets.exists(path, TEXT))
-			#end
-			#end
-				path = Paths.getPath('data/$songPath/$dialogueFile.json', TEXT);
-
-			luaTrace('startDialogue: Trying to load dialogue: ' + path);
-
-			#if MODS_ALLOWED
-			if(FileSystem.exists(path))
-			#else
-			if(Assets.exists(path, TEXT))
-			#end
-			{
-				var shit:DialogueFile = DialogueBoxPsych.parseDialogue(path);
-				if(shit.dialogue.length > 0)
-				{
-					game.startDialogue(shit, music);
-					luaTrace('startDialogue: Successfully loaded dialogue', false, false, FlxColor.GREEN);
-					return true;
-				}
-				else luaTrace('startDialogue: Your dialogue file is badly formatted!', false, false, FlxColor.RED);
-			}
-			else
-			{
-				luaTrace('startDialogue: Dialogue file not found', false, false, FlxColor.RED);
-				if(game.endingSong)
-					game.endSong();
-				else
-					game.startCountdown();
-			}
+		Lua_helper.add_callback(lua, "startDialogue", function(?name:String = 'dialogue', ?resume:Bool = true) {
+			var after:Void->Void = resume ? (() -> if(game.endingSong) game.endSong() else if(!game.startedCountdown) game.startCountdown()) : null;
+			if(game.startDialogue(name, after, game.endingSong)) return true;
+			luaTrace('startDialogue: Dialogue "$name" not found', false, false, FlxColor.RED);
+			if(after != null) after();
 			return false;
+		});
+		Lua_helper.add_callback(lua, "nextDialogueScene", function() {
+			if(game.dialogue == null) return false;
+			game.dialogue.nextScene();
+			return true;
+		});
+		Lua_helper.add_callback(lua, "endDialogue", function(?fade:Bool = true, ?duration:Float = 1) {
+			if(game.dialogue == null) return false;
+			game.dialogue.end(fade, duration);
+			return true;
+		});
+		Lua_helper.add_callback(lua, "isDialogueRunning", function() {
+			return game.dialogue != null && game.dialogue.running;
 		});
 		Lua_helper.add_callback(lua, "startVideo", function(videoFile:String, ?canSkip:Bool = true, ?forMidSong:Bool = false, ?shouldLoop:Bool = false, ?playOnLoad:Bool = true) {
 			#if VIDEOS_ALLOWED

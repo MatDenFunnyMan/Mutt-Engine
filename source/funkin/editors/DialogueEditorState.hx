@@ -3,95 +3,93 @@ package funkin.editors;
 import haxe.Json;
 import haxe.io.Path;
 
-import funkin.ui.TypedAlphabet;
-
-import funkin.game.cutscenes.DialogueBoxPsych;
-import funkin.game.cutscenes.DialogueCharacter;
+import funkin.data.DialogueData;
+import funkin.game.cutscenes.DialogueCutscene;
 import funkin.editors.content.Prompt;
 import funkin.editors.content.FileDialogHandler;
+import funkin.editors.NoteEditorState.NoteEditorColorPicker;
 
-class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
+typedef DialogueField = {
+	var refresh:Void->Void;
+}
+
+class DialogueEditorState extends MusicBeatState
 {
-	static final TIP_TEXT_LINE:String = 'A/D - Change line | W/S - Change expression | O - Remove line | P - Add line\nSpace - Replay line | H - Toggle speech bubble | Ctrl+S - Save\nJKLI - Move camera (Shift = 4x) | Q/E - Zoom out/in | R - Reset camera';
-	static final TIP_TEXT_OFFSET:String = 'WASD - Looping animation offset (Red) | Arrow Keys - Idle/Finished offset (Blue)\nShift - 10x faster | H - Toggle ghosts | Ctrl+S - Save\nJKLI - Move camera (Shift = 4x) | Q/E - Zoom out/in | R - Reset camera';
-	static final DEFAULT_TEXT:String = 'coolswag';
-	static final DEFAULT_SPEED:Float = 0.05;
-	static final DEFAULT_BUBBLETYPE:String = 'normal';
+	static final TIPS:String = 'A/D - Scene | Space - Replay | Enter - Advance | W/S - Portrait animation | Esc - Exit\nArrows - Move portrait (Style tab: box) | Ctrl+Arrows - Offset | Shift = 10x | Ctrl+S - Save';
+	static final SKIP_MODES:Array<String> = ['Wait Input', 'Auto', 'Auto (+ Delay)'];
+	static final FX_MODES:Array<String> = ['None', 'shake', 'flash', 'textShake'];
+	static final FX_LABELS:Array<String> = ['None', 'Shake', 'Flash', 'Text Shake'];
+	static final FADE_MODES:Array<String> = ['None', 'in', 'out'];
+	static inline final PREVIEW_WIDTH:Int = 880;
+	static inline final PREVIEW_HEIGHT:Int = 495;
+	static inline final PREVIEW_Y:Int = 28;
 
-	var camGame:FlxCamera;
+	var camPreview:FlxCamera;
 	var camHUD:FlxCamera;
+	var preview:DialogueCutscene;
 
-	var character:DialogueCharacter;
-	var ghostLoop:DialogueCharacter;
-	var ghostIdle:DialogueCharacter;
-	var box:FlxSprite;
-	var daText:TypedAlphabet;
-
-	var selectedText:FlxText;
-	var animText:FlxText;
-	var tipText:FlxText;
-	var offsetLoopText:FlxText;
-	var offsetIdleText:FlxText;
-	var messageText:FlxText;
-
-	var dialogueFile:DialogueFile = null;
-	var editedPortraits:Map<String, DialogueCharacterFile> = [];
-	var fileDialog:FileDialogHandler = new FileDialogHandler();
-	var unsavedProgress:Bool = false;
-
-	var curSelected:Int = 0;
+	var data:DialogueFileData;
+	var styleName:String = DialogueData.DEFAULT_STYLE;
+	var style:DialogueStyleData;
+	var editedCharacters:Map<String, DialogueCharacterData> = [];
+	var charId:String = 'bf';
+	var curScene:Int = 0;
 	var curAnim:Int = 0;
-	var curSelectedAnim:String = null;
-	var currentGhosts:Int = 0;
-	var lastTab:String = 'Dialogue Line';
-	var transitioning:Bool = false;
+	var curBackground:Int = 0;
 
-	override function create() {
+	var fields:Array<DialogueField> = [];
+	var fileDialog:FileDialogHandler = new FileDialogHandler();
+	var unsaved:Bool = false;
+	var transitioning:Bool = false;
+	var refreshing:Bool = false;
+	var previewAudio:Bool = true;
+	static var muteVoices:Bool = false;
+	var rebuildQueued:Bool = false;
+
+	var UI_box:PsychUIBox;
+	var infoText:FlxText;
+	var messageText:FlxText;
+	var portraitDropDown:PsychUIDropDownMenu;
+	var animDropDown:PsychUIDropDownMenu;
+	var backgroundDropDown:PsychUIDropDownMenu;
+
+	override function create()
+	{
 		persistentUpdate = persistentDraw = true;
-		camGame = initPsychCamera();
-		camGame.bgColor = FlxColor.fromHSL(0, 0, 0.5);
+		var camBG:FlxCamera = initPsychCamera();
+		camBG.bgColor = 0xFF1E1E1E;
+
+		var frame:FlxSprite = new FlxSprite(6, PREVIEW_Y - 4).makeGraphic(PREVIEW_WIDTH + 8, PREVIEW_HEIGHT + 8, 0xFF0A0A0A);
+		frame.cameras = [camBG];
+		add(frame);
+		var infoPanel:FlxSprite = new FlxSprite(6, PREVIEW_Y + PREVIEW_HEIGHT + 10).makeGraphic(PREVIEW_WIDTH + 8, FlxG.height - PREVIEW_Y - PREVIEW_HEIGHT - 16, 0xFF2A2A2A);
+		infoPanel.cameras = [camBG];
+		add(infoPanel);
+
+		camPreview = new FlxCamera(10, PREVIEW_Y, FlxG.width, FlxG.height, PREVIEW_WIDTH / FlxG.width);
+		camPreview.bgColor = 0xFF5A5A5A;
+		FlxG.cameras.add(camPreview, false);
+
 		camHUD = new FlxCamera();
 		camHUD.bgColor.alpha = 0;
 		FlxG.cameras.add(camHUD, false);
 
-		dialogueFile = {dialogue: [copyDefaultLine()]};
-
-		character = new DialogueCharacter();
-		add(character);
-		ghostLoop = createGhost(FlxColor.RED);
-		ghostIdle = createGhost(FlxColor.BLUE);
-
-		box = new FlxSprite(70, 370);
-		box.antialiasing = ClientPrefs.data.antialiasing;
-		box.frames = Paths.getSparrowAtlas('speech_bubble');
-		box.animation.addByPrefix('normal', 'speech bubble normal', 24);
-		box.animation.addByPrefix('angry', 'AHH speech bubble', 24);
-		box.animation.addByPrefix('center', 'speech bubble middle', 24);
-		box.animation.addByPrefix('center-angry', 'AHH Speech Bubble middle', 24);
-		box.animation.play('normal', true);
-		box.setGraphicSize(Std.int(box.width * 0.9));
-		box.updateHitbox();
-		add(box);
-
-		daText = new TypedAlphabet(DialogueBoxPsych.DEFAULT_TEXT_X, DialogueBoxPsych.DEFAULT_TEXT_Y, DEFAULT_TEXT);
-		daText.setScale(0.7);
-		add(daText);
-
-		selectedText = makeHudText(10, 10, 24);
-		animText = makeHudText(10, 38, 24);
-		tipText = makeHudText(10, 70, 14);
-		tipText.text = TIP_TEXT_LINE;
-		offsetLoopText = makeHudText(10, 10, 32);
-		offsetIdleText = makeHudText(10, 46, 32);
-		offsetLoopText.visible = offsetIdleText.visible = false;
-		messageText = makeHudText(10, 0, 16);
+		infoText = makeHudText(16, PREVIEW_Y + PREVIEW_HEIGHT + 16, PREVIEW_WIDTH - 12, 16);
+		var tipText:FlxText = makeHudText(16, FlxG.height - 42, PREVIEW_WIDTH - 12, 14);
+		tipText.text = TIPS;
+		tipText.alpha = 0.75;
+		messageText = makeHudText(16, FlxG.height - 66, PREVIEW_WIDTH - 12, 16);
 		messageText.alpha = 0;
 
+		loadStartingDialogue();
 		addEditorBox();
+		addColorBox();
+		addUpperMenu();
 		add(fileDialog);
 		FlxG.mouse.visible = true;
 
-		changeText();
+		refreshFields();
+		rebuildPreview();
 
 		if(FlxG.sound.music != null && FlxG.sound.music.playing)
 			FlxG.sound.music.fadeOut(0.6, 0);
@@ -99,18 +97,9 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		super.create();
 	}
 
-	function createGhost(color:FlxColor):DialogueCharacter {
-		var ghost:DialogueCharacter = new DialogueCharacter();
-		ghost.alpha = 0;
-		ghost.color = color;
-		ghost.isGhost = true;
-		ghost.jsonFile = character.jsonFile;
-		add(ghost);
-		return ghost;
-	}
-
-	function makeHudText(x:Float, y:Float, size:Int):FlxText {
-		var text:FlxText = new FlxText(x, y, 980, '', size);
+	function makeHudText(x:Float, y:Float, width:Int, size:Int):FlxText
+	{
+		var text:FlxText = new FlxText(x, y, width, '', size);
 		text.setFormat(Paths.font("vcr.ttf"), size, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		text.scrollFactor.set();
 		text.cameras = [camHUD];
@@ -118,454 +107,791 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		return text;
 	}
 
-	var UI_box:PsychUIBox;
-	function addEditorBox() {
-		UI_box = new PsychUIBox(FlxG.width - 260, 10, 250, 290, ['Dialogue Line', 'Portrait', 'Animations']);
-		UI_box.scrollFactor.set();
-		UI_box.cameras = [camHUD];
-		addDialogueLineUI();
-		addPortraitUI();
-		addAnimationsUI();
-		UI_box.selectedName = 'Dialogue Line';
-		add(UI_box);
-
-		var loadButton:PsychUIButton = new PsychUIButton(UI_box.x, UI_box.y + 298, 'Load Dialogue', loadDialogue, 120);
-		loadButton.cameras = [camHUD];
-		add(loadButton);
-
-		var saveButton:PsychUIButton = new PsychUIButton(UI_box.x + 130, loadButton.y, 'Save', saveDialogue, 120);
-		saveButton.cameras = [camHUD];
-		add(saveButton);
-
-		var musicCheckBox:PsychUICheckBox = EditorHelper.createEditorMusicCheckBox(UI_box.x, loadButton.y + 30, 120);
-		musicCheckBox.cameras = [camHUD];
-		add(musicCheckBox);
+	function loadStartingDialogue()
+	{
+		var loaded:DialogueFileData = (PlayState.SONG != null) ? DialogueData.songDialogue(PlayState.SONG.song, 'dialogue') : null;
+		if(loaded != null) setDialogue(copy(loaded));
+		else loadTemplate();
 	}
 
-	var portraitInputText:PsychUIInputText;
-	var lineInputText:PsychUIInputText;
-	var angryCheckbox:PsychUICheckBox;
-	var speedStepper:PsychUINumericStepper;
-	var soundInputText:PsychUIInputText;
-	function addDialogueLineUI() {
-		var tab_group = UI_box.getTab('Dialogue Line').menu;
+	static inline final TEMPLATE_STYLE:String = 'new-style';
+	static inline final TEMPLATE_CHARACTER:String = 'char-name';
 
-		portraitInputText = new PsychUIInputText(10, 20, 100, DialogueCharacter.DEFAULT_CHARACTER, 8);
-		speedStepper = new PsychUINumericStepper(10, portraitInputText.y + 40, 0.005, DEFAULT_SPEED, 0, 0.5, 3);
-
-		angryCheckbox = new PsychUICheckBox(speedStepper.x + 120, speedStepper.y, "Angry Textbox", 200);
-		angryCheckbox.onClick = function()
-		{
-			updateTextBox();
-			dialogueFile.dialogue[curSelected].boxState = (angryCheckbox.checked ? 'angry' : 'normal');
+	static function templateDialogue():DialogueFileData
+	{
+		return {
+			style: TEMPLATE_STYLE,
+			backgrounds: [],
+			scenes: [{scene: 'normal', character: TEMPLATE_CHARACTER, portrait: 'neutral', text: 'Placeholder text'}]
 		};
+	}
 
-		soundInputText = new PsychUIInputText(10, speedStepper.y + 40, 150, '', 8);
-		lineInputText = new PsychUIInputText(10, soundInputText.y + 35, 230, DEFAULT_TEXT, 8);
-		lineInputText.onPressEnter = function(e)
+	function loadTemplate()
+	{
+		editedCharacters.clear();
+		DialogueData.characterOverrides.clear();
+		DialogueData.styleOverrides.clear();
+
+		var info:DialogueCharacterData = DialogueData.defaultCharacter(TEMPLATE_CHARACTER);
+		info.name = 'Name';
+		info.portrait = '';
+		editedCharacters.set(TEMPLATE_CHARACTER, info);
+		DialogueData.characterOverrides.set(TEMPLATE_CHARACTER, info);
+
+		var templateStyle:DialogueStyleData = copy(DialogueData.style(DialogueData.DEFAULT_STYLE));
+		templateStyle.hint = 'Forward input text here';
+		templateStyle.skipHint = 'Skip text here';
+		DialogueData.styleOverrides.set(TEMPLATE_STYLE, templateStyle);
+
+		setDialogue(templateDialogue());
+		unsaved = false;
+	}
+
+	function setDialogue(file:DialogueFileData)
+	{
+		data = file;
+		if(data.backgrounds == null) data.backgrounds = [];
+		styleName = (data.style != null && data.style.length > 0) ? data.style : DialogueData.DEFAULT_STYLE;
+		style = copy(DialogueData.style(styleName));
+		DialogueData.styleOverrides.set(styleName, style);
+		curScene = 0;
+		curBackground = 0;
+		var first:DialogueScene = data.scenes[0];
+		selectCharacter((first != null && first.character != null) ? first.character : 'bf');
+	}
+
+	static function copy<T>(value:T):T
+		return (value == null) ? null : Json.parse(Json.stringify(value));
+
+	inline function scene():DialogueScene
+		return data.scenes[curScene];
+
+	function character():DialogueCharacterData
+	{
+		if(!editedCharacters.exists(charId))
+		{
+			DialogueData.characterOverrides.remove(charId);
+			var loaded:DialogueCharacterData = DialogueData.character(charId);
+			var info:DialogueCharacterData = (loaded != null) ? copy(loaded) : DialogueData.defaultCharacter(charId);
+			if(info.animations == null) info.animations = [];
+			editedCharacters.set(charId, info);
+			DialogueData.characterOverrides.set(charId, info);
+		}
+		return editedCharacters.get(charId);
+	}
+
+	function selectCharacter(id:String)
+	{
+		if(id == null || id.trim().length < 1) return;
+		charId = id.trim();
+		curAnim = 0;
+		character();
+	}
+
+	function addEditorBox()
+	{
+		UI_box = new PsychUIBox(PREVIEW_WIDTH + 20, 6, FlxG.width - PREVIEW_WIDTH - 26, 660, ['Scene', 'Audio', 'Character', 'Style']);
+		UI_box.scrollFactor.set();
+		UI_box.cameras = [camHUD];
+		addSceneUI();
+		addAudioUI();
+		addCharacterUI();
+		addStyleUI();
+		UI_box.selectedName = 'Scene';
+		add(UI_box);
+
+		var buttonY:Float = UI_box.y + UI_box.height + 6;
+		var musicCheckBox:PsychUICheckBox = EditorHelper.createEditorMusicCheckBox(UI_box.x + 4, buttonY + 8, 100);
+		musicCheckBox.cameras = [camHUD];
+		add(musicCheckBox);
+
+		var voicesCheckBox:PsychUICheckBox = new PsychUICheckBox(UI_box.x + 128, buttonY + 8, 'Mute Voices', 100);
+		voicesCheckBox.checked = muteVoices;
+		voicesCheckBox.onClick = function()
+		{
+			muteVoices = voicesCheckBox.checked;
+			if(preview != null) preview.playVoices = !muteVoices;
+		};
+		voicesCheckBox.cameras = [camHUD];
+		add(voicesCheckBox);
+
+		var audioCheckBox:PsychUICheckBox = new PsychUICheckBox(UI_box.x + 248, buttonY + 8, 'Preview Music/SFX', 100);
+		audioCheckBox.checked = previewAudio;
+		audioCheckBox.onClick = function()
+		{
+			previewAudio = audioCheckBox.checked;
+			rebuildPreview();
+		};
+		audioCheckBox.cameras = [camHUD];
+		add(audioCheckBox);
+	}
+
+	function label(tab:FlxSpriteGroup, x:Float, y:Float, text:String)
+		tab.add(new FlxText(x, y - 15, 0, text));
+
+	function inputField(tab:FlxSpriteGroup, x:Float, y:Float, width:Int, name:String, get:Void->String, set:String->Void, ?rebuild:Bool = true):PsychUIInputText
+	{
+		label(tab, x, y, name);
+		var input:PsychUIInputText = new PsychUIInputText(x, y, width, '', 8);
+		input.onChange = function(old:String, cur:String)
+		{
+			if(refreshing) return;
+			set(cur);
+			changed(rebuild);
+		};
+		tab.add(input);
+		fields.push({refresh: function() if(PsychUIInputText.focusOn != input) input.text = (get() != null) ? get() : ''});
+		return input;
+	}
+
+	var colorBox:PsychUIBox;
+	var colorPicker:NoteEditorColorPicker;
+	var colorHexInput:PsychUIInputText;
+	var colorTitle:FlxText;
+	var colorTarget:String->Void = null;
+
+	function addColorBox()
+	{
+		colorBox = new PsychUIBox(PREVIEW_WIDTH / 2 - 105, 140, 230, 250, ['Color Picker']);
+		colorBox.scrollFactor.set();
+		colorBox.canMinimize = false;
+		colorBox.selectedName = 'Color Picker';
+		colorBox.cameras = [camHUD];
+		var menu = colorBox.getTab('Color Picker').menu;
+
+		colorTitle = new FlxText(10, 4, 180, '');
+		colorPicker = new NoteEditorColorPicker(10, 22);
+		colorPicker.onChange = function(color:FlxColor)
+		{
+			colorHexInput.text = color.toHexString(false, false);
+			applyPickedColor(colorHexInput.text);
+		};
+		colorHexInput = new PsychUIInputText(10, 202, 80, '', 8);
+		colorHexInput.onChange = function(old:String, cur:String)
+		{
+			var hex:String = cur.trim().replace('#', '');
+			if(hex.length != 6) return;
+			colorPicker.setColor(CoolUtil.colorFromString(hex));
+			applyPickedColor(hex.toUpperCase());
+		};
+		var closeButton:PsychUIButton = new PsychUIButton(196, 4, 'X', closeColorBox, 24, 24);
+
+		menu.add(colorTitle);
+		menu.add(colorPicker);
+		menu.add(new FlxText(10, colorHexInput.y - 15, 0, 'Hex:'));
+		menu.add(colorHexInput);
+		menu.add(closeButton);
+		colorBox.visible = colorBox.active = false;
+		add(colorBox);
+	}
+
+	function openColorBox(title:String, current:String, target:String->Void)
+	{
+		colorTarget = null;
+		colorTitle.text = title;
+		var color:FlxColor = (current != null && current.trim().length > 0) ? CoolUtil.colorFromString(current) : FlxColor.WHITE;
+		colorPicker.setColor(color);
+		colorHexInput.text = color.toHexString(false, false);
+		colorTarget = target;
+		colorBox.visible = colorBox.active = true;
+	}
+
+	function closeColorBox()
+	{
+		colorTarget = null;
+		colorBox.visible = colorBox.active = false;
+	}
+
+	function applyPickedColor(hex:String)
+	{
+		if(colorTarget == null) return;
+		colorTarget(hex);
+		changed(true);
+	}
+
+	function colorField(tab:FlxSpriteGroup, x:Float, y:Float, width:Int, name:String, get:Void->String, set:String->Void):PsychUIInputText
+	{
+		var input:PsychUIInputText = inputField(tab, x, y, width - 26, name, get, set);
+		var pick:PsychUIButton = new PsychUIButton(x + width - 22, y - 2, '+', function() openColorBox(name.replace(':', ''), get(), set), 22, 20);
+		tab.add(pick);
+		return input;
+	}
+
+	function stepperField(tab:FlxSpriteGroup, x:Float, y:Float, name:String, step:Float, min:Float, max:Float, decimals:Int, get:Void->Float, set:Float->Void, ?width:Int = 60):PsychUINumericStepper
+	{
+		label(tab, x, y, name);
+		var stepper:PsychUINumericStepper = new PsychUINumericStepper(x, y, step, min, min, max, decimals, width);
+		stepper.onValueChange = function()
+		{
+			if(refreshing) return;
+			set(stepper.value);
+			changed(true);
+		};
+		tab.add(stepper);
+		fields.push({refresh: function() stepper.value = get()});
+		return stepper;
+	}
+
+	function checkField(tab:FlxSpriteGroup, x:Float, y:Float, name:String, get:Void->Bool, set:Bool->Void):PsychUICheckBox
+	{
+		var check:PsychUICheckBox = new PsychUICheckBox(x, y, name, 90);
+		check.onClick = function()
+		{
+			set(check.checked);
+			changed(true);
+		};
+		tab.add(check);
+		fields.push({refresh: function() check.checked = get()});
+		return check;
+	}
+
+	function dropField(dropdowns:Array<PsychUIDropDownMenu>, tab:FlxSpriteGroup, x:Float, y:Float, width:Float, name:String, list:Array<String>, get:Void->String, set:String->Void):PsychUIDropDownMenu
+	{
+		label(tab, x, y, name);
+		var drop:PsychUIDropDownMenu = new PsychUIDropDownMenu(x, y, list, function(id:Int, value:String)
+		{
+			if(refreshing) return;
+			set(value);
+			changed(true);
+		}, width);
+		dropdowns.push(drop);
+		fields.push({refresh: function() drop.selectedLabel = get()});
+		return drop;
+	}
+
+	static inline final BLUE:FlxColor = 0xFF2F6FD0;
+	static inline final GREEN:FlxColor = 0xFF2E9E44;
+	static inline final RED:FlxColor = 0xFFC93636;
+
+	function button(tab:FlxSpriteGroup, x:Float, y:Float, text:String, onClick:Void->Void, ?width:Int = 110, ?color:Null<FlxColor>):PsychUIButton
+	{
+		var btn:PsychUIButton = new PsychUIButton(x, y, text, onClick, width);
+		if(color != null)
+		{
+			btn.normalStyle = {bgColor: color, textColor: FlxColor.WHITE, bgAlpha: 1};
+			btn.hoverStyle = {bgColor: color.getLightened(0.3), textColor: FlxColor.WHITE, bgAlpha: 1};
+			btn.clickStyle = {bgColor: color.getDarkened(0.3), textColor: FlxColor.WHITE, bgAlpha: 1};
+			btn.bg.color = color;
+			btn.bg.alpha = 1;
+			btn.text.color = FlxColor.WHITE;
+		}
+		tab.add(btn);
+		return btn;
+	}
+
+	static inline function setField(obj:Dynamic, field:String, value:Dynamic)
+	{
+		if(value == null || value == '') Reflect.deleteField(obj, field);
+		else Reflect.setField(obj, field, value);
+	}
+
+	static function stringOf(value:Dynamic):String
+		return (value == null) ? '' : Std.string(value);
+
+	static function parseValue(text:String):Dynamic
+	{
+		text = text.trim();
+		if(text.length < 1) return null;
+		if(text == 'true') return true;
+		if(text == 'false') return false;
+		var number:Float = Std.parseFloat(text);
+		return Math.isNaN(number) ? text : number;
+	}
+
+	static inline function col(c:Int):Float
+		return 10 + c * 120;
+
+	static inline function span(n:Int):Int
+		return 108 + (n - 1) * 120;
+
+	static inline function row(r:Float):Float
+		return 32 + r * 52;
+
+	function header(tab:FlxSpriteGroup, y:Float, text:String)
+	{
+		var line:FlxSprite = new FlxSprite(10, y + 6).makeGraphic(span(3), 1, 0x60FFFFFF);
+		tab.add(line);
+		var title:FlxText = new FlxText(10, y - 6, span(3), text);
+		title.color = 0xFFFFE47A;
+		tab.add(title);
+	}
+
+	function addSceneUI()
+	{
+		var tab = UI_box.getTab('Scene').menu;
+		var drops:Array<PsychUIDropDownMenu> = [];
+
+		dropField(drops, tab, col(0), row(0), span(1) - 20, 'Type:', DialogueData.SCENE_TYPES, () -> scene().scene, function(v) scene().scene = v);
+		inputField(tab, col(1), row(0), span(1), 'Character:', () -> scene().character, function(v)
+		{
+			setField(scene(), 'character', v.trim());
+			if(v.trim().length > 0) selectCharacter(v.trim());
+		});
+		portraitDropDown = dropField(drops, tab, col(2), row(0), span(1) - 20, 'Portrait:', [''], () -> scene().portrait, function(v) setField(scene(), 'portrait', v));
+
+		var textInput:PsychUIInputText = inputField(tab, col(0), row(1), span(3), 'Text (Shift+Enter = new line):', () -> scene().text, function(v) setField(scene(), 'text', v));
+		textInput.onPressEnter = function(e)
 		{
 			if(e.shiftKey)
 			{
-				lineInputText.text += '\n';
-				lineInputText.caretIndex++;
+				textInput.text += '\n';
+				textInput.caretIndex++;
 			}
 			else PsychUIInputText.focusOn = null;
 		};
 
-		tab_group.add(new FlxText(10, portraitInputText.y - 18, 0, 'Portrait:'));
-		tab_group.add(new FlxText(10, speedStepper.y - 18, 0, 'Interval/Speed (ms):'));
-		tab_group.add(new FlxText(10, soundInputText.y - 18, 0, 'Sound file name:'));
-		tab_group.add(new FlxText(10, lineInputText.y - 18, 0, 'Text (Shift+Enter = new line):'));
-		tab_group.add(portraitInputText);
-		tab_group.add(angryCheckbox);
-		tab_group.add(speedStepper);
-		tab_group.add(soundInputText);
-		tab_group.add(lineInputText);
-	}
+		stepperField(tab, col(0), row(2), 'Speed (0 = style):', 0.005, 0, 1, 3, () -> (scene().speed != null) ? scene().speed : 0, function(v) setField(scene(), 'speed', (v > 0) ? v : null));
+		inputField(tab, col(1), row(2), span(1), 'Font (empty = default):', () -> scene().font, function(v) setField(scene(), 'font', v.trim()));
+		stepperField(tab, col(2), row(2), 'Size (0 = default):', 1, 0, 200, 0, () -> (scene().size != null) ? scene().size : 0, function(v) setField(scene(), 'size', (v > 0) ? Std.int(v) : null));
 
-	var portraitFileText:FlxText;
-	var imageInputText:PsychUIInputText;
-	var positionDropDown:PsychUIDropDownMenu;
-	var xStepper:PsychUINumericStepper;
-	var yStepper:PsychUINumericStepper;
-	var scaleStepper:PsychUINumericStepper;
-	var noAntialiasingCheckbox:PsychUICheckBox;
-	function addPortraitUI() {
-		var tab_group = UI_box.getTab('Portrait').menu;
-
-		portraitFileText = new FlxText(10, 8, 230, '');
-		imageInputText = new PsychUIInputText(10, 58, 150, '', 8);
-		xStepper = new PsychUINumericStepper(10, 150, 10, 0, -2000, 2000, 0);
-		yStepper = new PsychUINumericStepper(90, xStepper.y, 10, 0, -2000, 2000, 0);
-		scaleStepper = new PsychUINumericStepper(10, xStepper.y + 45, 0.05, 1, 0.1, 10, 2);
-
-		noAntialiasingCheckbox = new PsychUICheckBox(90, scaleStepper.y, "No Antialiasing", 100);
-		noAntialiasingCheckbox.onClick = function() editPortrait(function(file) file.no_antialiasing = noAntialiasingCheckbox.checked);
-
-		var loadPortraitButton:PsychUIButton = new PsychUIButton(10, scaleStepper.y + 35, 'Load Portrait', loadPortrait, 110);
-
-		positionDropDown = new PsychUIDropDownMenu(10, 103, ['left', 'center', 'right'], function(id:Int, pos:String) {
-			editPortrait(function(file) file.dialogue_pos = pos);
+		dropField(drops, tab, col(0), row(3), span(1) - 20, 'Advance:', SKIP_MODES, function()
+		{
+			var skip:Dynamic = scene().skipDialog;
+			return (skip == true) ? SKIP_MODES[1] : ((skip != null && skip != false) ? SKIP_MODES[2] : SKIP_MODES[0]);
+		}, function(v)
+		{
+			var old:Dynamic = scene().skipDialog;
+			var value:Dynamic = null;
+			if(v == SKIP_MODES[1]) value = true;
+			else if(v == SKIP_MODES[2]) value = (Std.isOfType(old, Float) || Std.isOfType(old, Int)) ? old : 1;
+			setField(scene(), 'skipDialog', value);
+		});
+		stepperField(tab, col(1), row(3), 'Delay (s):', 0.05, 0, 30, 2, function()
+		{
+			var skip:Dynamic = scene().skipDialog;
+			return (Std.isOfType(skip, Float) || Std.isOfType(skip, Int)) ? skip : 0;
+		}, function(v)
+		{
+			var skip:Dynamic = scene().skipDialog;
+			if(Std.isOfType(skip, Float) || Std.isOfType(skip, Int)) setField(scene(), 'skipDialog', v);
 		});
 
-		tab_group.add(new FlxText(10, imageInputText.y - 18, 0, 'Image (images/dialogue/):'));
-		tab_group.add(new FlxText(10, positionDropDown.y - 18, 0, 'Position:'));
-		tab_group.add(new FlxText(10, xStepper.y - 18, 0, 'Position Offset:'));
-		tab_group.add(new FlxText(10, scaleStepper.y - 18, 0, 'Scale:'));
-		tab_group.add(portraitFileText);
-		tab_group.add(imageInputText);
-		tab_group.add(xStepper);
-		tab_group.add(yStepper);
-		tab_group.add(scaleStepper);
-		tab_group.add(noAntialiasingCheckbox);
-		tab_group.add(loadPortraitButton);
-		tab_group.add(positionDropDown);
-	}
+		dropField(drops, tab, col(0), row(4), span(1) - 20, 'Effects:', FX_LABELS, function()
+		{
+			var fx:Dynamic = scene().fx;
+			if(fx == null) return 'None';
+			var mode:String = Std.isOfType(fx, Array) ? Std.string((fx:Array<Dynamic>)[0]) : Std.string(fx);
+			return (FX_MODES.indexOf(mode) > -1) ? FX_LABELS[FX_MODES.indexOf(mode)] : mode;
+		}, function(v) setFxPart(0, (v == 'None') ? null : ((FX_LABELS.indexOf(v) > -1) ? FX_MODES[FX_LABELS.indexOf(v)] : v)));
+		inputField(tab, col(1), row(4), span(1), 'Value 1:', () -> fxPart(1), function(v) setFxPart(1, parseValue(v)));
+		inputField(tab, col(2), row(4), span(1), 'Value 2:', () -> fxPart(2), function(v) setFxPart(2, parseValue(v)));
 
-	var animationDropDown:PsychUIDropDownMenu;
-	var animationInputText:PsychUIInputText;
-	var loopInputText:PsychUIInputText;
-	var idleInputText:PsychUIInputText;
-	function addAnimationsUI() {
-		var tab_group = UI_box.getTab('Animations').menu;
+		stepperField(tab, col(0), row(5), 'Pitch (0 = char):', 0.05, 0, 4, 2, () -> (scene().voicePitch != null) ? scene().voicePitch : 0, function(v) setField(scene(), 'voicePitch', (v > 0) ? v : null));
+		stepperField(tab, col(1), row(5), 'Count (0 = char):', 1, 0, 20, 0, () -> (scene().voiceStep != null) ? scene().voiceStep : 0, function(v) setField(scene(), 'voiceStep', (v > 0) ? Std.int(v) : null));
 
-		animationDropDown = new PsychUIDropDownMenu(10, 30, [''], function(id:Int, animation:String) {
-			if(!character.dialogueAnimations.exists(animation)) return;
-			selectGhostAnim(animation);
-			var animShit:DialogueAnimArray = character.dialogueAnimations.get(animation);
-			animationInputText.text = animShit.anim;
-			loopInputText.text = animShit.loop_name;
-			idleInputText.text = animShit.idle_name;
+		header(tab, row(6) - 16, 'Fade / Wait / Free / Ending');
+		inputField(tab, col(0), row(6.5), span(1), 'Fade Target (IDs):', function()
+		{
+			var target:Dynamic = scene().target;
+			return Std.isOfType(target, Array) ? (target:Array<Dynamic>).join(',') : stringOf(target);
+		}, function(v)
+		{
+			var parts:Array<String> = [for (part in v.split(',')) if(part.trim().length > 0) part.trim()];
+			setField(scene(), 'target', (parts.length > 1) ? parts : (parts.length == 1 ? parts[0] : null));
 		});
+		stepperField(tab, col(1), row(6.5), 'Alpha:', 0.05, 0, 1, 2, () -> (scene().alpha != null) ? scene().alpha : 1, function(v) scene().alpha = v);
+		stepperField(tab, col(2), row(6.5), 'Duration (s):', 0.1, 0, 60, 2, () -> (scene().duration != null) ? scene().duration : 1, function(v) scene().duration = v);
+		inputField(tab, col(0), row(7.5), span(2), 'Free Scene Name (Custom):', () -> scene().custom, function(v) setField(scene(), 'custom', v.trim()));
+		checkField(tab, col(0), row(8.3), 'Keep Text', () -> scene().keepText == true, function(v) setField(scene(), 'keepText', v ? true : null));
+		checkField(tab, col(1), row(8.3), 'Fade (Ending)', () -> scene().fade == true, function(v) setField(scene(), 'fade', v ? true : null));
 
-		animationInputText = new PsychUIInputText(15, 85, 100, '', 8);
-		loopInputText = new PsychUIInputText(animationInputText.x, animationInputText.y + 35, 150, '', 8);
-		idleInputText = new PsychUIInputText(loopInputText.x, loopInputText.y + 40, 150, '', 8);
+		header(tab, row(9.2) - 10, 'Scenes');
+		button(tab, col(0), row(9.4), 'Duplicate', function() insertScene(copy(scene()), curScene + 1), span(1), BLUE);
+		button(tab, col(1), row(9.4), 'Add', function() insertScene({scene: 'normal', character: charId, portrait: '', text: ''}, curScene + 1), span(1), GREEN);
+		button(tab, col(2), row(9.4), 'Remove', removeScene, span(1), RED);
+		button(tab, col(0), row(10.1), 'Move Up', function() moveScene(-1), span(1));
+		button(tab, col(1), row(10.1), 'Move Down', function() moveScene(1), span(1));
 
-		var addUpdateButton:PsychUIButton = new PsychUIButton(10, idleInputText.y + 30, "Add/Update", function() {
-			var theAnim:String = animationInputText.text.trim();
-			if(theAnim.length < 1) return;
-
-			if(character.dialogueAnimations.exists(theAnim))
-			{
-				for (animArray in character.jsonFile.animations)
-				{
-					if(animArray.anim.trim() == theAnim)
-					{
-						animArray.loop_name = loopInputText.text;
-						animArray.idle_name = idleInputText.text;
-						break;
-					}
-				}
-			}
-			else
-			{
-				character.jsonFile.animations.push({
-					anim: theAnim,
-					loop_name: loopInputText.text,
-					loop_offsets: [0, 0],
-					idle_name: idleInputText.text,
-					idle_offsets: [0, 0]
-				});
-			}
-			markPortraitEdited();
-			reloadAllAnimations();
-			reloadAnimationsDropDown();
-			animationDropDown.selectedLabel = theAnim;
-			selectGhostAnim(theAnim);
-		});
-
-		var removeButton:PsychUIButton = new PsychUIButton(100, addUpdateButton.y, "Remove", function() {
-			for (animArray in character.jsonFile.animations)
-			{
-				if(animArray != null && animArray.anim.trim() == animationInputText.text.trim())
-				{
-					character.jsonFile.animations.remove(animArray);
-					markPortraitEdited();
-					reloadAllAnimations();
-					reloadAnimationsDropDown();
-					if(character.jsonFile.animations.length > 0) selectGhostAnim(character.jsonFile.animations[0].anim);
-					animationInputText.text = '';
-					loopInputText.text = '';
-					idleInputText.text = '';
-					break;
-				}
-			}
-		});
-
-		tab_group.add(new FlxText(animationDropDown.x, animationDropDown.y - 18, 0, 'Animations:'));
-		tab_group.add(new FlxText(animationInputText.x, animationInputText.y - 18, 0, 'Animation name:'));
-		tab_group.add(new FlxText(loopInputText.x, loopInputText.y - 18, 0, 'Loop anim (XML):'));
-		tab_group.add(new FlxText(idleInputText.x, idleInputText.y - 18, 0, 'Idle anim (XML):'));
-		tab_group.add(animationInputText);
-		tab_group.add(loopInputText);
-		tab_group.add(idleInputText);
-		tab_group.add(addUpdateButton);
-		tab_group.add(removeButton);
-		tab_group.add(animationDropDown);
+		drops.reverse();
+		for (drop in drops) tab.add(drop);
 	}
 
-	function reloadAnimationsDropDown() {
-		var list:Array<String> = [for (anim in character.jsonFile.animations) anim.anim];
-		if(list.length < 1) list = [''];
-		animationDropDown.list = list;
+	function fxPart(index:Int):String
+	{
+		var fx:Dynamic = scene().fx;
+		if(fx == null) return '';
+		if(!Std.isOfType(fx, Array)) return (index == 0) ? Std.string(fx) : '';
+		return stringOf((fx:Array<Dynamic>)[index]);
 	}
 
-	function copyDefaultLine():DialogueLine {
-		return {
-			portrait: DialogueCharacter.DEFAULT_CHARACTER,
-			expression: 'talk',
-			text: DEFAULT_TEXT,
-			boxState: DEFAULT_BUBBLETYPE,
-			speed: DEFAULT_SPEED,
-			sound: ''
-		};
-	}
-
-	function portraitName():String {
-		var name:String = dialogueFile.dialogue[curSelected].portrait;
-		return (name == null || name.trim().length < 1) ? DialogueCharacter.DEFAULT_CHARACTER : name.trim();
-	}
-
-	function portraitExists(name:String):Bool
-		return editedPortraits.exists(name) || Paths.fileExists('images/dialogue/$name.json', TEXT);
-
-	function loadPortraitFile(name:String) {
-		if(editedPortraits.exists(name)) character.jsonFile = editedPortraits.get(name);
-		else character.reloadCharacterJson(name);
-		if(character.jsonFile.animations == null) character.jsonFile.animations = [];
-		if(character.jsonFile.position == null) character.jsonFile.position = [0, 0];
-
-		reloadCharacter();
-		reloadAnimationsDropDown();
-		fillPortraitFields();
-	}
-
-	function fillPortraitFields() {
-		var name:String = portraitName();
-		portraitFileText.text = 'File: images/dialogue/$name.json';
-		if(!portraitExists(name)) portraitFileText.text += '\n(not found: editing a copy of ${DialogueCharacter.DEFAULT_CHARACTER})';
-
-		imageInputText.text = character.jsonFile.image;
-		positionDropDown.selectedLabel = character.jsonFile.dialogue_pos;
-		xStepper.value = character.jsonFile.position[0];
-		yStepper.value = character.jsonFile.position[1];
-		scaleStepper.value = character.jsonFile.scale;
-		noAntialiasingCheckbox.checked = (character.jsonFile.no_antialiasing == true);
-	}
-
-	function markPortraitEdited() {
-		editedPortraits.set(portraitName(), character.jsonFile);
-		unsavedProgress = true;
-	}
-
-	function editPortrait(change:DialogueCharacterFile->Void) {
-		change(character.jsonFile);
-		markPortraitEdited();
-		reloadCharacter();
-		updateTextBox();
-		fillPortraitFields();
-	}
-
-	function reloadAllAnimations() {
-		for (char in [character, ghostLoop, ghostIdle])
+	function setFxPart(index:Int, value:Dynamic)
+	{
+		var fx:Dynamic = scene().fx;
+		var list:Array<Dynamic> = Std.isOfType(fx, Array) ? (fx:Array<Dynamic>).copy() : (fx != null ? [fx] : [null]);
+		while(list.length <= index) list.push(null);
+		list[index] = value;
+		if(list[0] == null)
 		{
-			char.jsonFile = character.jsonFile;
-			char.reloadAnimations();
-		}
-	}
-
-	function reloadCharacter() {
-		var image:String = 'dialogue/' + character.jsonFile.image;
-		var hasImage:Bool = Paths.fileExists('images/$image.png', IMAGE);
-		for (char in [character, ghostLoop, ghostIdle])
-		{
-			if(hasImage) char.frames = Paths.getSparrowAtlas(image);
-			char.jsonFile = character.jsonFile;
-			char.reloadAnimations();
-			char.setGraphicSize(Std.int(char.frameWidth * DialogueCharacter.DEFAULT_SCALE * character.jsonFile.scale));
-			char.updateHitbox();
-			char.antialiasing = ClientPrefs.data.antialiasing && character.jsonFile.no_antialiasing != true;
-		}
-
-		character.x = DialogueBoxPsych.LEFT_CHAR_X;
-		character.y = DialogueBoxPsych.DEFAULT_CHAR_Y;
-		switch(character.jsonFile.dialogue_pos)
-		{
-			case 'right':
-				character.x = FlxG.width - character.width + DialogueBoxPsych.RIGHT_CHAR_X;
-			case 'center':
-				character.x = FlxG.width / 2 - character.width / 2;
-		}
-		character.x += character.jsonFile.position[0];
-		character.y += character.jsonFile.position[1];
-		ghostLoop.setPosition(character.x, character.y);
-		ghostIdle.setPosition(character.x, character.y);
-
-		var anims:Array<DialogueAnimArray> = character.jsonFile.animations;
-		if(anims.length > 0)
-		{
-			if(curSelectedAnim == null || !character.dialogueAnimations.exists(curSelectedAnim)) curSelectedAnim = anims[0].anim;
-			selectGhostAnim(curSelectedAnim);
-		}
-		playExpression();
-
-		#if DISCORD_ALLOWED
-		#if MODS_ALLOWED
-		DiscordClient.loadModRPC();
-		#end
-		DiscordClient.changePresence("Dialogue Editor", "Editting: " + portraitName());
-		#end
-	}
-
-	function selectGhostAnim(anim:String) {
-		if(!character.dialogueAnimations.exists(anim)) return;
-		curSelectedAnim = anim;
-		ghostLoop.playAnim(anim);
-		ghostIdle.playAnim(anim, true);
-		var animShit:DialogueAnimArray = character.dialogueAnimations.get(anim);
-		offsetLoopText.text = 'Loop: ' + animShit.loop_offsets;
-		offsetIdleText.text = 'Idle: ' + animShit.idle_offsets;
-	}
-
-	function playExpression() {
-		var anims:Array<DialogueAnimArray> = character.jsonFile.animations;
-		if(anims == null || anims.length < 1)
-		{
-			animText.text = 'ERROR! NO ANIMATIONS FOUND';
+			Reflect.deleteField(scene(), 'fx');
 			return;
 		}
-		if(curAnim < 0 || curAnim >= anims.length) curAnim = 0;
-
-		var animToPlay:String = anims[curAnim].anim;
-		if(character.dialogueAnimations.exists(animToPlay)) character.playAnim(animToPlay, daText.finishedText);
-		characterAnimSpeed();
-		animText.text = 'Animation: $animToPlay (${curAnim + 1} / ${anims.length}) - Press W or S to scroll';
+		while(list.length > 1 && list[list.length - 1] == null) list.pop();
+		scene().fx = (list.length == 1) ? list[0] : list;
 	}
 
-	function updateTextBox() {
-		box.flipX = false;
-		var isAngry:Bool = angryCheckbox.checked;
-		var anim:String = isAngry ? 'angry' : 'normal';
-
-		switch(character.jsonFile.dialogue_pos) {
-			case 'left':
-				box.flipX = true;
-			case 'center':
-				anim = isAngry ? 'center-angry' : 'center';
-		}
-		box.animation.play(anim, true);
-		DialogueBoxPsych.updateBoxOffsets(box);
-	}
-
-	function reloadText(skipDialogue:Bool) {
-		var textToType:String = lineInputText.text;
-		if(textToType == null || textToType.length < 1) textToType = ' ';
-
-		daText.text = textToType;
-
-		if(skipDialogue)
-			daText.finishText();
-		else if(daText.delay > 0)
-			playExpression();
-
-		daText.y = DialogueBoxPsych.DEFAULT_TEXT_Y;
-		if(daText.rows > 2) daText.y -= DialogueBoxPsych.LONG_TEXT_ADD;
-	}
-
-	function characterAnimSpeed() {
-		if(character.animation.curAnim == null) return;
-
-		var rate:Float = 24 - (((speedStepper.value - 0.05) / 5) * 480);
-		character.animation.curAnim.frameRate = FlxMath.bound(rate, 12, 48);
-	}
-
-	function changeText(add:Int = 0) {
-		curSelected = FlxMath.wrap(curSelected + add, 0, dialogueFile.dialogue.length - 1);
-
-		var curDialogue:DialogueLine = dialogueFile.dialogue[curSelected];
-		if(curDialogue.sound == null) curDialogue.sound = '';
-		portraitInputText.text = curDialogue.portrait;
-		lineInputText.text = curDialogue.text;
-		angryCheckbox.checked = (curDialogue.boxState == 'angry');
-		speedStepper.value = curDialogue.speed;
-		soundInputText.text = curDialogue.sound;
-
-		daText.delay = speedStepper.value;
-		daText.sound = (curDialogue.sound.trim() == '') ? 'dialogue' : curDialogue.sound;
-
-		curAnim = 0;
-		loadPortraitFile(portraitName());
-		for (num => animData in character.jsonFile.animations)
+	function audioOf(field:String, create:Bool):DialogueAudio
+	{
+		var audio:DialogueAudio = Reflect.field(scene(), field);
+		if(audio == null && create)
 		{
-			if(animData != null && animData.anim == curDialogue.expression)
-			{
-				curAnim = num;
-				break;
-			}
+			audio = {name: ''};
+			Reflect.setField(scene(), field, audio);
 		}
-
-		reloadText(false);
-		updateTextBox();
-		playExpression();
-
-		selectedText.text = 'Line: (${curSelected + 1} / ${dialogueFile.dialogue.length}) - Press A or D to scroll';
+		return audio;
 	}
 
-	public function UIEvent(id:String, sender:Dynamic) {
-		if(id == PsychUICheckBox.CLICK_EVENT)
-			unsavedProgress = true;
-
-		if(id == PsychUIInputText.CHANGE_EVENT && (sender is PsychUIInputText))
+	function audioUI(tab:FlxSpriteGroup, drops:Array<PsychUIDropDownMenu>, start:Float, field:String, title:String, folder:String, extra:Bool)
+	{
+		header(tab, row(start) - 16, title);
+		checkField(tab, col(0), row(start) - 4, 'Change Music/Sounds', () -> audioOf(field, false) != null, function(v)
 		{
-			if(sender == portraitInputText)
-			{
-				dialogueFile.dialogue[curSelected].portrait = portraitInputText.text;
-				curAnim = 0;
-				loadPortraitFile(portraitName());
-				reloadText(false);
-				updateTextBox();
-				unsavedProgress = true;
-			}
-			else if(sender == lineInputText)
-			{
-				dialogueFile.dialogue[curSelected].text = lineInputText.text;
-				reloadText(true);
-				unsavedProgress = true;
-			}
-			else if(sender == soundInputText)
-			{
-				daText.finishText();
-				dialogueFile.dialogue[curSelected].sound = soundInputText.text;
-				daText.sound = soundInputText.text;
-				if(daText.sound == null) daText.sound = '';
-				unsavedProgress = true;
-			}
-			else if(sender == imageInputText)
-			{
-				var image:String = imageInputText.text.trim();
-				if(Paths.fileExists('images/dialogue/$image.png', IMAGE))
-					editPortrait(function(file) file.image = image);
-			}
-		}
-		else if(id == PsychUINumericStepper.CHANGE_EVENT)
+			if(v) audioOf(field, true);
+			else Reflect.deleteField(scene(), field);
+		});
+		inputField(tab, col(0), row(start + 0.7), span(2), 'File in $folder (empty = stop):', () -> (audioOf(field, false) != null) ? audioOf(field, false).name : '', function(v) audioOf(field, true).name = v.trim());
+		stepperField(tab, col(2), row(start + 0.7), 'Volume:', 0.05, 0, 1, 2, function()
 		{
-			if(sender == speedStepper)
-			{
-				var speed:Float = speedStepper.value;
-				if(Math.isNaN(speed) || speed < 0.001) speed = 0.0;
-				dialogueFile.dialogue[curSelected].speed = speed;
-				daText.delay = speed;
-				reloadText(false);
-				unsavedProgress = true;
-			}
-			else if(sender == xStepper) editPortrait(function(file) file.position[0] = xStepper.value);
-			else if(sender == yStepper) editPortrait(function(file) file.position[1] = yStepper.value);
-			else if(sender == scaleStepper) editPortrait(function(file) file.scale = scaleStepper.value);
-		}
+			var audio:DialogueAudio = audioOf(field, false);
+			return (audio != null && audio.volume != null) ? audio.volume : (field == 'track' ? 0.4 : 1);
+		}, function(v) audioOf(field, true).volume = v);
+		dropField(drops, tab, col(0), row(start + 1.7), span(1) - 20, 'Fade:', FADE_MODES, function()
+		{
+			var audio:DialogueAudio = audioOf(field, false);
+			return (audio != null && audio.fade != null) ? audio.fade : 'None';
+		}, function(v) setField(audioOf(field, true), 'fade', (v == 'None') ? null : v));
+		stepperField(tab, col(1), row(start + 1.7), 'Fade Time (s):', 0.1, 0, 30, 2, function()
+		{
+			var audio:DialogueAudio = audioOf(field, false);
+			return (audio != null && audio.fadeTime != null) ? audio.fadeTime : 0;
+		}, function(v) setField(audioOf(field, true), 'fadeTime', (v > 0) ? v : null));
+		stepperField(tab, col(2), row(start + 1.7), 'Pitch:', 0.05, 0.05, 4, 2, function()
+		{
+			var audio:DialogueAudio = audioOf(field, false);
+			return (audio != null && audio.pitch != null) ? audio.pitch : 1;
+		}, function(v) setField(audioOf(field, true), 'pitch', (v != 1) ? v : null));
+		if(!extra) return;
+		stepperField(tab, col(0), row(start + 2.7), 'Delay (s):', 0.1, 0, 30, 2, function()
+		{
+			var audio:DialogueAudio = audioOf(field, false);
+			return (audio != null && audio.delay != null) ? audio.delay : 0;
+		}, function(v) setField(audioOf(field, true), 'delay', (v > 0) ? v : null));
+		stepperField(tab, col(1), row(start + 2.7), 'Stop After (0 = Infinite):', 0.1, 0, 60, 2, function()
+		{
+			var audio:DialogueAudio = audioOf(field, false);
+			return (audio != null && audio.life != null) ? audio.life : 0;
+		}, function(v) setField(audioOf(field, true), 'life', (v > 0) ? v : null));
 	}
 
-	override function update(elapsed:Float) {
+	function addAudioUI()
+	{
+		var tab = UI_box.getTab('Audio').menu;
+		var drops:Array<PsychUIDropDownMenu> = [];
+		audioUI(tab, drops, 0.4, 'track', 'Track (Loop)', 'music/', false);
+		audioUI(tab, drops, 3.6, 'sfx', 'Sound', 'sounds/', true);
+		header(tab, row(7.6) - 16, 'All Dialogue');
+		inputField(tab, col(0), row(7.9), span(2), 'Music (if not present):', () -> data.music, function(v) setField(data, 'music', v.trim()));
+		var note:FlxText = new FlxText(col(0), row(8.6), span(3), 'Without Change Music/Sounds, both will not\nchange next scene.');
+		note.alpha = 0.7;
+		tab.add(note);
+		drops.reverse();
+		for (drop in drops) tab.add(drop);
+	}
+
+	function animation():DialogueAnimation
+	{
+		var list:Array<DialogueAnimation> = character().animations;
+		return (list.length > 0) ? list[Std.int(FlxMath.bound(curAnim, 0, list.length - 1))] : null;
+	}
+
+	function addCharacterUI()
+	{
+		var tab = UI_box.getTab('Character').menu;
+		var drops:Array<PsychUIDropDownMenu> = [];
+		var charInput:PsychUIInputText = null;
+		charInput = inputField(tab, col(0), row(0), span(1), 'Char ID:', () -> charId, function(v) {}, false);
+		button(tab, col(1), row(0) - 2, 'Edit', function() {
+			selectCharacter(charInput.text);
+			changed(true);
+			showMessage('Editing character: $charId');
+		}, span(1));
+		button(tab, col(2), row(0) - 2, 'Load File', loadCharacter, span(1));
+
+		inputField(tab, col(0), row(1), span(1), 'Display Name:', () -> character().name, function(v) character().name = v);
+		inputField(tab, col(1), row(1), span(2), 'Portrait (images/):', () -> character().portrait, function(v) character().portrait = v.trim());
+
+		stepperField(tab, col(0), row(2), 'Scale X:', 0.05, 0.05, 10, 2, () -> pointOf(character().scale, 0, 1), function(v) character().scale = setPoint(character().scale, 0, v, 1));
+		stepperField(tab, col(1), row(2), 'Scale Y:', 0.05, 0.05, 10, 2, () -> pointOf(character().scale, 1, 1), function(v) character().scale = setPoint(character().scale, 1, v, 1));
+		checkField(tab, col(2), row(2) - 2, 'Flip X', () -> character().flipX == true, function(v) character().flipX = v);
+
+		stepperField(tab, col(0), row(3), 'X:', 5, -3000, 3000, 0, () -> pointOf(character().position, 0, 0), function(v) character().position = setPoint(character().position, 0, v, 0));
+		stepperField(tab, col(1), row(3), 'Y:', 5, -3000, 3000, 0, () -> pointOf(character().position, 1, 0), function(v) character().position = setPoint(character().position, 1, v, 0));
+		stepperField(tab, col(2), row(3), 'Size (0 = style):', 1, 0, 200, 0, () -> (character().textSize != null) ? character().textSize : 0, function(v) setField(character(), 'textSize', (v > 0) ? Std.int(v) : null));
+
+		colorField(tab, col(0), row(4), span(1), 'Box Color:', () -> character().boxColor, function(v) setField(character(), 'boxColor', v.trim()));
+		colorField(tab, col(1), row(4), span(1), 'Name Color:', () -> character().nameColor, function(v) setField(character(), 'nameColor', v.trim()));
+		inputField(tab, col(2), row(4), span(1), 'Font (empty = style):', () -> character().font, function(v) setField(character(), 'font', v.trim()));
+		var colorNote:FlxText = new FlxText(col(0), row(4) + 18, span(3), 'Colors: hex, bf/dad/gf, char name (JSON)');
+		colorNote.alpha = 0.7;
+		tab.add(colorNote);
+
+		stepperField(tab, col(0), row(5.3), 'Nametag Width:', 5, 0, 1280, 0, () -> (character().nametagWidth != null) ? character().nametagWidth : 300, function(v) character().nametagWidth = v);
+		stepperField(tab, col(1), row(5.3), 'Nametag X:', 5, -1280, 1280, 0, () -> pointOf(character().nametagPosition, 0, 50), function(v) character().nametagPosition = setPoint(character().nametagPosition, 0, v, 0));
+		stepperField(tab, col(2), row(5.3), 'Nametag Y:', 5, -720, 720, 0, () -> pointOf(character().nametagPosition, 1, -80), function(v) character().nametagPosition = setPoint(character().nametagPosition, 1, v, 0));
+		stepperField(tab, col(1), row(6.3), 'Name X:', 5, -1280, 1280, 0, () -> pointOf(character().namePosition, 0, 70), function(v) character().namePosition = setPoint(character().namePosition, 0, v, 0));
+		stepperField(tab, col(2), row(6.3), 'Name Y:', 5, -720, 720, 0, () -> pointOf(character().namePosition, 1, -75), function(v) character().namePosition = setPoint(character().namePosition, 1, v, 0));
+		inputField(tab, col(0), row(6.3), span(1), 'Voice (sounds/):', () -> character().voice, function(v) character().voice = v.trim());
+		stepperField(tab, col(0), row(7.3), 'Voice every N letters:', 1, 1, 20, 0, () -> (character().voiceStep != null) ? character().voiceStep : 1, function(v) character().voiceStep = Std.int(v));
+		stepperField(tab, col(1), row(7.3), 'Pitch:', 0.05, 0.1, 4, 2, () -> (character().voicePitch != null) ? character().voicePitch : 1, function(v) character().voicePitch = v);
+
+		header(tab, row(8.3) - 16, 'Animations (Ctrl+Arrows = offset, Shift = 10x)');
+		animDropDown = dropField(drops, tab, col(0), row(8.5), span(1) - 20, 'Animation:', [''], function()
+		{
+			var anim:DialogueAnimation = animation();
+			return (anim != null) ? anim.name : '';
+		}, function(v)
+		{
+			for (i => anim in character().animations) if(anim.name == v) curAnim = i;
+			previewAnimation();
+		});
+		inputField(tab, col(1), row(8.5), span(1), 'Name:', () -> (animation() != null) ? animation().name : '', function(v) if(animation() != null) animation().name = v.trim());
+		inputField(tab, col(2), row(8.5), span(1), 'Prefix (.xml):', () -> (animation() != null) ? animation().prefix : '', function(v) if(animation() != null) animation().prefix = v);
+		stepperField(tab, col(0), row(9.5), 'FPS:', 1, 1, 120, 0, () -> (animation() != null && animation().fps != null) ? animation().fps : 24, function(v) if(animation() != null) animation().fps = v);
+		checkField(tab, col(1), row(9.5) - 2, 'Loop', () -> animation() != null && animation().loop == true, function(v) if(animation() != null) animation().loop = v);
+		button(tab, col(0), row(10.2), 'Add Anim', function()
+		{
+			character().animations.push({name: 'anim' + character().animations.length, prefix: '', fps: 24, loop: false, offsets: [0, 0]});
+			curAnim = character().animations.length - 1;
+			changed(true);
+		}, span(1), GREEN);
+		button(tab, col(1), row(10.2), 'Remove Anim', function()
+		{
+			if(animation() == null) return;
+			character().animations.remove(animation());
+			curAnim = 0;
+			changed(true);
+		}, span(1), RED);
+
+		drops.reverse();
+		for (drop in drops) tab.add(drop);
+	}
+
+	static function pointOf(point:Array<Float>, index:Int, fallback:Float):Float
+		return (point != null && point.length > index) ? point[index] : fallback;
+
+	static function setPoint(point:Array<Float>, index:Int, value:Float, fallback:Float):Array<Float>
+	{
+		if(point == null) point = [fallback, fallback];
+		while(point.length < 2) point.push(fallback);
+		point[index] = value;
+		return point;
+	}
+
+	function background():DialogueBackground
+		return (data.backgrounds.length > 0) ? data.backgrounds[Std.int(FlxMath.bound(curBackground, 0, data.backgrounds.length - 1))] : null;
+
+	function addStyleUI()
+	{
+		var tab = UI_box.getTab('Style').menu;
+		var drops:Array<PsychUIDropDownMenu> = [];
+		var styleInput:PsychUIInputText = null;
+		styleInput = inputField(tab, col(0), row(0), span(1), 'Style file name:', () -> styleName, function(v) {}, false);
+		button(tab, col(1), row(0) - 2, 'Use Style', function()
+		{
+			var name:String = styleInput.text.trim();
+			if(name.length < 1) return;
+			data.style = name;
+			setDialogueStyle(name);
+		}, span(1));
+		stepperField(tab, col(2), row(0), 'Box X:', 5, -1280, 1280, 0, () -> (style.boxX != null) ? style.boxX : ((preview != null && preview.box != null) ? preview.box.x : 0), function(v) style.boxX = v);
+
+		inputField(tab, col(0), row(1), span(1), 'Box image:', () -> style.box, function(v) setField(style, 'box', v.trim()));
+		inputField(tab, col(1), row(1), span(1), 'Overlay image:', () -> style.overlay, function(v) setField(style, 'overlay', v.trim()));
+		stepperField(tab, col(2), row(1), 'Box Y:', 5, -720, 720, 0, () -> (style.boxY != null) ? style.boxY : 430, function(v) style.boxY = v);
+
+		inputField(tab, col(0), row(2), span(1), 'Text Font:', () -> style.font, function(v) setField(style, 'font', v.trim()));
+		stepperField(tab, col(1), row(2), 'Text Size:', 1, 1, 200, 0, () -> (style.textSize != null) ? style.textSize : 40, function(v) style.textSize = Std.int(v));
+		stepperField(tab, col(2), row(2), 'Centered Size:', 1, 1, 200, 0, () -> (style.singleTextSize != null) ? style.singleTextSize : 40, function(v) style.singleTextSize = Std.int(v));
+
+		stepperField(tab, col(0), row(3), 'Text X:', 5, -1280, 1280, 0, () -> pointOf(style.textOffset, 0, 50), function(v) style.textOffset = setPoint(style.textOffset, 0, v, 0));
+		stepperField(tab, col(1), row(3), 'Text Y:', 5, -720, 720, 0, () -> pointOf(style.textOffset, 1, 45), function(v) style.textOffset = setPoint(style.textOffset, 1, v, 0));
+		stepperField(tab, col(2), row(3), 'Text Width:', 10, 10, 1280, 0, () -> (style.textWidth != null) ? style.textWidth : 1100, function(v) style.textWidth = Std.int(v));
+
+		stepperField(tab, col(0), row(4), 'Speed:', 0.005, 0.001, 1, 3, () -> (style.speed != null) ? style.speed : 0.05, function(v) style.speed = v);
+		stepperField(tab, col(1), row(4), 'Voice Volume:', 0.05, 0, 1, 2, () -> (style.voiceVolume != null) ? style.voiceVolume : 0.75, function(v) style.voiceVolume = v);
+		stepperField(tab, col(2), row(4), 'Voice Gap (s):', 0.01, 0, 1, 2, () -> (style.minVoiceGap != null) ? style.minVoiceGap : 0.05, function(v) style.minVoiceGap = v);
+
+		inputField(tab, col(0), row(5), span(1), 'Name Font:', () -> style.nameFont, function(v) setField(style, 'nameFont', v.trim()));
+		stepperField(tab, col(1), row(5), 'Name Size:', 1, 1, 200, 0, () -> (style.nameSize != null) ? style.nameSize : 75, function(v) style.nameSize = Std.int(v));
+		colorField(tab, col(2), row(5), span(1), 'Nametag Color:', () -> style.nametagColor, function(v) setField(style, 'nametagColor', v.trim()));
+
+		stepperField(tab, col(0), row(6), 'Text Border:', 0.5, 0, 10, 1, () -> (style.borderSize != null) ? style.borderSize : 2, function(v) style.borderSize = v);
+		colorField(tab, col(1), row(6), span(1), 'Border Color:', () -> style.borderColor, function(v) setField(style, 'borderColor', v.trim()));
+		inputField(tab, col(2), row(6), span(1), 'Skip Key:', () -> style.skipKey, function(v) setField(style, 'skipKey', v.trim().toUpperCase()));
+
+		inputField(tab, col(0), row(7), span(2), 'Hint Text:', () -> style.hint, function(v) setField(style, 'hint', v));
+		inputField(tab, col(2), row(7), span(1), 'Hint Font:', () -> style.hintFont, function(v) setField(style, 'hintFont', v.trim()));
+		inputField(tab, col(0), row(8), span(2), 'Skip Text:', () -> style.skipHint, function(v) setField(style, 'skipHint', v));
+		inputField(tab, col(2), row(8), span(1), 'Skip Font:', () -> style.skipHintFont, function(v) setField(style, 'skipHintFont', v.trim()));
+
+		header(tab, row(9) - 16, 'Backgrounds ("black" = black screen on top)');
+		backgroundDropDown = dropField(drops, tab, col(0), row(9.2), span(1) - 20, 'Background:', [''], function()
+		{
+			var bg:DialogueBackground = background();
+			return (bg != null) ? bg.id : '';
+		}, function(v)
+		{
+			for (i => bg in data.backgrounds) if(bg.id == v) curBackground = i;
+		});
+		inputField(tab, col(1), row(9.2), span(1), 'ID:', () -> (background() != null) ? background().id : '', function(v) if(background() != null) background().id = v.trim());
+		inputField(tab, col(2), row(9.2), span(1), 'Image/Color:', () -> (background() != null) ? background().image : '', function(v) if(background() != null) setField(background(), 'image', v.trim()));
+		colorField(tab, col(0), row(10.2), span(1), 'Background Color:', () -> (background() != null) ? background().color : '', function(v) if(background() != null) setField(background(), 'color', v.trim()));
+		stepperField(tab, col(1), row(10.2), 'Start Alpha:', 0.05, 0, 1, 2, () -> (background() != null && background().alpha != null) ? background().alpha : 1, function(v) if(background() != null) background().alpha = v);
+		button(tab, col(0), row(10.9), 'Add BG', function()
+		{
+			data.backgrounds.push({id: 'bg' + data.backgrounds.length, color: '000000', alpha: 1});
+			curBackground = data.backgrounds.length - 1;
+			changed(true);
+		}, span(1), GREEN);
+		button(tab, col(1), row(10.9), 'Remove BG', function()
+		{
+			if(background() == null) return;
+			data.backgrounds.remove(background());
+			curBackground = 0;
+			changed(true);
+		}, span(1), RED);
+
+		drops.reverse();
+		for (drop in drops) tab.add(drop);
+	}
+
+	function setDialogueStyle(name:String)
+	{
+		styleName = name;
+		DialogueData.styleOverrides.remove(name);
+		style = copy(DialogueData.style(name));
+		DialogueData.styleOverrides.set(name, style);
+		changed(true);
+		showMessage('Using style: $name');
+	}
+
+	function changed(rebuild:Bool)
+	{
+		unsaved = true;
+		if(rebuild) rebuildQueued = true;
+	}
+
+	function refreshFields()
+	{
+		refreshing = true;
+		var anims:Array<String> = [for (anim in character().animations) anim.name];
+		animDropDown.list = (anims.length > 0) ? anims : [''];
+		var sceneChar:DialogueCharacterData = (scene().character != null) ? DialogueData.character(scene().character) : null;
+		var portraits:Array<String> = (sceneChar != null && sceneChar.animations != null) ? [for (anim in sceneChar.animations) anim.name] : [];
+		portraitDropDown.list = (portraits.length > 0) ? portraits : [''];
+		var bgs:Array<String> = [for (bg in data.backgrounds) bg.id];
+		backgroundDropDown.list = (bgs.length > 0) ? bgs : [''];
+		for (field in fields) field.refresh();
+		refreshing = false;
+		updateInfo();
+	}
+
+	function updateInfo()
+	{
+		var lines:Array<String> = ['Scene ${curScene + 1} / ${data.scenes.length}   Character: $charId   Style: $styleName${unsaved ? "   (UNSAVED)" : ""}'];
+		for (i in Std.int(Math.max(0, curScene - 2))...Std.int(Math.min(data.scenes.length, curScene + 4)))
+		{
+			var s:DialogueScene = data.scenes[i];
+			var summary:String = '${i + 1}. [${s.scene}]';
+			if(s.character != null) summary += ' ${s.character}' + ((s.portrait != null && s.portrait.length > 0) ? ' (${s.portrait})' : '');
+			if(s.text != null) summary += ': ' + ((s.text.length > 60) ? s.text.substr(0, 60).replace('\n', ' ') + '...' : s.text.replace('\n', ' '));
+			if(s.custom != null) summary += ' "${s.custom}"';
+			lines.push(((i == curScene) ? '> ' : '  ') + summary);
+		}
+		infoText.text = lines.join('\n');
+	}
+
+	function rebuildPreview()
+	{
+		rebuildQueued = false;
+		if(preview != null)
+		{
+			remove(preview, true);
+			preview.destroy();
+		}
+		for (id => info in editedCharacters) DialogueData.characterOverrides.set(id, info);
+		data.style = styleName;
+		preview = new DialogueCutscene(data, camPreview, 'preview');
+		preview.inputEnabled = false;
+		preview.playAudio = previewAudio;
+		preview.playVoices = !muteVoices;
+		preview.onCustom = function(custom:String, s:DialogueScene)
+		{
+			showMessage('Free scene "$custom": handled by the song script (onDialogueCustom)');
+			if(s.duration == null) new FlxTimer().start(1, (_) -> if(preview != null) preview.customDone());
+		};
+		preview.onFinish = function(faded:Bool) showMessage('Dialogue ended. SPACE to replay.');
+		add(preview);
+		preview.jumpTo(curScene);
+	}
+
+	function previewAnimation()
+	{
+		if(preview == null) return;
+		var port:FlxSprite = preview.portraits.get(charId);
+		var anim:DialogueAnimation = animation();
+		if(port == null || anim == null || !port.animation.exists(anim.name)) return;
+		for (key => other in preview.portraits) other.visible = (key == charId);
+		port.animation.play(anim.name, true);
+		var offsets:Array<Float> = (anim.offsets != null) ? anim.offsets : [0, 0];
+		port.offset.set(pointOf(offsets, 0, 0), pointOf(offsets, 1, 0));
+	}
+
+	function changeScene(add:Int)
+	{
+		curScene = FlxMath.wrap(curScene + add, 0, data.scenes.length - 1);
+		var s:DialogueScene = scene();
+		if(s.character != null && DialogueData.character(s.character) != null) selectCharacter(s.character);
+		refreshFields();
+		rebuildPreview();
+	}
+
+	function insertScene(s:DialogueScene, index:Int)
+	{
+		data.scenes.insert(index, s);
+		curScene = index;
+		unsaved = true;
+		refreshFields();
+		rebuildPreview();
+	}
+
+	function removeScene()
+	{
+		if(data.scenes.length <= 1)
+		{
+			showMessage('Dialogue must have one scene.', true);
+			return;
+		}
+		data.scenes.splice(curScene, 1);
+		curScene = Std.int(Math.min(curScene, data.scenes.length - 1));
+		unsaved = true;
+		refreshFields();
+		rebuildPreview();
+	}
+
+	function moveScene(dir:Int)
+	{
+		var target:Int = curScene + dir;
+		if(target < 0 || target >= data.scenes.length) return;
+		var s:DialogueScene = data.scenes[curScene];
+		data.scenes[curScene] = data.scenes[target];
+		data.scenes[target] = s;
+		curScene = target;
+		unsaved = true;
+		refreshFields();
+	}
+
+	override function update(elapsed:Float)
+	{
 		if(transitioning)
 		{
 			super.update(elapsed);
@@ -577,23 +903,13 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		if(FlxG.mouse.justReleased || FlxG.mouse.justReleasedRight)
 			FlxG.sound.play(Paths.sound('chartingSounds/ClickUp'), 0.75);
 
-		if(character.animation.curAnim != null)
-		{
-			if(daText.finishedText)
-			{
-				if(character.animationIsLoop() && character.animation.curAnim.finished)
-					character.playAnim(character.animation.curAnim.name, true);
-			}
-			else if(character.animation.curAnim.finished)
-				character.animation.curAnim.restart();
-		}
-
 		if(PsychUIInputText.focusOn == null)
 		{
 			ClientPrefs.toggleVolumeKeys(true);
 			if(FlxG.keys.pressed.CONTROL)
 			{
 				if(FlxG.keys.justPressed.S) saveDialogue();
+				else updateOffsetKeys();
 			}
 			else if(FlxG.keys.justPressed.ESCAPE)
 			{
@@ -601,228 +917,289 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 				super.update(elapsed);
 				return;
 			}
-			else
-			{
-				updateCamera(elapsed);
-				if(UI_box.selectedName != lastTab) switchTabView(UI_box.selectedName);
-				if(UI_box.selectedName == 'Animations') updateOffsetKeys();
-				else updateLineKeys();
-			}
+			else updateKeys();
 		}
 		else ClientPrefs.toggleVolumeKeys(false);
 
-		ghostLoop.setPosition(character.x, character.y);
-		ghostIdle.setPosition(character.x, character.y);
+		if(rebuildQueued)
+		{
+			refreshFields();
+			rebuildPreview();
+		}
 		super.update(elapsed);
 	}
 
-	function updateCamera(elapsed:Float) {
-		var speed:Float = FlxG.keys.pressed.SHIFT ? 1200 : 300;
-		if(FlxG.keys.pressed.J) camGame.scroll.x -= speed * elapsed;
-		if(FlxG.keys.pressed.L) camGame.scroll.x += speed * elapsed;
-		if(FlxG.keys.pressed.I) camGame.scroll.y -= speed * elapsed;
-		if(FlxG.keys.pressed.K) camGame.scroll.y += speed * elapsed;
+	function updateKeys()
+	{
+		if(FlxG.keys.justPressed.A) changeScene(-1);
+		else if(FlxG.keys.justPressed.D) changeScene(1);
+		else if(FlxG.keys.justPressed.SPACE) rebuildPreview();
+		else if(FlxG.keys.justPressed.ENTER && preview != null) preview.advance();
 
-		if(FlxG.keys.pressed.Q && camGame.zoom > 0.1) camGame.zoom = Math.max(0.1, camGame.zoom - elapsed * camGame.zoom);
-		if(FlxG.keys.pressed.E && camGame.zoom < 1) camGame.zoom = Math.min(1, camGame.zoom + elapsed * camGame.zoom);
-		if(FlxG.keys.justPressed.R)
-		{
-			camGame.zoom = 1;
-			camGame.scroll.set();
-			box.visible = daText.visible = true;
-		}
-	}
-
-	function switchTabView(tab:String) {
-		var offsets:Bool = (tab == 'Animations');
-		character.alpha = box.alpha = daText.alpha = offsets ? 0 : 1;
-		ghostLoop.visible = ghostIdle.visible = true;
-		ghostLoop.alpha = ghostIdle.alpha = offsets ? 0.6 : 0;
-		offsetLoopText.visible = offsetIdleText.visible = offsets;
-		selectedText.visible = animText.visible = !offsets;
-		tipText.text = offsets ? TIP_TEXT_OFFSET : TIP_TEXT_LINE;
-		currentGhosts = 0;
-		if(offsets && curSelectedAnim != null) selectGhostAnim(curSelectedAnim);
-		else if(!offsets)
-		{
-			updateTextBox();
-			reloadText(false);
-		}
-		lastTab = tab;
-	}
-
-	function updateLineKeys() {
-		if(FlxG.keys.justPressed.SPACE) reloadText(false);
-		if(FlxG.keys.justPressed.H) box.visible = daText.visible = !box.visible;
-
-		var anims:Array<DialogueAnimArray> = character.jsonFile.animations;
 		var animMove:Int = (FlxG.keys.justPressed.S ? 1 : 0) - (FlxG.keys.justPressed.W ? 1 : 0);
-		if(animMove != 0 && anims.length > 0)
+		var sceneChar:DialogueCharacterData = (scene().character != null) ? DialogueData.character(scene().character) : null;
+		if(animMove != 0 && sceneChar != null && sceneChar.animations != null && sceneChar.animations.length > 0)
 		{
-			curAnim = FlxMath.wrap(curAnim + animMove, 0, anims.length - 1);
-			dialogueFile.dialogue[curSelected].expression = anims[curAnim].anim;
-			unsavedProgress = true;
-			playExpression();
+			var names:Array<String> = [for (anim in sceneChar.animations) anim.name];
+			var index:Int = names.indexOf(scene().portrait);
+			scene().portrait = names[FlxMath.wrap(index + animMove, 0, names.length - 1)];
+			changed(true);
 		}
 
-		var lineMove:Int = (FlxG.keys.justPressed.D ? 1 : 0) - (FlxG.keys.justPressed.A ? 1 : 0);
-		if(lineMove != 0) changeText(lineMove);
+		var move:Array<Float> = arrowMove();
+		var moveX:Float = move[0];
+		var moveY:Float = move[1];
+		if(moveX == 0 && moveY == 0) return;
 
-		if(FlxG.keys.justPressed.O)
+		if(UI_box.selectedName == 'Style')
 		{
-			dialogueFile.dialogue.remove(dialogueFile.dialogue[curSelected]);
-			if(dialogueFile.dialogue.length < 1) dialogueFile.dialogue = [copyDefaultLine()];
-			unsavedProgress = true;
-			changeText();
+			if(preview == null || preview.box == null) return;
+			style.boxX = preview.box.x + moveX;
+			style.boxY = preview.box.y + moveY;
+			unsaved = true;
+			for (obj in [preview.box, preview.overlay, preview.nametag, preview.nameText, preview.text, preview.hint])
+				if(obj != null) obj.setPosition(obj.x + moveX, obj.y + moveY);
+			showMessage('Box: [${style.boxX}, ${style.boxY}]');
+			refreshFields();
 		}
-		else if(FlxG.keys.justPressed.P)
+		else
 		{
-			dialogueFile.dialogue.insert(curSelected + 1, copyDefaultLine());
-			unsavedProgress = true;
-			changeText(1);
+			var info:DialogueCharacterData = character();
+			info.position = setPoint(info.position, 0, pointOf(info.position, 0, 0) + moveX, 0);
+			info.position = setPoint(info.position, 1, pointOf(info.position, 1, 0) + moveY, 0);
+			unsaved = true;
+			var port:FlxSprite = (preview != null) ? preview.portraits.get(charId) : null;
+			if(port != null) port.setPosition(info.position[0], info.position[1]);
+			refreshFields();
 		}
 	}
 
-	function updateOffsetKeys() {
-		if(FlxG.keys.justPressed.H)
-		{
-			currentGhosts = (currentGhosts + 1) % 3;
-			ghostLoop.visible = (currentGhosts != 1);
-			ghostIdle.visible = (currentGhosts != 2);
-			ghostLoop.alpha = (currentGhosts == 2 ? 1 : 0.6);
-			ghostIdle.alpha = (currentGhosts == 1 ? 1 : 0.6);
-		}
-
-		if(curSelectedAnim == null || !character.dialogueAnimations.exists(curSelectedAnim)) return;
-
-		var add:Int = FlxG.keys.pressed.SHIFT ? 10 : 1;
-		var animShit:DialogueAnimArray = character.dialogueAnimations.get(curSelectedAnim);
-		var loopX:Int = (FlxG.keys.justPressed.A ? add : 0) - (FlxG.keys.justPressed.D ? add : 0);
-		var loopY:Int = (FlxG.keys.justPressed.W ? add : 0) - (FlxG.keys.justPressed.S ? add : 0);
-		var idleX:Int = (FlxG.keys.justPressed.LEFT ? add : 0) - (FlxG.keys.justPressed.RIGHT ? add : 0);
-		var idleY:Int = (FlxG.keys.justPressed.UP ? add : 0) - (FlxG.keys.justPressed.DOWN ? add : 0);
-		if(loopX == 0 && loopY == 0 && idleX == 0 && idleY == 0) return;
-
-		animShit.loop_offsets[0] += loopX;
-		animShit.loop_offsets[1] += loopY;
-		animShit.idle_offsets[0] += idleX;
-		animShit.idle_offsets[1] += idleY;
-		markPortraitEdited();
-		offsetLoopText.text = 'Loop: ' + animShit.loop_offsets;
-		offsetIdleText.text = 'Idle: ' + animShit.idle_offsets;
-		ghostLoop.offset.set(animShit.loop_offsets[0], animShit.loop_offsets[1]);
-		ghostIdle.offset.set(animShit.idle_offsets[0], animShit.idle_offsets[1]);
+	function arrowMove():Array<Float>
+	{
+		var step:Float = FlxG.keys.pressed.SHIFT ? 10 : 1;
+		return [(FlxG.keys.justPressed.RIGHT ? step : 0) - (FlxG.keys.justPressed.LEFT ? step : 0),
+			(FlxG.keys.justPressed.DOWN ? step : 0) - (FlxG.keys.justPressed.UP ? step : 0)];
 	}
 
-	function exitEditor() {
-		if(!unsavedProgress)
+	function updateOffsetKeys()
+	{
+		var move:Array<Float> = arrowMove();
+		if(move[0] == 0 && move[1] == 0) return;
+
+		var anim:DialogueAnimation = null;
+		if(UI_box.selectedName == 'Character') anim = animation();
+		else if(character().animations != null)
+			for (other in character().animations)
+				if(other.name == scene().portrait) anim = other;
+		if(anim == null) return;
+
+		anim.offsets = setPoint(anim.offsets, 0, pointOf(anim.offsets, 0, 0) - move[0], 0);
+		anim.offsets = setPoint(anim.offsets, 1, pointOf(anim.offsets, 1, 0) - move[1], 0);
+		unsaved = true;
+		if(UI_box.selectedName == 'Character') previewAnimation();
+		else
+		{
+			var port:FlxSprite = (preview != null) ? preview.portraits.get(charId) : null;
+			if(port != null) port.offset.set(anim.offsets[0], anim.offsets[1]);
+		}
+		showMessage('"${anim.name}" Offsets: ${anim.offsets}');
+	}
+
+	function exitEditor()
+	{
+		var leave:Void->Void = function()
 		{
 			@:privateAccess EditorHelper.cancelEditorMusicTimer();
-			FlxG.sound.playMusic(Paths.music('freakyMenu'));
+			DialogueData.characterOverrides.clear();
+			DialogueData.styleOverrides.clear();
 			transitioning = true;
+		};
+		if(!unsaved)
+		{
+			leave();
+			FlxG.sound.playMusic(Paths.music('freakyMenu'));
 			EditorHelper.returnToPreviousState();
 		}
-		else openSubState(new ExitConfirmationPrompt(function() {
-			@:privateAccess EditorHelper.cancelEditorMusicTimer();
-			transitioning = true;
-		}));
+		else openSubState(new ExitConfirmationPrompt(leave));
 	}
 
-	function showMessage(text:String, ?error:Bool = false) {
+	function showMessage(text:String, ?error:Bool = false)
+	{
 		messageText.text = text;
-		messageText.y = FlxG.height - messageText.height - 8;
 		messageText.color = error ? FlxColor.RED : FlxColor.WHITE;
 		messageText.alpha = 1;
 		FlxTween.cancelTweensOf(messageText);
-		FlxTween.tween(messageText, {alpha: 0}, 1, {startDelay: 2});
+		FlxTween.tween(messageText, {alpha: 0}, 1, {startDelay: 2.5});
 	}
 
-	function loadDialogue() {
+	var upperBox:PsychUIBox;
+	var antialiasButton:PsychUIButton;
+	function addUpperMenu()
+	{
+		upperBox = new PsychUIBox(0, 0, 80, 120, ['File']);
+		upperBox.scrollFactor.set();
+		upperBox.isMinimized = true;
+		upperBox.minimizeOnFocusLost = true;
+		upperBox.canMove = false;
+		upperBox.bg.visible = false;
+		upperBox.cameras = [camHUD];
+		add(upperBox);
+
+		var entries:Array<Array<Dynamic>> = [
+			['  Save (Ctrl+S)', saveDialogue],
+			['  Load from JSON', loadDialogue],
+			['  Load Template', newDialogue],
+			['  Antialiasing: ON', toggleAntialiasing],
+			['  Exit (Esc)', exitEditor]
+		];
+		var menu = upperBox.getTab('File').menu;
+		var panel:FlxSprite = new FlxSprite().makeGraphic(200, entries.length * 20 + 2, FlxColor.BLACK);
+		panel.alpha = 0.8;
+		menu.add(panel);
+		for (i => entry in entries)
+		{
+			var action:Void->Void = entry[1];
+			var entryButton:PsychUIButton = new PsychUIButton(0, i * 20, entry[0], function() {
+				upperBox.isMinimized = true;
+				action();
+			}, 200);
+			entryButton.text.alignment = LEFT;
+			if(i == entries.length - 1) entryButton.text.color = FlxColor.RED;
+			if(i == 3) antialiasButton = entryButton;
+			menu.add(entryButton);
+		}
+		refreshAntialiasButton();
+	}
+
+	function toggleAntialiasing()
+	{
+		data.antialiasing = (data.antialiasing == false) ? null : false;
+		if(data.antialiasing == null) Reflect.deleteField(data, 'antialiasing');
+		refreshAntialiasButton();
+		changed(true);
+	}
+
+	function refreshAntialiasButton()
+	{
+		if(antialiasButton != null) antialiasButton.text.text = '  Antialiasing: ' + ((data.antialiasing == false) ? 'OFF' : 'ON');
+	}
+
+	function newDialogue()
+	{
+		var reset:Void->Void = function()
+		{
+			loadTemplate();
+			refreshAntialiasButton();
+			refreshFields();
+			rebuildPreview();
+			showMessage('Template Loaded.');
+		};
+		if(unsaved) openSubState(new Prompt('Changes were not saved.\nAre you sure?', reset));
+		else reset();
+	}
+
+	function loadDialogue()
+	{
 		if(!fileDialog.completed) return;
-		fileDialog.open('dialogue.json', 'Load Dialogue', null, function() {
+		fileDialog.open('dialogue.json', 'Load Dialogue', null, function()
+		{
 			try
 			{
-				var loaded:DialogueFile = cast Json.parse(fileDialog.data);
-				if(loaded.dialogue != null && loaded.dialogue.length > 0)
+				var loaded:Dynamic = Json.parse(fileDialog.data);
+				if(DialogueData.validFile(loaded))
 				{
-					dialogueFile = loaded;
-					curSelected = 0;
-					changeText();
-					unsavedProgress = false;
+					editedCharacters.clear();
+					DialogueData.characterOverrides.clear();
+					DialogueData.styleOverrides.clear();
+					setDialogue(loaded);
+					unsaved = false;
+					refreshAntialiasButton();
+					refreshFields();
+					rebuildPreview();
 					showMessage('Loaded: ' + Path.withoutDirectory(fileDialog.path));
 					return;
 				}
 			}
 			catch(e:Dynamic) {}
-			showMessage('ERROR: Not a valid dialogue file.', true);
+			showMessage('ERROR: Invalid Dialogue file', true);
 		});
 	}
 
-	function loadPortrait() {
+	function loadCharacter()
+	{
 		if(!fileDialog.completed) return;
-		fileDialog.open(null, 'Load Portrait', null, function() {
+		fileDialog.open(null, 'Load Dialogue Character', null, function()
+		{
 			try
 			{
-				var loaded:DialogueCharacterFile = cast Json.parse(fileDialog.data);
-				if(loaded.dialogue_pos != null)
+				var loaded:DialogueCharacterData = cast Json.parse(fileDialog.data);
+				if(loaded != null && loaded.portrait != null)
 				{
-					var name:String = Path.withoutExtension(Path.withoutDirectory(fileDialog.path));
-					editedPortraits.set(name, loaded);
-					dialogueFile.dialogue[curSelected].portrait = name;
-					portraitInputText.text = name;
-					unsavedProgress = true;
+					var id:String = Path.withoutExtension(Path.withoutDirectory(fileDialog.path));
+					if(loaded.animations == null) loaded.animations = [];
+					editedCharacters.set(id, loaded);
+					DialogueData.characterOverrides.set(id, loaded);
+					charId = id;
 					curAnim = 0;
-					loadPortraitFile(name);
-					reloadText(false);
-					updateTextBox();
-					showMessage('Loaded portrait: $name');
+					changed(true);
+					showMessage('Loaded Character: $id');
 					return;
 				}
 			}
 			catch(e:Dynamic) {}
-			showMessage('ERROR: Not a valid portrait file.', true);
+			showMessage('ERROR: Invalid Dialogue character', true);
 		});
 	}
 
-	function saveDialogue() {
+	function saveDialogue()
+	{
 		if(!fileDialog.completed) return;
-		fileDialog.save('dialogue.json', Json.stringify(dialogueFile, '\t'), function() {
-			var count:Int = Lambda.count(editedPortraits);
-			var saved:Int = savePortraits(fileDialog.path);
-			if(saved < count)
-			{
-				showMessage('ERROR: Dialogue saved, but ${count - saved} portrait(s) not saved.', true);
-				return;
-			}
-			unsavedProgress = false;
-			var message:String = 'Saved: ' + Path.withoutDirectory(fileDialog.path);
-			if(saved > 0) message += ' + $saved portrait' + (saved == 1 ? '' : 's');
-			showMessage(message);
+		data.style = styleName;
+		fileDialog.save('dialogue.json', Json.stringify(data, '\t'), function()
+		{
+			var saved:Int = saveExtras(fileDialog.path);
+			unsaved = false;
+			updateInfo();
+			showMessage('Saved: ' + Path.withoutDirectory(fileDialog.path) + ', style, $saved character' + (saved == 1 ? '' : 's'));
 		}, null, function() showMessage('ERROR: Dialogue not saved.', true));
 	}
 
-	function savePortraits(dialoguePath:String):Int {
+	function saveExtras(dialoguePath:String):Int
+	{
 		#if sys
 		if(dialoguePath == null || dialoguePath.length < 1) return 0;
 		var normalized:String = dialoguePath.replace('\\', '/');
 		var dataIndex:Int = normalized.lastIndexOf('/data/');
-		var folder:String = (dataIndex > -1) ? normalized.substr(0, dataIndex) + '/images/dialogue' : Path.directory(normalized);
+		var root:String = (dataIndex > -1) ? normalized.substr(0, dataIndex) + '/data/' : Path.directory(normalized) + '/';
+		var charFolder:String = root + DialogueData.CHARACTER_FOLDER;
+		var styleFolder:String = root + DialogueData.STYLE_FOLDER;
 
 		var saved:Int = 0;
-		for (name in [for (key in editedPortraits.keys()) key])
+		try
 		{
-			try
+			if(!FileSystem.exists(styleFolder)) FileSystem.createDirectory(styleFolder);
+			File.saveContent('$styleFolder$styleName.json', Json.stringify(style, '\t'));
+			if(!FileSystem.exists(charFolder)) FileSystem.createDirectory(charFolder);
+			for (id => info in editedCharacters)
 			{
-				if(!FileSystem.exists(folder)) FileSystem.createDirectory(folder);
-				File.saveContent('$folder/$name.json', Json.stringify(editedPortraits.get(name), '\t'));
-				editedPortraits.remove(name);
+				File.saveContent('$charFolder$id.json', Json.stringify(info, '\t'));
 				saved++;
 			}
-			catch(e:Dynamic) trace('Couldn\'t save portrait "$name": $e');
+		}
+		catch(e:Dynamic)
+		{
+			showMessage('ERROR: Could not save style/characters: $e', true);
 		}
 		return saved;
 		#else
 		return 0;
 		#end
+	}
+
+	override function destroy()
+	{
+		DialogueData.characterOverrides.clear();
+		DialogueData.styleOverrides.clear();
+		super.destroy();
 	}
 }

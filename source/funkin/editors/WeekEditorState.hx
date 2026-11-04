@@ -208,7 +208,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		var closeButton:PsychUIButton = new PsychUIButton(196, 6, 'X', function() colorBox.visible = colorBox.active = false, 24, 24);
 
 		colorMenu.add(colorPicker);
-		colorMenu.add(new FlxText(10, colorHexInput.y - 16, 0, 'Hex color:'));
+		colorMenu.add(new FlxText(10, colorHexInput.y - 16, 0, 'Hex Color:'));
 		colorMenu.add(colorHexInput);
 		colorMenu.add(resetButton);
 		colorMenu.add(closeButton);
@@ -386,8 +386,8 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 
 		tab_group.add(new FlxText(10, charImageInputText.y - 18, 0, 'Image:'));
 		tab_group.add(new FlxText(charScaleStepper.x, charScaleStepper.y - 18, 0, 'Scale:'));
-		tab_group.add(new FlxText(10, charIdleInputText.y - 18, 0, 'Idle anim (XML):'));
-		tab_group.add(new FlxText(10, charConfirmInputText.y - 18, 0, 'HEY animation (XML):'));
+		tab_group.add(new FlxText(10, charIdleInputText.y - 18, 0, 'Idle Anim (XML):'));
+		tab_group.add(new FlxText(10, charConfirmInputText.y - 18, 0, 'HEY! Animation (XML):'));
 		tab_group.add(new FlxText(10, charFlipXCheckbox.y + 35, 230, 'CONTROLS\n\nArrow Keys - Change Offset (Shift for x10)\nSpace - Preview "HEY" Animation\nClick on chars to select them.'));
 		tab_group.add(charTypeRadio);
 		tab_group.add(charNameText);

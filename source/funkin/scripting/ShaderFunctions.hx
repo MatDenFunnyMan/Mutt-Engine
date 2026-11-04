@@ -531,7 +531,7 @@ class ShaderFunctions
 			}
 			if(values == null || Type.typeof(values) != TObject)
 			{
-				report('tweenShader: values must be a table, like {intensity = 1}');
+				report('tweenShader: values must be a table (ex. {intensity = 1})');
 				return null;
 			}
 			var targets:Array<ShaderTweenValue> = [];
