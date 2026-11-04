@@ -40,6 +40,23 @@ Oh also yeah this was made to help me save some time for mods and add some cool 
 - Random crashes fixed (audio streaming and loading screen).
 - TONS of bug fixes.
 
+## NEW IN 1.1:
+
+- **Friday Night Funkin' 0.8.6 content** - Erect stages, Pico Mixes, BF Mixes and their cutscenes, ported from [P-Slice](https://github.com/Psych-Slice/P-Slice).
+- **New Freeplay** - a Psych/V-Slice hybrid: ranks, DJ, BF/Pico switch, mod tabs and automatic song previews.
+- **New Modchart Editor** - rebuilt from scratch, with real-time preview and a timeline for modifiers and events.
+- **Revamped Options Menu** - new categories and settings, Lag Adjustment from V-Slice.
+- **Input System** - choose between Psych, Legacy and V-Slice (V-Slice also uses V-Slice style sustains).
+- **Subtitles** for cutscenes and dialogues, plus a "Naughtyness" setting to censor explicit content.
+- **Borderless camera rotation** (like Codename Engine), usable from scripts and from the new "Cam Rotation" event.
+- **New chart events** - Cam Rotation, Cam Speed, Set Camera Bopping, and a Forced option for Cam Follow Pos.
+- Base game songs now use the V-Slice camera movements, converted to Mutt events.
+- **Debug Mode** while testing from the Chart Editor (Ctrl+Shift+Enter): botplay, HUD toggle, soft reset, stop/resume song, free camera and live camera/character/song info.
+- The Chart Editor now brings you back to where you started testing.
+- Lua/HScript fixes - scripting functions are now consistent between gameplay and custom states.
+- Lower memory usage (GPU caching on by default, lighter texture loading).
+- TONS of bug fixes.
+
 **AND MORE!!**
 
 ---
